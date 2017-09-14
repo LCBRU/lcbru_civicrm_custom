@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>SCAD</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Reminder Sent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Letter to GP</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Attended</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Investigation</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Post study information supplied</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Recruit and interview</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Register on study</name>
+          <subject>Interest Registered</subject>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Acknowledgement</name>
+          <subject>Registration acknowledgement</subject>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>2</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Email Participant</name>
+          <subject>Invitation to Take Survey</subject>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>4</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Survey Response Received</name>
+          <subject>SCAD</subject>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>28</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>recruitment</name>
+      <label>Recruitment</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Response received</name>
+          <subject>Clinical assessment</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Email Participant</name>
+          <subject>Invitation to Clinical Assessment</subject>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>clinical_assessment</name>
+      <label>Clinical Assessment</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Recruit and interview</name>
+          <subject>SCAD</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Investigation</name>
+          <subject>Skin Biopsy</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Telephone Participant</name>
+          <subject>Nurse wound check</subject>
+          <reference_activity>Recruit and interview</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Letter to GP</name>
+          <subject>Clinical summary</subject>
+          <reference_activity>Recruit and interview</reference_activity>
+          <reference_offset>90</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Letter to Participant</name>
+          <subject>Clinical summary</subject>
+          <reference_activity>Recruit and interview</reference_activity>
+          <reference_offset>90</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

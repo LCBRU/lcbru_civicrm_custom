@@ -1,0 +1,6 @@
+name = Participant Importer
+description = Tools to import participants
+core = 7.x
+configure = admin/config/content/participant_importer
+dependencies[] = civicrm
+dependencies[] = lcbru

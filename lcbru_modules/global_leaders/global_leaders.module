@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the EMMACE-4 study
+ */
+
+function global_leaders_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_GLOBAL_LEADERS_ID) . '_')) {
+                if (_global_leaders_isInvalidAmazeId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_GLOBAL_LEADERS_ID . " is not valid.  Should be 'GLnnnn' (@'GL' followed by 4 digits)");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _global_leaders_isInvalidAmazeId($value) {
+  return !preg_match('/^GL\d{4}$/', $value);
+}
+
+function global_leaders_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_GLOBAL_LEADERS_ID);
+}

@@ -1,0 +1,21 @@
+<?php
+
+function foami_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_FOAMI_ID') . '_')) {
+                if (foami_isInvalidFastId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_FOAMI_ID . " is not valid.  Should be of the format 'XXnnnn', where 'XX' are 2 letters and 'nnnn' is a 4 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function foami_isInvalidFastId($value) {
+  return !preg_match('/^([a-zA-Z]{2}\d{4})?$/', $value);
+}

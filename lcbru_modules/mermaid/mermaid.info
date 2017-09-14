@@ -1,0 +1,5 @@
+name = Mermaid Study
+description = Mermaid Study Enrollments
+core = 7.x
+configure = admin/config/content/mermaid
+dependencies[] = lcbru

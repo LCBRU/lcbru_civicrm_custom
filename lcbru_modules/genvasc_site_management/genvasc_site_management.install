@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function genvasc_site_management_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function genvasc_site_management_disable() {
+}
+

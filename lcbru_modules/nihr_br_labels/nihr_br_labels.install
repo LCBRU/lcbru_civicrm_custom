@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function nihr_br_labels_schema() {
+  $schema['nihr_br_ids'] =  array(
+
+    'description' => 'The table for used nihr_br IDs.',
+    'fields' => array(
+      'nihr_br_id' => array(
+        'description' => 'nihr_br IDs already used.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      'nihr_br_old_id' => array(
+        'description' => 'The old NIHR ID for this participant.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => FALSE,
+        'default' => 'NULL'),
+      'check_digit' => array(
+        'description' => 'The check letter for the new ID.',
+        'type' => 'char',
+        'length' => 1,
+        'not null' => FALSE,
+        'default' => NULL),
+      ),
+    'primary key' => array('nihr_br_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_enable().
+ */
+function nihr_br_labels_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function nihr_br_labels_disable() {
+}

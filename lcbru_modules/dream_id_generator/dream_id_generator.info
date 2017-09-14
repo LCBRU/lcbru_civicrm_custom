@@ -1,0 +1,4 @@
+name = DREAM study ID blinder / unblinder
+description = Generates unique random imaging IDs for the DREAM study, and allows blinding / unblinding from study IDs to imaging IDs
+core = 7.x
+configure = admin/config/content/dream_id_generator

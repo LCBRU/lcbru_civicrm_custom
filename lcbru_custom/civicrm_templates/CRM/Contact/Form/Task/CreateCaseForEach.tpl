@@ -1,0 +1,1 @@
+{include file="CRM/Case/Form/Case.tpl"}

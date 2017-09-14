@@ -1,0 +1,6 @@
+name = AMAZE Study
+description = Amaze Study Enrollments
+core = 7.x
+configure = admin/config/content/amaze
+dependencies[] = civicrm
+dependencies[] = lcbru

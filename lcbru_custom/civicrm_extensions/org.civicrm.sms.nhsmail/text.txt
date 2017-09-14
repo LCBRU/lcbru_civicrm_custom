@@ -1,0 +1,6 @@
+From: Leicester Cardiovascular BRU <lcbru@nhs.net>
+Subject: THIS IS TEST TEXT GENERATED TO TEST THE NHS MAIL TO SMS GATEWAY
+This is body text, it doesn't get used.
+
+.
+

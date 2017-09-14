@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the Indapamide study
+ */
+
+const INDAPAMIDE_PREMISSION_PRINT_LABELS = 'Indapamide print labels';
+
+function indapamide_permission() {
+  return array(
+    INDAPAMIDE_PREMISSION_PRINT_LABELS => array (
+      'title' => t(INDAPAMIDE_PREMISSION_PRINT_LABELS), 
+      'description' => t(INDAPAMIDE_PREMISSION_PRINT_LABELS),
+    ),
+  );
+}
+
+function indapamide_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_INDAPAMIDE_ID) . '_')) {
+                if (_interval_isInvalidIntervalId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_INDAPAMIDE_ID . " is not valid.  Should be a 8 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _indapamide_isInvalidIntervalId($value) {
+  $idGenerator = new IdGenerator('IndPt');
+
+  return !$idGenerator->validate($value);
+}
+
+function indapamide_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_INDAPAMIDE_ID';
+}
+
+function indapamide_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_INDAPAMIDE_ID':
+            $studyIdGenerator = new IdGenerator('IndPt');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+
+function indapamide_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['Indapamide Pack'] = array(
+      'name' => 'Indapamide Pack',
+      'permission' => INDAPAMIDE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('IndPt'),
+        ),
+      'labels' => array(
+        'EDTA Samples' => array(
+          'id_generator' => new IdGenerator('IndSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 8,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 7.5ml On ice'
+            )
+          ),
+        'SERUM samples' => array(
+          'id_generator' => new IdGenerator('IndSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 4,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'SERUM 4.9ml Room temp'
+            )
+          ),
+        'URINE samples' => array(
+          'id_generator' => new IdGenerator('IndSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 4,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'URINE 50ml On ice'
+            )
+          ),
+
+        'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 4
+          ),
+
+        'Visit 1 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'study_name' => 'Ind Baseline',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 2 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'study_name' => 'Ind 2 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 3 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'study_name' => 'Ind 6 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 4 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'study_name' => 'Ind 10 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        ),
+    );
+}
+
+
+

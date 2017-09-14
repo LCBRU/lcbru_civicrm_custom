@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the EMMACE-4 study
+ */
+
+function amaze_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_AMAZE_ID) . '_')) {
+                if (_amaze_isInvalidAmazeId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_AMAZE_ID . " is not valid.  Should be a 4 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _amaze_isInvalidAmazeId($value) {
+  return !preg_match('/^\d{4}$/', $value);
+}
+
+function amaze_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_AMAZE_ID);
+}

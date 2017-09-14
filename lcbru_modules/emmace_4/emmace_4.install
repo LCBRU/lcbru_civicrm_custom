@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function emmace_4_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function emmace_4_disable() {}

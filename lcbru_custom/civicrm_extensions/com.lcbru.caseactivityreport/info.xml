@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<extension key="com.lcbru.caseactivityreport" type="report">
+  <file>caseactivityreport</file>
+  <name>Case Activity Report</name>
+  <description>A report of activities within a case</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Richard Bramley</author>
+    <email>rab63@le.ac.uk</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">http://FIXME</url>
+    <url desc="Documentation">http://FIXME</url>
+    <url desc="Support">http://FIXME</url>
+    <url desc="Licensing">http://FIXME</url>
+  </urls>
+  <releaseDate>2016-02-26</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.2</ver>
+  </compatibility>
+  <comments>This is a new, undeveloped module</comments>
+  <civix/>
+  <typeInfo>
+    <component>CiviCase</component>
+    <reportUrl>com.lcbru.caseactivityreport</reportUrl>
+  </typeInfo>
+</extension>

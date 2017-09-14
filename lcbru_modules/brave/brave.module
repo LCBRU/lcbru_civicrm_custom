@@ -1,0 +1,195 @@
+<?php
+
+const BRAVE_PREMISSION_PRINT_LABELS = 'print brave labels';
+
+function brave_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_BRAVE_ID') . '_')) {
+                if (brave_isInvalidBraveId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BRAVE_ID . " is not valid.  Should be of the format 'BavPtnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_BRAVE_BRICCS_ID') . '_')) {
+                if (briccs_isInvalidBriccsId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BRAVE_BRICCS_ID . " is not valid.  Should be of the format 'BPtnnnnnnnn', where 'nnnnnnnn' is a 8 digit number");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_BRAVE_FAMILY_ID') . '_')) {
+                if (brave_isInvalidBraveFamilyId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BRAVE_FAMILY_ID . " is not valid.  Should be of the format 'BavFmnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function brave_isInvalidBraveId($value) {
+  $idGenerator = new IdGenerator('BavPt');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function brave_isInvalidBraveFamilyId($value) {
+  $idGenerator = new IdGenerator('BavFm');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function brave_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_BRAVE_ID';
+    $studyIds[] = 'CIVI_FIELD_BRAVE_FAMILY_ID';   
+}
+
+function brave_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['BRAVE Pack'] = array(
+      'name' => 'BRAVE Pack',
+      'permission' => BRAVE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('BavPt'),
+        ),
+      'labels' => array(
+        'family' => array(
+          'id_generator' => new IdGenerator('BavSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 5,
+          'labels_per_id' => 1
+          ),
+        'samples' => array(
+          'id_generator' => new IdGenerator('BavFm'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 7
+          ),
+        'citrate bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CITRATE,
+          'study_name' => 'BAV',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'serum bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_SERUM,
+          'study_name' => 'BAV',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          )
+        ),
+    );
+  $definitions['BRAVE Poland Pack'] = array(
+      'name' => 'BRAVE Poland Pack',
+      'permission' => BRAVE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('BavPl'),
+        ),
+      'labels' => array(
+        'family' => array(
+          'id_generator' => new IdGenerator('BavSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 5,
+          'labels_per_id' => 1
+          ),
+        'samples' => array(
+          'id_generator' => new IdGenerator('BavFm'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 7
+          ),
+        'citrate bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CITRATE_POLISH,
+          'study_name' => 'BAV PL',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'serum bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_SERUM_POLISH,
+          'study_name' => 'BAV PL',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          )
+        ),
+    );
+  $definitions['BRAVE External Pack'] = array(
+      'name' => 'BRAVE External Pack',
+      'permission' => BRAVE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('BavXPt'),
+        ),
+      'labels' => array(
+        'family' => array(
+          'id_generator' => new IdGenerator('BavSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 3,
+          'labels_per_id' => 1
+          ),
+        'samples' => array(
+          'id_generator' => new IdGenerator('BavFm'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 4
+          ),
+        'edta bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_EDTA_EXTERNAL,
+          'study_name' => 'BAV Ext',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          )
+        ),
+    );
+}
+
+function brave_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_BRAVE_ID':
+            $studyIdGenerator = new IdGenerator('BavPt');
+            return $studyIdGenerator->next();
+            break;
+        case 'CIVI_FIELD_BRAVE_FAMILY_ID':
+            $studyIdGenerator = new IdGenerator('BavFm');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+
+/**
+ * Implements hook_permission()
+ */
+function brave_permission() {
+  return array(
+    BRAVE_PREMISSION_PRINT_LABELS => array(
+      'title' => t('Print BRAVE labels'),
+      'description' => t('Create and print BRAVE ID labels.'),
+    ),
+  );
+}
+
+function brave_lcbru_getStudyIdFieldName($studyId) {
+    if (!brave_isInvalidBraveId($studyId)) {
+        return 'CIVI_FIELD_BRAVE_ID';
+    } elseif (!brave_isInvalidBraveFamilyId($studyId)) {
+        return 'CIVI_FIELD_BRAVE_FAMILY_ID';   
+    }
+}

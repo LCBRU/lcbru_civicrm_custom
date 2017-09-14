@@ -1,0 +1,7 @@
+name = FAST Study
+description = FAST Study Enrollments
+core = 7.x
+configure = admin/config/content/fast
+dependencies[] = lcbru
+dependencies[] = label_printer
+dependencies[] = participant_importer

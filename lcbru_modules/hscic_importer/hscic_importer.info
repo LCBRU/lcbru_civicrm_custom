@@ -1,0 +1,14 @@
+name = HSCIC Importer
+description = Import Details from the HSCIC website
+core = 7.x
+configure = admin/config/content/hscic_importer
+files[] = HscicDownloader.php
+files[] = HscicDownloadProcessor.php
+files[] = IHscicUpdater.php
+files[] = PracticeHscicUpdater.php
+files[] = BranchHscicUpdater.php
+files[] = GPMembershipHscicUpdater.php
+files[] = GPHscicUpdater.php
+files[] = IHscicLogger.php
+files[] = HscicLogger.php
+dependencies[] = lcbru

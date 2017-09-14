@@ -1,0 +1,6 @@
+name = BRICCS Study
+description = Briccs Study Enrollments
+core = 7.x
+configure = admin/config/content/briccs
+dependencies[] = civicrm
+dependencies[] = lcbru

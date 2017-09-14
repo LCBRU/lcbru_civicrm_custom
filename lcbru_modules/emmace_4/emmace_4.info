@@ -1,0 +1,7 @@
+name = EMMACE4
+description = Manage participants in the EMMACE-4 study.
+core = 7.x
+configure = admin/config/content/emmace4
+dependencies[] = civicrm
+dependencies[] = lcbru
+

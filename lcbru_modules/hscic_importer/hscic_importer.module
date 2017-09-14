@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * Drupal Cron Job Hook
+ * 
+ * This method is run every time the Drupal cron runs
+ */
+
+
+const HSCIC_CONFIG_PERMISSION = 'administer hscic module';
+
+const HSCIC_CONFIG_CHECK_CHANGES = 'hscic_importer_check_changes';
+const HSCIC_CONFIG_RUN_NOW = 'hscic_importer_run_now';
+
+function hscic_importer_cron() {
+    $helper = new CronHelper("HscicImport");
+    $helper->runCron(function() {
+            _hscic_current_files();
+        });
+}
+
+function _hscic_current_files() {
+
+    $logger = new HscicLogger("HSCIC Current File Import");
+    $importer = new HscicDownloadProcessor($logger, variable_get(HSCIC_CONFIG_CHECK_CHANGES, 1));
+    $importer->processFile(
+        new HscicDownloader('https://digital.nhs.uk/media/372/epraccur/zip/epraccur'),
+        'epraccur.csv',
+        new PracticeHscicUpdater($logger, _hscic_importer_get_ccg_codes(), _hscic_importer_get_practice_codes())
+        );
+
+    $practiceIds = _hscic_importer_get_practice_codes();
+
+    $importer->processFile(
+        new HscicDownloader('https://digital.nhs.uk/media/393/ebranchs/zip/ebranchs'),
+        'ebranchs.csv',
+        new BranchHscicUpdater($logger, $practiceIds)
+        );
+
+    $importer->processFile(
+        new HscicDownloader('https://digital.nhs.uk/media/370/egpcur/zip/egpcur'),
+        'egpcur.csv',
+        new GPHscicUpdater($logger, $practiceIds)
+        );
+
+    $importer->processFile(
+        new HscicDownloader('https://digital.nhs.uk/media/378/epcmem/zip/epcmem'),
+        'epcmem.csv',
+        new GPMembershipHscicUpdater($logger, $practiceIds)
+        );
+
+    $logger->output();
+}
+
+function _hscic_importer_get_ccg_codes() {
+    $ccgCodeCvName = lcbru_get_custom_field_id_name(CIVI_FIELD_CCG_CODE);
+    return array_map(
+        function($ccg) use ($ccgCodeCvName) { return $ccg[$ccgCodeCvName]; }, 
+        lcbru_civicrm_api_getall(
+            'Contact',
+            array(
+                "contact_sub_type" => str_replace(" ","_",CIVI_SUBTYPE_CCG),
+                "return" => $ccgCodeCvName
+                )
+            )
+        );
+}
+
+function _hscic_importer_get_practice_codes() {
+    $practiceCodeCvName = lcbru_get_custom_field_id_name(CIVI_FIELD_PRACTICE_CODE);
+    $practices = lcbru_civicrm_api_getall(
+            'Contact',
+            array(
+                "contact_sub_type" => str_replace(" ","_",CIVI_SUBTYPE_SURGERY),
+                "return" => "$practiceCodeCvName"
+                )
+            );
+
+    $result = array();
+
+    foreach ($practices as $practice) {
+        $result[$practice[$practiceCodeCvName]] = $practice['id'];
+    }
+
+    return $result;
+}
+
+function hscic_importer_menu() {
+  $items['admin/config/content/hscic_importer'] = array(
+    'title' => 'HSCIC Importer Configuration',
+    'description' => 'Configures the hscic GP and Practice import for civicrm',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_hscic_importer_config_form'),
+    'access arguments' => array(HSCIC_CONFIG_PERMISSION),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/content/hscic_importer/run_now'] = array(
+    'title' => 'Run HSCIC Importer',
+    'description' => 'Load deatils from HSCIC.',
+    'page callback' => '_hscic_importer_config_run_now',
+    'access arguments' => array(HSCIC_CONFIG_PERMISSION),
+    'type' => MENU_CALLBACK,
+    'expanded' => TRUE,
+  );
+
+  return $items;
+}
+
+function _hscic_importer_config_run_now() {
+  set_time_limit(500);
+  _hscic_current_files();
+  drupal_goto('admin/config/content/hscic_importer');
+}
+
+function _hscic_importer_config_form($form, &$form_state) {
+
+  $helper = new CronHelper("HscicImport");
+
+  $helper->addSettingsToForm($form);
+
+  $form[HSCIC_CONFIG_CHECK_CHANGES] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Only process HSCIC Import files when they have changed.'),
+    '#default_value' => variable_get(HSCIC_CONFIG_CHECK_CHANGES, 1),
+  );
+
+  $form[HSCIC_CONFIG_RUN_NOW] = array(
+    '#type' => 'link',
+    '#title' => t('Run Now.'),
+    '#href' => "admin/config/content/hscic_importer/run_now",
+  );
+
+  return system_settings_form($form);
+}
+
+function hscic_importer_permission() {
+  return array(
+    HSCIC_CONFIG_PERMISSION => array(
+      'title' => t('Administer HSCIC Importer module'),
+      'description' => t('Allow users to access HSCIC Importer module configuration.'),
+      'restrict access' => TRUE,
+      'warning' => t('Allows HSCIC Importer module to be configured.'),
+    ),
+  );
+}
+

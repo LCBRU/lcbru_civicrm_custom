@@ -1,0 +1,8 @@
+<?php
+function preeclampsia_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function preeclampsia_disable() {
+}

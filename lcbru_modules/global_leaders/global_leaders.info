@@ -1,0 +1,6 @@
+name = Global Leaders Study
+description = Global Leaders Study Enrollments
+core = 7.x
+configure = admin/config/content/global_leaders
+dependencies[] = civicrm
+dependencies[] = lcbru

@@ -1,0 +1,366 @@
+<?php
+
+/**
+ * @file
+ * The LCBRU module exists only to pre-populate a civicrm installation with the necessary data to function as the LCBRU intended.
+ * The module file therefore doesn't do anything. The important stuff here is in the lcbru.install file.
+ */
+
+include_once "lib/init.php";
+require_once("LcbruTypeCreator.php");
+
+const LCBRU_CASE_TYPE_NAME_HOOK = 'lcbru_case_type_name';
+
+
+/**
+ * For testing purposes, this function forces the re-running of all the init_required stuff as though the module was being installed for the first time.
+ */
+
+function lcbru_re_initialize() {
+	civicrm_initialize();
+	try {
+                init_required();
+                // Not implemented yet - creating the xml for the case type definitions, or copying an xml file into the config directory
+ 
+                drupal_set_message("LCBRU extension for CiviCRM was setup again successfully.");
+                
+        }
+        catch(Exception $ex) {
+                drupal_set_message("An unexpected error occured during the LCBRU extension setup replay: ".$ex->getMessage(),"error");
+        }
+	
+}
+
+ 
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function lcbru_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#lcbru":
+      return '<p>' . t("Extends the CiviCRM module to provide LCBRU-specific configuration. The module should only need to be installed. After that, it's like a platypus. It doesn't do much.") . '</p>'
+        . '<p>' . t("However, for testing purposes, the configuration page allows for the module's initialization function to be re-run manually. This will give *interesting* results and should not be done on a production machine.") . '</p>';
+      break;
+  }
+} 
+
+
+/**
+ * Implements hook_permission() to restrict access to the configuration page.
+ */
+function lcbru_permission() {
+  return array(
+    'administer lcbru module' => array(
+      'title' => t('Administer LCBRU module'),
+      'description' => t('Allow users to re-run LCBRU module initialization.'),
+      'restrict access' => TRUE,
+      'warning' => t('Allows LCBRU initialization of civicrm to be re-run, dangerous in a production setting.'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function lcbru_menu() {
+  watchdog(__FUNCTION__, 'starting');
+  $items = array();
+  $items['admin/config/content/lcbru'] = array(
+    'title' => 'LCBRU configuration',
+    'description' => 'Configures civicrm to work for LCBRU',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lcbru_form'),
+    'access arguments' => array('administer lcbru module'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  watchdog(__FUNCTION__, 'finishing');
+  return $items;
+}
+
+/**
+ * Page callback: LCBRU configuration page - allows re-running of the initialization function.
+ *
+ * @see lcbru_menu()
+ */
+function lcbru_form($form, &$form_state) {
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Recreate LCBRU types'),
+    '#prefix' => '<p>' . t('Recreates LCBRU types') . '</p>',
+    '#submit' => array('_lcbru_recreate_types_button_pressed'),
+    '#description' => t('Recreates the types required for the LCBRU Import modules.'),
+  );
+
+  $form['lcbru_import_except_recipient_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email Recipients for Participant Import Errors'),
+    '#default_value' => variable_get('lcbru_import_except_recipient_email', LCBRU_DEFAULT_EMAIL_RECIPIENT),
+    '#size' => 200,
+    '#maxlength' => 200,
+    '#description' => t('The email addresses to which the errors from the participant import processes will be sent.  Separate email addresses with commas.'),
+    '#required' => FALSE,
+  );
+
+  return system_settings_form($form);
+}
+
+function lcbru_form_validate($form, &$form_state) {
+  if (isInvalidEmailAddress($form_state['values']['lcbru_import_except_recipient_email'])) {
+    form_set_error('',t('Invalid email address.'));  
+  }
+}
+
+/**
+ * What happens when you hit the init button.
+ */
+function lcbru_form_config_button_pressed() {
+  drupal_set_message(t('You hit the REPEAT CONFIG button, now running the LCBRU civicrm configurations again.'));
+  lcbru_init_required();
+  drupal_set_message(t('LCBRU civicrm configurations completed.'));
+}
+
+/**
+ * What happens when you hit the delete button.
+ */
+function lcbru_form_delete_button_pressed() {
+  drupal_set_message(t('You hit the DELETE CONFIG button, now deleting the LCBRU civicrm configurations.'));
+  lcbru_delete_init();
+  drupal_set_message(t('LCBRU civicrm configurations deleted.'));
+}
+
+/**
+ * What happens when you hit the import titles button.
+ */
+function lcbru_form_import_titles_button_pressed() {
+  lcbru_import_titles();
+  drupal_set_message(t('LCBRU import titles routine completed.'));
+}
+
+/**
+ * What happens when you hit the delete titles button.
+ */
+function lcbru_form_delete_titles_button_pressed() {
+  if (_lcbru_new_titles_in_use()) {
+    drupal_set_message(t('<strong>Titles not Deleted</strong><br/>PMI titles are in use that do not have a default equivalent.'), 'warning');
+  } else {
+    lcbru_delete_titles();
+    drupal_set_message(t('LCBRU delete titles routine completed.'));
+  }
+}
+
+function lcbru_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+  $contactFormBeginning = 'CRM_Contact_Form_';
+
+  if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+    foreach ($fields as $key => $field) {
+      if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_NHS_NUMBER) . '_')) {
+        if (isInvalidNhsNumber($field)) {
+          $errors[$key] = ts(CIVI_FIELD_NHS_NUMBER . ' is not a valid NHS Number.');
+        }
+      }
+      if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_S_NUMBER) . '_')) {
+        if (strlen($field) > 0) {
+          if (isInvalidUhlSystemNumber($field)) {
+            $errors[$key] = ts(CIVI_FIELD_S_NUMBER . ' is not a valid S Number.');
+          }
+        }
+      }
+    }
+  }
+  return;
+}
+
+function _lcbru_recreate_types_button_pressed() {
+    drupal_set_message(t('Recreating LCBRU types starting...'));
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+    drupal_set_message(t('Recreating LCBRU types completed.'));
+}
+
+function lcbru_civicrm_pre( $op, $objectName, $id, &$params ) {
+  if ($objectName == 'Individual') {
+    $nhsNumberName = lcbru_get_custom_field_id_name(CIVI_FIELD_NHS_NUMBER);
+    $sNumberName = lcbru_get_custom_field_id_name(CIVI_FIELD_S_NUMBER);
+    foreach ($params as $key => $field) {
+        if (lcbru_string_starts_with($key, $nhsNumberName)) {
+            $params[$key] = getFormattedNhsNumber($field);
+        }
+        if (lcbru_string_starts_with($key, $sNumberName)) {
+            $params[$key] = getFormattedUhlSystemNumber($field);
+        }
+    }
+  }
+}
+
+function lcbru_import_titles() {
+  _lcbru_create_PMI_titles();
+  _lcbru_change_contact_title_from_default_to_PMI();
+  _lcbru_Default_titles_change_IsActive("0");
+}
+
+function _lcbru_create_PMI_titles() {
+    $titlesOptionGroup = get_civi_option_group(array("name" => "individual_prefix"));
+
+    foreach(unserialize(CIVI_LCBRU_TITLES) as $title) {
+      $existingTitle = get_civi_option_value($titlesOptionGroup, $title, TRUE);
+
+      if (empty($existingTitle)) {
+        create_civi_option_value($titlesOptionGroup, array("name" => $title));
+      }
+    }
+}
+
+function _lcbru_Default_titles_change_IsActive($is_active) {
+    $titlesOptionGroup = get_civi_option_group(array("name" => "individual_prefix"));
+
+    foreach(unserialize(CIVI_LCBRU_TITLE_CROSS_REFERENCE) as $defaultTitleName => $pmiTitleName) {
+      if (get_civi_option_value($titlesOptionGroup, $defaultTitleName, TRUE)) {
+        update_civi_option_value(array("label" => $defaultTitleName, "option_group_id" => $titlesOptionGroup['id']), array("is_active" => $is_active));
+      }
+    }
+}
+
+function _lcbru_change_contact_title_from_default_to_PMI() {
+    foreach(unserialize(CIVI_LCBRU_TITLE_CROSS_REFERENCE) as $defaultTitleName => $pmiTitleName) {
+      _lcbru_swap_contact_title_name($defaultTitleName, $pmiTitleName);
+    }
+}
+
+function _lcbru_swap_contact_title_name($oldTitleName, $newTitleName) {
+  $titlesOptionGroup = get_civi_option_group(array("name" => "individual_prefix"));
+
+  $oldTitle = get_civi_option_value($titlesOptionGroup, $oldTitleName, TRUE);
+
+  if (empty($oldTitle)) {
+    return;
+  }
+
+  $newTitle = get_civi_option_value($titlesOptionGroup, $newTitleName);
+
+  $contacts = civicrm_api('Contact','get',array('version' => '3', 'prefix_id' => $oldTitle["value"]));
+
+  foreach($contacts["values"] as $contact_id => $contact_details) {
+    $contacts = civicrm_api('Contact','create',array('version' => '3', 'contact_id' => $contact_id, 'prefix_id' => $newTitle["value"]));
+  }
+}
+
+function lcbru_delete_titles() {
+  _lcbru_Default_titles_change_IsActive("1");
+  _lcbru_change_contact_title_from_PMI_to_default();
+  _lcbru_delete_PMI_titles();
+}
+
+function _lcbru_delete_PMI_titles() {
+    foreach(unserialize(CIVI_LCBRU_TITLES) as $title) {
+      delete_civi_option_value(array("label" => $title));
+    }
+}
+
+function _lcbru_change_contact_title_from_PMI_to_default() {
+    foreach(unserialize(CIVI_LCBRU_TITLE_CROSS_REFERENCE) as $defaultTitleName => $pmiTitleName) {
+      _lcbru_swap_contact_title_name($pmiTitleName, $defaultTitleName);
+    }
+}
+
+function _lcbru_new_titles_in_use(){
+  $allUsageCount = 0;
+  $titlesOptionGroup = get_civi_option_group(array("name" => "individual_prefix"));
+
+  foreach(array_diff(unserialize(CIVI_LCBRU_TITLES), unserialize(CIVI_LCBRU_TITLE_CROSS_REFERENCE)) as $prefixName) {
+    $prefix = get_civi_option_value($titlesOptionGroup, $prefixName);
+    $prefixUsage = civicrm_api('Contact','getcount',array('version' => '3', 'prefix_id' => $prefix["value"]));
+    $allUsageCount += $prefixUsage;
+  }
+
+  return ($allUsageCount != 0);
+}
+
+function lcbru_html_head_alter(&$head_elements) {
+    $head_elements['lcbru_meta_iecompatible'] = array(
+      '#tag' => 'meta',
+      '#type' => 'html_tag',
+      '#attributes' => array(
+        'http-equiv' => 'X-UA-Compatible',
+        'content' => 'IE=edge'
+      )
+    );
+}
+
+function pp($stuff, $header=null) {
+  $h = '';
+
+  if ($header) {
+    $h = "<h1>$header</h1>";
+  }
+
+  drupal_set_message($h . '<pre>' . print_r($stuff, True) . '</pre>');
+}
+
+function _lcbru_pre_render_blank_date(&$element)
+{
+/*
+ * And this is why I hate PHP or Drupal or both!
+ * Seriously, I have to add this just to have an empty date field!
+ */
+    // Don't put empty values if a date has already been set
+    if (!empty($element['#default_value'])) {
+      if (date('Ymd') !== _lcbru_drupal_form_date_to_YMD($element['#default_value'])) {
+          return $element;
+      }
+    }
+    if (!empty($element['#value'])) {
+      if (date('Ymd') !== _lcbru_drupal_form_date_to_YMD($element['#value'])) {
+          return $element;
+      }
+    }
+
+    // Loop through each field, add empty option and unset value
+    foreach (array('year', 'month', 'day') as $field) {
+        if (!isset($element[$field])) {
+            continue;
+        }
+
+        unset($element[$field]['#value']);
+        $element[$field]['#default_value'] = '0';
+        $element[$field]['#options'] = array(
+            '0' => '',
+        ) + $element[$field]['#options'];
+    }
+
+    return $element;
+}
+
+function _lcbru_drupal_form_date_to_YMD($date) {
+  Guard::AssertArray_HasFields('$date', $date, array('day', 'month', 'year'));
+  return $date['year'] . str_pad($date['month'], 2, "0", STR_PAD_LEFT) . str_pad($date['day'], 2, "0", STR_PAD_LEFT);
+}
+
+function lcbru_get_GUID(){
+    if (function_exists('com_create_guid')){
+        return com_create_guid();
+    }
+    else {
+        mt_srand((double)microtime()*10000);//optional for php 4.2.0 and up.
+        $charid = strtoupper(md5(uniqid(rand(), true)));
+        $hyphen = chr(45);// "-"
+        $uuid = chr(123)// "{"
+            .substr($charid, 0, 8).$hyphen
+            .substr($charid, 8, 4).$hyphen
+            .substr($charid,12, 4).$hyphen
+            .substr($charid,16, 4).$hyphen
+            .substr($charid,20,12)
+            .chr(125);// "}"
+        return $uuid;
+    }
+}

@@ -1,0 +1,7 @@
+name = ICE message viewer
+description = Access the GENVASC specimen messages received from the ICE system.
+core = 7.x
+configure = admin/config/content/ice_messaging
+dependencies[] = datatables
+dependencies[] = lcbru
+

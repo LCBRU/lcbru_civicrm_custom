@@ -1,0 +1,274 @@
+<?php
+
+function test_data_menu() {
+  watchdog(__FUNCTION__, 'starting');
+  $items = array();
+  $items['admin/config/content/test_data'] = array(
+    'title' => 'Test Data Reinstall',
+    'description' => 'Reinstall the Test Data',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('test_data_reinstall_form'),
+    'access arguments' => array('administer'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  watchdog(__FUNCTION__, 'finishing');
+  return $items;
+}
+
+/**
+ * Page callback: LCBRU configuration page - allows re-running of the initialization function.
+ *
+ * @see lcbru_menu()
+ */
+function test_data_reinstall_form($form, &$form_state) {
+
+  $form['genvasc'] = array(
+    '#type' => 'submit',
+    '#value' => t('Install GENVASC test data'),
+    '#prefix' => '<p>' . t('Installs the test data for GENVASC') . '</p>',
+    '#submit' => array('test_data_install_genvasc'),
+    '#description' => t('Creates the test data for the GENVASC study.'),
+  );
+
+  $form['bioresource'] = array(
+    '#type' => 'submit',
+    '#value' => t('Install BIORESOURCE test data'),
+    '#prefix' => '<p>' . t('Installs the test data for BOIRESOURCE') . '</p>',
+    '#submit' => array('test_data_install_bioresource'),
+    '#description' => t('Creates the test data for the BOIRESOURCE study.'),
+  );
+
+  return system_settings_form($form);
+}
+
+function test_data_install_genvasc() {
+  drupal_set_message(t('Installing GENVASC test data'));
+  create_some_genvasc_participants();
+  drupal_set_message(t('GENVASC test data installation completed.'));
+}
+
+function create_some_genvasc_participants() {
+    civicrm_initialize();
+
+    $caseh = new CaseHelper();
+    $genvascCaseType = $caseh->getCaseTypeFromName(CIVI_CASE_TYPE_GENVASC);
+
+	$enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345670',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345671',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345672',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345673',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345674',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345675',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345676',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345677',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345678',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345679',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345680',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345681',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345682',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345683',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345684',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345685',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+    $enrolments[] = array_merge(_test_data_get_participant(1), array(
+		'GENVASC_ID' => 'GPt12345686',
+		'CIVI_FIELD_GENVASC_INVOICE_YEAR' => '2012-13',
+		'CIVI_FIELD_GENVASC_INVOICE_QUARTER' => 'Q3',
+		'CIVI_FIELD_GENVASC_INVOICE_REIMBURSED' => 'Yes',
+		CIVI_REL_RECRUITING_SITE => 'C82088',
+	));
+
+	$pi = new ParticipantImporter($genvascCaseType['id'], True, True);
+	$relationshipH = new RelationshipHelper();
+	$contactH = new ContactHelper();
+
+	foreach ($enrolments as $e) {
+		$ids = $pi->importSingle($e);
+
+		$recruiting_practice = $contactH->getSurgeryByCode($e[CIVI_REL_RECRUITING_SITE]);
+
+		$relationshipH->createRelationship($ids['contact_id'], $recruiting_practice['id'], CIVI_REL_RECRUITING_SITE, $ids['case_id']);
+	}
+}
+
+function test_data_install_bioresource() {
+  drupal_set_message(t('Installing BIORESOURCE test data'));
+  create_some_bioresource_participants();
+  drupal_set_message(t('BIORESOURCE test data installation completed.'));
+}
+
+function create_some_bioresource_participants() {
+    civicrm_initialize();
+
+    $caseh = new CaseHelper();
+    $caseType = $caseh->getCaseTypeFromName(CIVI_CASETYPE_BIORESOURCE);
+
+    $enrolments[] = array_merge(_test_data_get_participant(2), array(
+        'NIHR_BioResource_ID' => 'BR6401593C',
+        'CIVI_FIELD_BIORESOURCE_LEGACY_ID' => 'BR64015933',
+    ));
+    $enrolments[] = array_merge(_test_data_get_participant(3), array(
+        'NIHR_BioResource_ID' => 'BR9721043A',
+        'CIVI_FIELD_BIORESOURCE_LEGACY_ID' => 'BR97210432',
+    ));
+
+    $pi = new ParticipantImporter($caseType['id'], True, True);
+    $ids = $pi->importFromArray($enrolments);
+}
+
+function _test_data_get_participant($i) {
+    $participants = array(
+        1 => array(
+            'NHS_number' => '1111111111',
+            'first_name' => 'Wilbur',
+            'last_name' => 'Whateley',
+            'birth_date' => '19460816',
+        ),
+        2 => array(
+            'NHS_number' => '2222222222',
+            'first_name' => 'Asenath',
+            'last_name' => 'Waite',
+            'birth_date' => '19520630',
+        ),
+        3 => array(
+            'NHS_number' => '3333333333',
+            'first_name' => 'Nephren',
+            'last_name' => 'Ka',
+            'birth_date' => '19590131',
+        ),
+        4 => array(
+            'NHS_number' => '4444444444',
+            'first_name' => 'August',
+            'last_name' => 'Derleth',
+            'birth_date' => '19621104',
+        ),
+        5 => array(
+            'NHS_number' => '5555555555',
+            'first_name' => 'Robert',
+            'last_name' => 'Howard',
+            'birth_date' => '19630722',
+        ),
+        6 => array(
+            'NHS_number' => '6666666666',
+            'first_name' => 'Clark',
+            'last_name' => 'Ashton Smith',
+            'birth_date' => '19840712',
+        ),
+        7 => array(
+            'NHS_number' => '7777777777',
+            'first_name' => 'Robert',
+            'last_name' => 'Chambers',
+            'birth_date' => '19850704',
+        ),
+        8 => array(
+            'NHS_number' => '8888888888',
+            'first_name' => 'Sonia',
+            'last_name' => 'Greene',
+            'birth_date' => '19901201',
+        ),
+        9 => array(
+            'NHS_number' => '9999999999',
+            'first_name' => 'Zealia',
+            'last_name' => 'Bishop',
+            'birth_date' => '19910530',
+        ),
+    );
+
+    return $participants[$i];
+}

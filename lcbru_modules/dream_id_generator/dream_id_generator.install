@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function dream_id_generator_schema() {
+  $schema['dream_ids'] =  array(
+
+    'description' => 'The table for used DREAM IDs.',
+    'fields' => array(
+      'dream_id' => array(
+        'description' => 'DREAM study ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      'baseline_mri_id' => array(
+        'description' => 'Baseline MRI ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      'followup_mri_id' => array(
+        'description' => 'Follow up MRI ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      ),
+    'primary key' => array('dream_id'),
+  );
+
+  return $schema;
+}
+

@@ -1,0 +1,211 @@
+<?php
+
+require_once("BlindUnblind.php");
+
+const BLIND_UNBLIND_BLIND_NAME = 'Blinding Tool';
+const BLIND_UNBLIND_UNBLIND_NAME = 'Unblinding Tool';
+
+/**
+ * Hook that defines available blocks
+ */
+function blind_unblind_block_info() {
+	return array (
+		'blind_unblind_blind' => array(
+		    'info' => t(BLIND_UNBLIND_BLIND_NAME),
+		    'cache' => DRUPAL_CACHE_PER_ROLE,
+			),
+		'blind_unblind_unblind' => array(
+		    'info' => t(BLIND_UNBLIND_UNBLIND_NAME),
+		    'cache' => DRUPAL_CACHE_PER_ROLE,
+			),
+		);
+}
+
+/*
+ * Hook that defines block contents
+ */
+function blind_unblind_block_view($blockName = '') {
+	$blocks = array (
+		'blind_unblind_blind' => array(
+			'subject' => t(BLIND_UNBLIND_BLIND_NAME),
+			'content' => drupal_get_form('_blind_unblind_blind_form')
+			),
+		'blind_unblind_unblind' => array(
+			'subject' => t(BLIND_UNBLIND_UNBLIND_NAME),
+			'content' => drupal_get_form('_blind_unblind_unblind_form')
+			),
+		);
+
+    return $blocks[$blockName];
+}
+
+/**
+ * Define blinding form
+*/
+function _blind_unblind_blind_form($form, &$form_state) {
+	$definitions = _blind_unblind_getAvailableBlindDefinitions();
+	ksort($definitions);
+
+	if (empty($definitions)) {
+		return array(
+			'study' => array(
+			    '#type' => 'item',
+			    '#title' => 'You do not have permission to create blind IDs for any study',
+				),
+			);
+	} else {
+		return array(
+			'study' => array(
+			    '#type' => 'select',
+			    '#title' => t('Study'),
+			    '#default_value' => 1,
+			    '#options' => array_combine(array_keys($definitions), array_keys($definitions)),
+			    '#default_value' => SessionHelper::get('blind_unblind', 'last_used_study', 0),
+			    '#required' => TRUE
+				),
+			'unblind_id' => array(
+				'#title' => t('Unblinded ID'),
+				'#type' => 'textfield',
+				'#size' => '20',
+				'#maxlength' => '20',
+				'#required' => TRUE,
+				),
+			'submit' => array(
+				'#type' => 'submit',
+				'#value' => 'Blind',
+				)
+			);
+	}
+}
+
+function _blind_unblind_blind_form_submit($form, &$form_state) {
+  Guard::AssertString_NotEmpty('$study', $form_state['values']['study']);
+  Guard::AssertString_NotEmpty('$unblind_id', $form_state['values']['unblind_id']);
+
+  SessionHelper::set('blind_unblind', 'last_used_study', $form_state['values']['study']);
+
+  $def = _blind_unblind_getAvailableBlindDefinitions()[$form_state['values']['study']];
+
+  Guard::AssertArray_NotEmpty('$def', $def);
+
+  $blinder = new BlindUnblind($form_state['values']['study'], $def);
+
+  $blindIds = $blinder->getBlindIds($form_state['values']['unblind_id']);
+
+  if (!empty($blindIds)) {
+  	drupal_set_message("Blind IDs already exist for '{$form_state['values']['unblind_id']}'", 'warning');
+  } else {
+	  $blinder->blind($form_state['values']['unblind_id']);
+
+	  $blindIds = $blinder->getBlindIds($form_state['values']['unblind_id']);
+	  drupal_set_message("Blind IDs created for '{$form_state['values']['unblind_id']}'");
+  }
+
+  foreach ($blindIds as $type => $id) {
+  	drupal_set_message("$type: $id");
+  }
+
+}
+
+/**
+ * Define blinding form
+*/
+function _blind_unblind_unblind_form($form, &$form_state) {
+	$definitions = _blind_unblind_getAvailableUnblindDefinitions();
+	ksort($definitions);
+
+	if (empty($definitions)) {
+		return array(
+			'study' => array(
+			    '#type' => 'item',
+			    '#title' => 'You do not have permission to unblind participants in any study',
+				),
+			);
+	} else {
+		return array(
+			'study' => array(
+			    '#type' => 'select',
+			    '#title' => t('Study'),
+			    '#default_value' => 1,
+			    '#options' => array_combine(array_keys($definitions), array_keys($definitions)),
+			    '#default_value' => SessionHelper::get('blind_unblind', 'last_used_study', 0),
+			    '#required' => TRUE
+				),
+			'blind_id' => array(
+				'#title' => t('Blinded ID'),
+				'#type' => 'textfield',
+				'#size' => '20',
+				'#maxlength' => '20',
+				'#required' => TRUE,
+				),
+			'submit' => array(
+				'#type' => 'submit',
+				'#value' => 'Unblind',
+				)
+			);
+	}
+}
+
+function _blind_unblind_unblind_form_submit($form, &$form_state) {
+  Guard::AssertString_NotEmpty('$study', $form_state['values']['study']);
+  Guard::AssertString_NotEmpty('$unblind_id', $form_state['values']['blind_id']);
+
+  SessionHelper::set('blind_unblind', 'last_used_study', $form_state['values']['study']);
+
+  $def = _blind_unblind_getAvailableBlindDefinitions()[$form_state['values']['study']];
+
+  $blinder = new BlindUnblind($form_state['values']['study'], $def);
+
+  $unblindId = $blinder->unblind($form_state['values']['blind_id']);
+
+  if (empty($unblindId)) {
+  	drupal_set_message("ID '{$form_state['values']['blind_id']}' does not exist for {$form_state['values']['study']} study", 'warning');
+  } else {
+	  drupal_set_message("Unblinded ID for '{$form_state['values']['blind_id']}' is '$unblindId'");
+  }
+
+}
+
+/**
+ * Get Available blind_unblind blind definitions
+ */
+function _blind_unblind_getAvailableBlindDefinitions() {
+    $result = array();
+
+    foreach (_blind_unblind_getAllDefinitions() as $key => $def) {
+    	if (user_access($def['blinding_permission'])) {
+    		$result[$key] = $def;
+    	}
+    }
+
+    return $result;
+}
+
+/**
+ * Get Available blind_unblind unblind definitions
+ */
+function _blind_unblind_getAvailableUnblindDefinitions() {
+    $result = array();
+
+    foreach (_blind_unblind_getAllDefinitions() as $key => $def) {
+    	if (user_access($def['unblinding_permission'])) {
+    		$result[$key] = $def;
+    	}
+    }
+
+    return $result;
+}
+
+/**
+ * Get All blind_unblind definitions
+ */
+function _blind_unblind_getAllDefinitions() {
+    $result = array();
+
+    foreach (module_implements('blind_unblind_populateDefinitions') as $module) {
+      $function = $module . '_blind_unblind_populateDefinitions';
+      $function($result);
+    }
+
+    return $result;
+}

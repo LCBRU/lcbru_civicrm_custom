@@ -1,0 +1,6 @@
+name = DAPS 
+description = Automatically submit participants to DAPS
+core = 7.x
+configure = admin/config/content/daps
+dependencies[] = datatables
+dependencies[] = lcbru

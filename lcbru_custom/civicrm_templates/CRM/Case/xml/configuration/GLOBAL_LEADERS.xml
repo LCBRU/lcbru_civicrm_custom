@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>GLOBAL_LEADERS</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Reminder Sent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Letter to GP</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Randomise</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Arrange Transport</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Issue Parking Permit</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Follow up</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Register on study</name>
+          <subject>Interest Registered</subject>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Randomise</name>
+          <subject>Randomise</subject>
+          <status>Completed</status>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>1 month follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>30</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>3 month follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>90</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>6 month follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>180</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>1 year follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>365</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>18 month follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>545</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>2 year follow up (Global Leaders)</subject>
+          <reference_activity>Randomise</reference_activity>
+          <reference_offset>730</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

@@ -1,0 +1,178 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function daps_schema() {
+  $schema[Daps::DAPS_TABLE_SUBMISSION] =  array(
+
+    'description' => 'Submissions to DAPS.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'ID of the DAPS submission.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE
+        ),
+      'date_created' => array(
+        'description' => 'Date created',
+        'mysql_type' => 'DATE',
+        'not null' => TRUE
+        ),
+      'date_submitted' => array(
+        'description' => 'Date Submitted',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      'date_sent' => array(
+        'description' => 'Date Sent',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      'date_returned' => array(
+        'description' => 'Date Returned',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      'date_abandoned' => array(
+        'description' => 'Date Abandoned',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'date_returned'        => array('date_returned'),
+      'date_abandoned'        => array('date_abandoned'),
+    ),
+  );
+  $schema[Daps::DAPS_TABLE_SUBMISSION_PARTICIPANT] =  array(
+
+    'description' => 'Details of recruit submitted to DAPS.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'ID of individual submitted to DAPS.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE
+        ),
+      'daps_submission_id' => array(
+        'description' => 'ID of submission to DAPS.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE
+        ),
+      'identifier' => array(
+        'description' => 'Participant Identifier',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE
+        ),
+      'response_gender' => array(
+        'description' => 'Gender',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE
+        ),
+      'response_date_of_birth' => array(
+        'description' => 'Date of Birth',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      'response_uhl_s_number' => array(
+        'description' => 'UHL System Number',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+        ),
+      'response_nhs_number' => array(
+        'description' => 'NHS Number',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+        ),
+      'response_title' => array(
+        'description' => 'Title',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+        ),
+      'response_forenames' => array(
+        'description' => 'Forenames',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_surname' => array(
+        'description' => 'Surname',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_address_1' => array(
+        'description' => 'Address 1',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_address_2' => array(
+        'description' => 'Address 2',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_address_3' => array(
+        'description' => 'Address 3',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_address_4' => array(
+        'description' => 'Address 4',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_address_5' => array(
+        'description' => 'Address 5',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE
+        ),
+      'response_postcode' => array(
+        'description' => 'Post Code',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+        ),
+      'response_date_of_death' => array(
+        'description' => 'Date of Birth',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE
+        ),
+      'response_is_deceased' => array(
+        'description' => 'Vital Status',
+        'type' => 'int',
+        'not null' => FALSE
+        ),
+      ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'daps_submission' => array(
+        'table' => 'daps_submission',
+        'columns' => array('daps_submission_id' => 'id'),
+       ),
+      ),
+    );
+
+  return $schema;
+}
+
+function daps_update_7001() {
+  db_add_field(Daps::DAPS_TABLE_SUBMISSION, 'date_sent', array(
+    'description' => 'Date Sent',
+    'mysql_type' => 'DATE',
+    'not null' => FALSE
+  ));
+}
+

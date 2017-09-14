@@ -1,0 +1,4 @@
+name = DHF ID generator
+description = Generates unique random IDs for the DHF study.
+core = 7.x
+configure = admin/config/content/dhf_id_generator

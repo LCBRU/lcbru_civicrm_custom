@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function tmao_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}

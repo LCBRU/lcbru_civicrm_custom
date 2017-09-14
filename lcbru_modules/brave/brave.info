@@ -1,0 +1,7 @@
+name = BRAVE Study
+description = BRAVE Study Enrollments
+core = 7.x
+configure = admin/config/content/brave
+dependencies[] = civicrm
+dependencies[] = lcbru
+dependencies[] = briccs

@@ -1,0 +1,60 @@
+<?php
+
+const PREECLAMPSIA_PREMISSION_BLIND = 'blind pre-eclampsia';
+const PREECLAMPSIA_PREMISSION_UNBLIND = 'Unblind pre-eclampsia';
+const PREECLAMPSIA_PREMISSION_PRINT_LABELS = 'Pre-eclampsia print labels';
+
+function preeclampsia_blind_unblind_populateDefinitions(array &$definitions) {
+    $definitions['Pre-Eclampsia'] = array(
+    	'blinding_permission' => PREECLAMPSIA_PREMISSION_BLIND,
+    	'unblinding_permission' => PREECLAMPSIA_PREMISSION_UNBLIND,
+	    'blind_id_types' => array (
+		    'Blind ID' => 'xPrePt'
+	        )
+    	);
+}
+
+/**
+ * Register study specific permissions
+ */
+function preeclampsia_permission() {
+  return array(
+    PREECLAMPSIA_PREMISSION_BLIND => array (
+      'title' => t('Blind Pre-Eclampsia IDs'), 
+      'description' => t('Create blind IDs'),
+    ),
+    PREECLAMPSIA_PREMISSION_UNBLIND => array (
+      'title' => t('Unblind Pre-Eclampsia IDs'), 
+      'description' => t('Lookup unblind IDs from blind IDs'),
+    ),
+    PREECLAMPSIA_PREMISSION_PRINT_LABELS => array (
+      'title' => t('Print Pre-Eclampsia Labels'), 
+      'description' => t('Print labels packs for the Pre-Eclampsia study'),
+    ),
+  );
+}
+
+function preeclampsia_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['Pre-Eclampsia Pack'] = array(
+      'name' => 'Pre-Eclampsia Pack',
+      'permission' => PREECLAMPSIA_PREMISSION_PRINT_LABELS,
+      'labels' => array(
+        'samples' => array(
+          'id_generator' => new IdGenerator('PeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 5,
+          'labels_per_id' => 1
+          ),
+        'bag' => array(
+          'id_generator' => new IdGenerator('PePt'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_PE,
+          'study_name' => 'Pre-Eclampsia',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          )
+        ),
+
+    );
+}

@@ -1,0 +1,178 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the EMMACE-4 study
+ */
+
+const SCAD_PREMISSION_PRINT_LABELS = 'print SCAD labels';
+const SCAD_PREMISSION_BLIND = 'blind SCAD';
+const SCAD_PREMISSION_UNBLIND = 'Unblind SCAD';
+
+function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_BRICCS_ID') . '_')) {
+                if (briccs_isInvalidBriccsId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_BRICCS_ID . " is not valid.  Should be of the format 'BPtnnnnnnnn', where 'nnnnnnnn' is a 8 digit number");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_ID') . '_')) {
+                if (_scad_isInvalidScadId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_ID . " is not valid.  Should be of the format 'ScPtnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _scad_isInvalidScadId($value) {
+  $idGenerator = new IdGenerator('ScPt');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function scad_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_SCAD_ID';
+}
+
+function scad_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_SCAD_ID':
+            $studyIdGenerator = new IdGenerator('ScPt');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function scad_block_view($delta = '') {
+  switch($delta){
+    case 'scad':
+      $block['subject'] = t('SCAD labels');
+      if(user_access(SCAD_PREMISSION_PRINT_LABELS)){
+        $block['content'] = drupal_get_form('_scad_labels_form');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the SCAD ID label printing form for the block.
+*/
+function _scad_labels_form($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Print SCAD Label Pack',
+    '#submit' => array('_scad_labels_form_submit')
+  );
+  /*
+  $form['submit_admin'] = array(
+    '#type' => 'submit',
+    '#value' => 'Print Register Labels',
+    '#submit' => array('_scad_labels_form_submit_register')
+  );
+  */
+  
+  return $form;
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function _scad_labels_form_submit($form, &$form_state) {
+    $sampleIdGenerator = new IdGenerator('ScSa');
+
+    $lps = new LabelPrinter(LabelPrinter::PRINTER_BRU_CRF_SAMPLE);
+
+    for ($i=0; $i < 6; $i++){
+        $sampleId = $sampleIdGenerator->next();
+        $lps->printStudySample($sampleId, 1);
+    }
+
+    $studyIdGenerator = new IdGenerator('ScPt');
+    $studyId = $studyIdGenerator->next();
+
+    $lpb = new LabelPrinter(LabelPrinter::PRINTER_BRU_CRF_BAG);
+    $lpb->printStudyBag($studyId, 'SCAD', LabelPrinter::LABEL_BAG_URINE, 1);
+    $lpb->printStudyBag($studyId, 'SCAD', LabelPrinter::LABEL_BAG_CITRATE, 1);
+    $lpb->printStudyBag($studyId, 'SCAD', LabelPrinter::LABEL_BAG_SERUM, 1);
+
+    drupal_set_message("SCAD labels printed");
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function _scad_labels_form_submit_register($form, &$form_state) {
+    $lps = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
+
+    for ($i=795; $i < 1000; $i++){
+        $sampleId = "ScadReg" . str_pad($i, 5, "0", STR_PAD_LEFT);;
+        $lps->printStudySample($sampleId, 2);
+        usleep ( 500000 );
+    }
+
+    drupal_set_message("SCAD labels Admin printed");
+}
+
+
+/**
+ * Register study specific permissions
+ */
+function scad_permission() {
+  return array(
+    SCAD_PREMISSION_PRINT_LABELS => array(
+      'title' => t('Print SCAD labels'), 
+      'description' => t('Create and print SCAD ID labels.'),
+    ),
+    SCAD_PREMISSION_BLIND => array (
+      'title' => t('Blind SCAD IDs'), 
+      'description' => t('Create blind IDs for SCAD'),
+    ),
+    SCAD_PREMISSION_UNBLIND => array (
+      'title' => t('Unblind SCAD IDs'), 
+      'description' => t('Lookup unblind IDs from blind IDs for SCAD'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function scad_block_info() {
+  $blocks['scad'] = array(
+    'info' => t('SCAD label printing'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+function scad_blind_unblind_populateDefinitions(array &$definitions) {
+    $definitions['SCAD'] = array(
+      'blinding_permission' => SCAD_PREMISSION_BLIND,
+      'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
+      'blind_id_types' => array (
+        'MRI' => 'xScMri',
+        'CT' => 'xScCt',
+        'FMD' => 'xScFmd',
+        'Wall Stress' => 'xScWs',
+        'RetinalScan' => 'xScRs'
+        )
+      );
+}

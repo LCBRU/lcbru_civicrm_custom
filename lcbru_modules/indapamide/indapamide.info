@@ -1,0 +1,7 @@
+name = Indapamide Study
+description = Indapamide Study Enrollments
+core = 7.x
+configure = admin/config/content/indapamide
+dependencies[] = civicrm
+dependencies[] = lcbru
+dependencies[] = label_printer

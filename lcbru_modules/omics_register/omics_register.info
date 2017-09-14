@@ -1,0 +1,6 @@
+name = Omics Register
+description = Register of Omics data for each participant
+core = 7.x
+configure = admin/config/content/omics_register
+dependencies[] = civicrm
+dependencies[] = lcbru

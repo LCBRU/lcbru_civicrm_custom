@@ -1,0 +1,83 @@
+<?php
+
+const LENTEN_PREMISSION_PRINT_LABELS = 'LENTEN print labels';
+
+function lenten_permission() {
+  return array(
+    LENTEN_PREMISSION_PRINT_LABELS => array (
+      'title' => t(LENTEN_PREMISSION_PRINT_LABELS), 
+      'description' => t(LENTEN_PREMISSION_PRINT_LABELS),
+    ),
+  );
+}
+
+function lenten_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['LENTEN Pack'] = array(
+      'name' => 'LENTEN Pack',
+      'permission' => LENTEN_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('LenPt'),
+        ),
+      'labels' => array(
+        'Recruited Patient Notes' => array(
+          'id_generator' => new IdGenerator('LenSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_RECRUITED_PATIENT_NOTES,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{STUDY_PLACEHOLDER}' => 'LENTEN'
+            )
+          ),
+        'EDTA Samples' => array(
+          'id_generator' => new IdGenerator('LenSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 8,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 7.5ml (RED) On ice'
+            )
+          ),
+        'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 4
+          ),
+        'Visit 1 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
+          'study_name' => 'LENTEN Visit 1',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 2 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
+          'study_name' => 'LENTEN Visit 2',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 3 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
+          'study_name' => 'LENTEN Visit 3',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 4 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
+          'study_name' => 'LENTEN Visit 4',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        ),
+    );
+}

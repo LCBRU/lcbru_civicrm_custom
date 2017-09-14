@@ -1,0 +1,460 @@
+<?php
+
+/**
+ * @file
+ * A block module that displays a form allowing a GRAPHIC 2 participant ID to be entered
+ * searched in the civicrm database, and then the necessary labels
+ * printed as barcode labels. Multiple labels per ID can be configured.
+ */
+
+
+include_once("graphic2_constants.php"); // Enables the code to be easily applied to different civicrm deployments.
+include_once("graphic2_labels.import.php"); // Provides the API-driven import process for GRAPHIC 2.
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function graphic2_labels_block_view($delta = '') {
+  switch($delta){
+    case 'graphic2_labels':
+      $block['subject'] = t('GRAPHIC 2 ID labels');
+      if(user_access('print graphic 2 labels')){
+        $block['content'] = drupal_get_form('graphic2_labels_formname');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the graphic2 ID label printing form for the block.
+*/
+function graphic2_labels_formname($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  //How many IDs to generate?
+  $form['lab_id'] = array(
+    '#title' => t('Enter a GRAPHIC 2 LAB ID'),
+    '#type' => 'textfield',
+    '#size' => 4,
+    '#maxlength' => 4,
+    '#required' => TRUE,
+    '#description' => t('Be careful not to enter a GRAPHIC Patient Identifier here.')
+  );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Print',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_validate()
+ */
+function graphic2_labels_formname_validate($form, &$form_state) {
+  if (ctype_digit($form_state['values']['lab_id']) == FALSE OR $form_state['values']['lab_id'] > '2580' OR $form_state['values']['lab_id'] < '1') {
+    form_set_error('',t('You must enter a GRAPHIC 2 LAB ID'));
+  }
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function graphic2_labels_formname_submit($form, &$form_state) {
+  $graphic2_id = graphic2_lookup_id($form_state['values']['lab_id']); // Returns an array of all the necessary patient attributes or NULL if there's an error.
+  if(is_array($graphic2_id)) {
+    graphic2_print_labels($graphic2_id); // comment out to test the database functions
+    drupal_set_message(t('GRAPHIC 2 labels printed for LAB ID @lab_id, @name',array('@lab_id' => $graphic2_id['LAB_ID'], '@name' => $graphic2_id['PAT_NAME'])));
+  }
+}
+
+
+/**
+ * Psuedo code to begin with, fixing the array of attributes to merge into the labels, while we test the printing. After that, we will need a db lookup and everything. db search will need to pull things in the right order.
+ */
+function graphic2_lookup_id($lab_id) {
+
+  drupal_set_message(t("Looking up LAB ID @id.",array('@id' => $lab_id)));
+
+// Find the contact id from the GRAPHIC 2 data
+
+  $graphic2TableName = lcbru_get_custom_group_table_name(CIVI_TABLE_GRAPHIC2_DATA_NAME);
+  $graphicIdColumnName = lcbru_get_custom_field_column_name(GRAPHIC_ID_NAME);
+  $labIdColumnName = lcbru_get_custom_field_column_name(LAB_ID_NAME);
+  $familyIdColumnName = lcbru_get_custom_field_column_name(FAMILY_ID_NAME);
+  $contactIdsTableName = lcbru_get_custom_group_table_name(CIVI_TABLE_CONTACT_IDS_NAME);
+  $gpTableName = lcbru_get_custom_group_table_name(CIVI_TABLE_GP_DATA_NAME);
+  $sNumberColumnName = lcbru_get_custom_field_column_name(PAT_S_NUMBER_NAME);
+  $gpCCodeColumnName = lcbru_get_custom_field_column_name(GP_C_CODE_NAME);
+
+  db_set_active('civicrm'); // Switch drupal to the alternative db for civicrm, where the GRAPHIC 2 patient data is held.
+  try {
+    $query = db_select($graphic2TableName,'graphic2_data');
+    $query->join(CIVI_TABLE_CASE_CONTACT, 'case_contact', 'graphic2_data.entity_id = case_contact.case_id');
+    $query
+      ->fields('graphic2_data', array('entity_id',$graphicIdColumnName,$labIdColumnName,$familyIdColumnName))
+      ->fields('case_contact', array('contact_id'))
+      ->condition('graphic2_data.' . $labIdColumnName,$lab_id,'=');
+    $count = $query->countQuery()->execute()->fetchField();
+    if($count == '0') {
+      drupal_set_message(t("Sorry, there is no participant in CiviCRM with GRAPHIC 2 LAB ID @id.", array('@id' => $lab_id)), 'error'); db_set_active(); return;
+    } elseif($count > '1') {
+      drupal_set_message(t("Sorry, there appear to be multiple participants in CiviCRM with GRAPHIC 2 LAB ID @id.", array('@id' => $lab_id)), 'error'); db_set_active(); return;
+    } else {
+      $result = $query->execute();
+      $record = $result->fetchAssoc();
+
+      $query2 = db_select(CIVI_TABLE_CONTACT,'civi_contact');
+      $query2->join($contactIdsTableName, 'civi_contact_ids', 'civi_contact_ids.entity_id = civi_contact.id');
+      $query2->join(CIVI_TABLE_ADDRESS, 'civi_address', 'civi_address.contact_id = civi_contact.id');
+      $query2
+        ->fields('civi_contact', array('id',PAT_NAME,PAT_DOB))
+        ->fields('civi_contact_ids', array($sNumberColumnName))
+        ->fields('civi_address', array(PAT_ADDRESS,PAT_CITY,PAT_POSTCODE))
+        ->condition('civi_contact.' . 'id',$record['contact_id'],'=')
+        ->condition('civi_address.' . 'is_primary',1,'=');
+      $count = $query2->countQuery()->execute()->fetchField();
+      if($count == '0') {
+        drupal_set_message(t("Sorry, there appear to be no demographic details  for the participant in CiviCRM with CiviCRM contact id @id.", array('@id' => $record['contact_id'])), 'error'); db_set_active(); return;
+      } elseif($count > '1') {
+        drupal_set_message(t("Sorry, there appear to be multiple entries for a participant in CiviCRM with CiviCRM contact id @id.", array('@id' => $record['contact_id'])), 'error'); db_set_active(); return;
+      } else {
+        $result2 = $query2->execute();
+        $record2 = $result2->fetchAssoc();
+      }
+    }
+
+    $query3 = db_select(CIVI_TABLE_REL,'relationship');
+    $query3->join(CIVI_TABLE_REL_TYPE, 'relationship_type', 'relationship.relationship_type_id = relationship_type.id');
+    $query3->join(CIVI_TABLE_CONTACT, 'gp_surgery', 'relationship.contact_id_b = gp_surgery.id');
+    $query3->join($gpTableName, 'gp_data', 'gp_surgery.id = gp_data.entity_id');
+    $query3->join(CIVI_TABLE_ADDRESS, 'gp_address', 'gp_surgery.id = gp_address.contact_id');
+    $query3
+      ->fields('relationship', array('contact_id_b'))
+      ->fields('gp_surgery', array(GP_NAME))
+      ->fields('gp_data', array($gpCCodeColumnName))
+      ->fields('gp_address', array(GP_ADDRESS,GP_CITY,GP_POSTCODE))
+      ->condition('relationship.' . 'is_active',1,'=')
+      ->condition('relationship.' . 'contact_id_a',$record['contact_id'],'=')
+      ->condition('relationship_type.' . 'name_a_b',RELATIONSHIP_DESCRIPTION,'=')
+      ->condition('gp_address.' . 'is_primary',1,'=');
+    $count = $query3->countQuery()->execute()->fetchField();
+    if($count == '0') {
+      drupal_set_message(t("Sorry, there is no linkage to a GP surgery for CiviCRM ID @id.", array('@id' => $record['contact_id'])), 'error'); db_set_active(); return;
+    } elseif($count > '1') {
+      drupal_set_message(t("Sorry, there appear to be multiple links to GP surgeries for CiviCRM ID @id.", array('@id' => $record['contact_id'])), 'error'); db_set_active(); return;
+    } else {
+      $result3 = $query3->execute();
+      $record3 = $result3->fetchAssoc();
+    }
+  } finally {
+    db_set_active();
+  }
+
+  $graphic2_id_array = array(
+    "GRAPHIC_ID"  => $record[$graphicIdColumnName],
+    "LAB_ID"      => $record[$labIdColumnName],
+    "PAT_NAME"    => $record2[PAT_NAME],
+    "PAT_DOB"     => $record2[PAT_DOB],
+    "PAT_ADDRESS" => $record2[PAT_ADDRESS] . ", " . $record2[PAT_CITY] . ", " . $record2[PAT_POSTCODE],
+    "S_NUMBER"    => $record2[$sNumberColumnName],
+    "GP_C_CODE"   => $record3[$gpCCodeColumnName],
+    "GP_NAME"     => $record3[GP_NAME],
+    "GP_ADDRESS"  => $record3[GP_ADDRESS] . ", " . $record3[GP_CITY] . ", " . $record3[GP_POSTCODE]
+  );
+ 
+  $dob_array = explode("-",$graphic2_id_array['PAT_DOB'],3);
+  $graphic2_id_array['PAT_DOB'] = $dob_array[2] . "-" . $dob_array[1] . "-" . $dob_array[0];
+ 
+//  drupal_set_message(print_r($graphic2_id_array, TRUE)); // Uncomment for testing purposes
+
+  return $graphic2_id_array;
+
+}
+
+function graphic2_labels_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",GRAPHIC_ID_NAME);
+    $studyIds[] = str_replace(" ","_",LAB_ID_NAME);
+}
+
+/**
+ * Prints an appropriate number of labels for a graphic2 ID. Print them in 'reverse order' so the patient name one is at the top (i.e. last to be printed) for easy reference.
+ */
+function graphic2_print_labels($graphic2_id) {
+
+  for ($i = 1; $i <= 6; $i++) { // Print six copies of the data form label
+    graphic2_print_label($graphic2_id,"graphic2_data_id.zpl");
+  }
+  graphic2_print_label($graphic2_id,"graphic2_consent_id.zpl");
+
+  graphic2_print_label($graphic2_id,"lcb_urine_bottle_id.zpl");
+  graphic2_print_label($graphic2_id,"lcb_paxgene_bottle_id.zpl");
+  graphic2_print_label($graphic2_id,"lcb_citrate_bottle_id.zpl");
+  graphic2_print_label($graphic2_id,"lcb_edta2_bottle_id.zpl");
+  graphic2_print_label($graphic2_id,"lcb_edta1_bottle_id.zpl");
+  graphic2_print_label($graphic2_id,"lcb_serum_bottle_id.zpl");
+
+  for ($i = 1; $i <= 2; $i++) { // Print two copies of the path bottle label
+    graphic2_print_label($graphic2_id,"path_bottle_id.zpl");
+  }
+  graphic2_print_label($graphic2_id,"path_form_gp.zpl");
+  graphic2_print_label($graphic2_id,"path_form_id.zpl");
+
+}
+
+/**
+ * Prints a label for a  GRAPHIC 2 pathology form, given an array of demographic data and a template to populate. Uses the printer control functions defined in the GENVASC module rather than duplicating them.
+ */
+function graphic2_print_label($graphic2_id,$template) {
+
+  $placeholders = array(
+    "G_NUMBER_HERE",
+    "LAB_ID_HERE",
+    "PAT_NAME_HERE",
+    "PAT_DOB_HERE",
+    "PAT_ADDRESS_HERE",
+    "SNUMBER_HERE",
+    "GP_C_CODE_HERE",
+    "GP_SURGERY_NAME_HERE",
+    "GP_SURGERY_ADDRESS_HERE"
+  );
+
+  $template_reference = file_get_contents(drupal_get_path('module','graphic2_labels') . '/templates/' . $template);
+  if (!$template_reference) {
+    form_set_error('',t('Unable to read labels template file: @template_ref',array('@template_ref' => $template_reference)));
+  } else {
+    try {
+      $socket = open_socket(variable_get('graphic2_printer_address'),variable_get('graphic2_printer_port'));
+      $label = str_replace($placeholders,$graphic2_id,$template_reference);
+      print_one_label($socket,$label);
+      socket_close($socket);
+    }
+    catch(exception $e) {
+      if (isset($socket)) {
+        socket_close($socket);
+      }
+      throw $e;
+    }
+  usleep(250000);
+  }
+}
+
+
+/**
+ * Implements hook_permission()
+ */
+function graphic2_labels_permission() {
+  return array(
+    'print graphic 2 labels' => array(
+      'title' => t('Print GRAPHIC 2 labels'), 
+      'description' => t('Print sets of labels for GRAPHIC 2.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function graphic2_labels_block_info() {
+  $blocks['graphic2_labels'] = array(
+    'info' => t('GRAPHIC 2 labels'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function graphic2_labels_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#graphic2_labels":
+      return '<p>' . t("Displays block to print ID labels for the GRAPHIC 2 study.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_menu().
+ */
+function graphic2_labels_menu() {
+  $items = array();
+  $items['admin/config/content/graphic2_labels'] = array(
+    'title' => 'GRAPHIC 2 label generator',
+    'description' => 'Prints labels for the GRAPHIC 2 study',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('graphic2_labels_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: graphic2 labels settings
+ *
+ * @see graphic2_labels_menu()
+ */
+function graphic2_labels_form($form, &$form_state) {
+
+  $form['graphic2_populate'] = array( // This section can be deleted / commented out once the GRAPHIC 2 patients have been imported.
+    '#type' => 'submit',
+    '#value' => t('IMPORT DATA'),
+    '#prefix' => '<p>' . t('If you are reaady to import GRAPHIC 2 patients and their associated data, hit this button.') . '</p>',
+    '#submit' => array('graphic2_form_populate_button_pressed'),
+    '#description' => t('Populate civicrm with GRAPHIC2 data.'),
+  );
+
+  $form['graphic2_gp_lookup'] = array( 
+    '#type' => 'submit',
+    '#value' => t('FIND GP SURGERY NAMES'),
+    '#prefix' => '<p>' . t('If you are reaady to look up GP surgeries, hit this button.') . '</p>',
+    '#submit' => array('graphic2_form_surgery_lookup_button_pressed'),
+    '#description' => t('Lookup a list of GP surgery names.'),
+  );
+
+  $form['graphic2_create_thank_you_activities'] = array( 
+    '#type' => 'submit',
+    '#value' => t('CREATE THANK YOU ACTIVITIES'),
+    '#prefix' => '<p>' . t('This process adds Thank You letter to graphic enrollments where they are needed, but do not already exist.  It processes batches of 100 at a time.') . '</p>',
+    '#submit' => array('graphic2_form_create_thank_you_activities_pressed'),
+    '#description' => t('Creates Thank You letter activities.'),
+  );
+
+  $form['graphic2_printer_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Printer IP address'),
+    '#default_value' => variable_get('graphic2_printer_address', '143.210.247.208'),
+    '#size' => 15,
+    '#maxlength' => 15,
+    '#description' => t('The IP address of the printer to be the destination for the labels.'),
+    '#required' => TRUE,
+  );
+
+  $form['graphic2_printer_port'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Printer port'),
+    '#default_value' => variable_get('graphic2_printer_port', 9100),
+    '#size' => 4,
+    '#maxlength' => 5,
+    '#description' => t('The port on the printer listening for the print instruction set.'),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * What happens when you hit the populate button.
+ */
+function graphic2_form_populate_button_pressed() {
+  drupal_set_message(t('You hit the IMPORT DATA button, now running the GRAPHIC2 data import process.'));
+  graphic2_import();
+  drupal_set_message(t('GRAPHIC2 data imported.'));
+}
+
+/**
+ * What happens when you hit the GP names button.
+ */
+function graphic2_form_surgery_lookup_button_pressed() {
+  drupal_set_message(t('You hit the GP surgery name lookup button, now looking up GP surgery names.'));
+  graphic2_lookup_surgeries();
+  drupal_set_message(t('GP surgeries searched.'));
+}
+
+/**
+ * What happens when you hit the create thank you letters button button.
+ */
+function graphic2_form_create_thank_you_activities_pressed() {
+  drupal_set_message(t('Starting the create thank you letters process.'));
+  graphic2_create_thank_yous();
+  drupal_set_message(t('Done the create thank you letters process.'));
+}
+
+function graphic2_create_thank_yous() {
+  ini_set('max_execution_time', 300);
+
+  $casesRequiringThankYous = getCasesRequiringThankYous();
+  $thankYouLetterActivityTypeID = getActivityTypeOptionValueFromTitle(CIVI_ACTIVITY_THANK_YOU_TO_PARTICIPANT_LETTER);
+  $scheduledActivityStatusID = getActivityStatusOptionValueFromTitle('scheduled');
+
+  foreach ($casesRequiringThankYous as $case) {
+    $thankYouLetterActivity = [
+          'version' => '3'
+        , 'activity_type_id' => $thankYouLetterActivityTypeID
+        , 'case_id' => $case['case']['id']
+        , 'target_contact_id' => $case['case']['client_id']
+        , 'source_contact_id' => $case['gp_letter']['source_contact_id']
+        , 'status_id' => $scheduledActivityStatusID
+        , 'activity_date_time' => $case['gp_letter']['activity_date_time']
+        ];
+
+    civicrm_api("Activity", "create", $thankYouLetterActivity);
+  }
+
+  drupal_set_message(t('Processed = ' . count($casesRequiringThankYous)));
+}
+
+function getCasesRequiringThankYous() {
+
+  $graphic2CaseTyepID = getCaseTypeIdFromTitle(CIVI_CASETYPE_GRAPHIC2);
+  $gpLetterActivityTypeID = getActivityTypeOptionValueFromTitle(CIVI_ACTIVITY_GP_LETTER);
+  $thankYouLetterActivityTypeID = getActivityTypeOptionValueFromTitle(CIVI_ACTIVITY_THANK_YOU_TO_PARTICIPANT_LETTER);
+
+  $cases = civicrm_api('Case', 'get', array(
+    'version' => 3,
+    'q' => 'civicrm/ajax/rest',
+    'case_type_id' => $graphic2CaseTyepID,
+    'is_deleted' => 0,
+    'options' => array('limit' => 3000),
+    'return' => 'activities'
+  ));
+
+  $result = array();
+
+  foreach ($cases['values'] as $case) {
+    $gpLetter = NULL;
+    $thankYouLetterFound = FALSE;
+
+    foreach ($case['activities'] as $activityId) {
+      $activity = civicrm_api('Activity', 'getsingle', array(
+            'version' => 3
+          , 'q' => 'civicrm/ajax/rest'
+          , 'id' => $activityId
+          , 'is_current_revision' => 1
+          , 'is_deleted' => 0
+        ));
+
+      if (isset($activity['activity_type_id'])) {
+        if ($activity['activity_type_id'] == $gpLetterActivityTypeID) {
+          $gpLetter = $activity;
+        }
+        if ($activity['activity_type_id'] == $thankYouLetterActivityTypeID) {
+          $thankYouLetterFound = TRUE;
+        }
+      }
+    }
+    
+    if (isset($gpLetter) && !$thankYouLetterFound) {
+      $result[] = array('case' => $case, 'gp_letter' => $gpLetter);
+    }
+
+  }
+
+  return $result;
+}
+

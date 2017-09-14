@@ -1,0 +1,5 @@
+name = NIHR Bioresource Sub-Study
+description = NIHR Bioresource Sub-Study
+core = 7.x
+configure = admin/config/content/nihr_br_sub
+dependencies[] = lcbru

@@ -1,0 +1,207 @@
+<?php
+
+/**
+ * @file
+ * A block module that displays a form allowing a specified number of DHF
+ * ID numbers to be generated, noted as allocated in the database, and then 
+ * displayed on screen.
+ */
+
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function dhf_id_generator_block_view($delta = '') {
+  switch($delta){
+    case 'dhf_id_generator':
+      $block['subject'] = t('Unique ID Generator');
+      if(user_access('Generate DHF IDs')){
+        $block['content'] = drupal_get_form('dhf_id_generator_formname');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the DHF ID generator form for the block.
+*/
+function dhf_id_generator_formname($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  //How many IDs to generate?
+  $form['iterations'] = array(
+    '#title' => t('How many IDs to generate?'),
+    '#type' => 'textfield',
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => TRUE,
+    '#default_value' => 2,
+  );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Generate',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_validate()
+ */
+function dhf_id_generator_formname_validate($form, &$form_state) {
+  if ($form_state['values']['iterations'] == '0') {
+    form_set_error('',t('You must select a number of IDs to generate greater than 0.'));
+  } else if ($form_state['values']['iterations'] > '20') {
+    form_set_error('',t('You must select a number of IDs to generate less than 21.'));
+  }
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function dhf_id_generator_formname_submit($form, &$form_state) {
+  $dhf_id = '';
+  $i = '';
+  // Process the request for IDs, the requested number of times.
+  $i = 0; while ($i < $form_state['values']['iterations']) {
+    // Process the request for one ID and then print labels.
+    $dhf_id = dhf_generate_id();
+    drupal_set_message(t('Unique ID generated: @dhf_id',array('@dhf_id' => $dhf_id)));
+    $i++;
+  }
+
+  if ($form_state['values']['iterations'] == '1') {
+    drupal_set_message(t('One unique ID has been generated, as requested.'));
+  } else {
+    drupal_set_message(t('Unique IDs have been generated, as requested.'));
+  }
+}
+
+
+/**
+ * Generates a dhf ID and stores it in the database.
+ */
+function dhf_generate_id() {
+  $min_id = '';
+  $max_id = '';
+  $range_id = '';
+  $ok = '';
+  $proposed_id = '';
+
+  if (lock_acquire('dhf_id_generator',3)) {
+    $min_id   = 10000;
+    $max_id   = 99999;
+    $range_id = 89999;
+
+    // In a while loop as we might not get an unused number.
+    $ok = FALSE;
+    while (!$ok) {
+      // Make a random number.
+      $proposed_id = rand($min_id,$max_id);
+      // Test it against the database.
+      $query = db_select('dhf_ids');
+      $query
+        ->condition('dhf_ids.dhf_id',$proposed_id,'=')
+        ->fields('dhf_ids',array('dhf_id'))
+      ;
+      $result = $query->countQuery()->execute()->fetchField();
+      if ($result == 0) {
+        $ok = TRUE;
+      } 
+    }
+    $query = db_insert('dhf_ids')
+      ->fields(array(
+        'dhf_id' => $proposed_id
+      ))
+      ->execute();
+    lock_release('dhf_id_generator');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $proposed_id;
+
+}
+
+/**
+ * Implements hook_permission()
+ */
+function dhf_id_generator_permission() {
+  return array(
+    'Generate DHF IDs' => array(
+      'title' => t('Generate DHF IDs'), 
+      'description' => t('Create unique and random IDs for use in the DHF study.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function dhf_id_generator_block_info() {
+  $blocks['dhf_id_generator'] = array(
+    'info' => t('Unique Code Generator'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function dhf_id_generator_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#dhf_id_generator":
+      return '<p>' . t("Displays block to create DHF unique and random IDs.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_menu().
+ */
+function dhf_id_generator_menu() {
+  $items = array();
+  $items['admin/config/content/dhf_id_generator'] = array(
+    'title' => 'Unique ID Generator',
+    'description' => 'Generates unique and random IDs for the DHF study',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dhf_id_generator_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: dhf labels settings
+ *
+ * @see dhf_id_generator_menu()
+ */
+function dhf_id_generator_form($form, &$form_state) {
+
+  $form['number_of_id_generator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of labels per ID'),
+    '#default_value' => variable_get('number_of_id_generator', 3),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t('How many labels to print for each ID generated.'),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}

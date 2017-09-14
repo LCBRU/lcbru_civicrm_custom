@@ -1,0 +1,6 @@
+name = INTERVAL Study
+description = INTERVAL Study Enrollments
+core = 7.x
+configure = admin/config/content/interval
+dependencies[] = civicrm
+dependencies[] = lcbru

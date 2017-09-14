@@ -1,0 +1,531 @@
+<?php
+
+/**
+ * @file
+ * A main content module that displays data from the secondary database for ICE messages for GENVASC purposes.
+ */
+
+include_once("lib/core.php");
+ 
+ 
+/**
+ * Implements hook_menu().
+ */
+function ice_messaging_menu() {
+  $items['content/ice_messaging'] = array(
+    'title' => 'ICE messaging',
+    'description' => 'Displaying the database of unprocessed ICE messages received from pathology for GENVASC.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_ice_messaging_data',
+    'access callback' => 'ice_messaging_access',
+    'expanded' => TRUE,
+  );
+
+  return $items;
+
+}
+
+/**
+ * Displays the ICE messaging data, from the MS SQL database which is defined in settings.php
+ */
+function _ice_messaging_data($action = '',$message_id = '') {
+
+  switch ($action) {
+    case 'delete':
+      _ice_messaging_delete($message_id);
+      drupal_goto('content/ice_messaging');
+      break;
+    case 'process':
+      return drupal_get_form('_ice_messaging_confirm_form', $message_id);
+      break;
+    default:
+      return _ice_messaging_list();
+      break;
+  }
+}
+
+function _ice_messaging_confirm_form($form, &$form_state, $message_id) {
+  civicrm_initialize();
+
+  $message = _ice_messaging_get_message($message_id);
+
+  if (empty($message)) {
+    drupal_set_message(t("Sorry, there is no unprocessed ICE message with ID number $message_id."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+
+  $s_number = getFormattedUhlSystemNumber($message->SYSTEM_NUMBER);
+  $nhs_number = getFormattedUhlSystemNumber($message->NHS_NUMBER);
+
+  if (empty($s_number)) {
+    drupal_set_message(t("INVALID ICE MESSAGE (ID = $message_id): Ice message must have an S Number."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+  if (isInvalidUhlSystemNumber($s_number)){
+    drupal_set_message(t("INVALID ICE MESSAGE (ID = $message_id): S Number '$s_number' is invalid."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+  if (isInvalidNhsNumber($nhs_number)){
+    drupal_set_message(t("INVALID ICE MESSAGE (ID = $message_id): NHS Number '$nhs_number' is invalid."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+
+  $pmiDetails = lcbru_getUhlPmiDetails($s_number);
+
+  if (empty($pmiDetails)) {
+    drupal_set_message(t("Patient '$message->SYSTEM_NUMBER' does not exist in the PMI, please add them using Patient Centre."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+
+  $pmiAddress = lcbru_getAddressFromPmiDetails($pmiDetails);
+
+  if (empty($pmiAddress)) {
+    drupal_set_message(t("Patient '$message->SYSTEM_NUMBER' does not have an address in the PMI, please add the address using Patient Centre."), 'error');
+    drupal_goto('content/ice_messaging');
+    return;
+  }
+
+  //This is the way to load a css file for a form, we can also load js in the similar manner.
+  $form['#attached']['css'][drupal_get_path('module', 'ice_messaging') . '/ice_messaging.css'] = array();
+
+  $existingContact = lcbru_get_participant_by_nhs_or_s_number($s_number, $nhs_number);
+
+  // We have to return false from the onclick in order to make it not submit
+  // the form.  Putting 'return false;' after the reload, didn't work.
+  // Returning the result of the reload() or !reload() didn't work either.
+  // But this did.  I'm not sure if the Star Trek reference is important.
+  // Change it if you dare!
+  $form['refresh'] = array(
+    '#type' => 'button',
+    '#value' => 'Refresh',
+    '#attributes' => array(
+      'onclick' => "return (location.reload() == 'Space: the final frontier');",
+    ),
+  );
+
+  $form['message_id'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $message_id
+  );
+
+  $form['s_number'] = array(
+    '#type' => 'item',
+    '#title' => 'UHL System Number',
+    '#markup' => $message->SYSTEM_NUMBER
+    );
+
+  $form['nhs_number'] = array(
+    '#type' => 'item',
+    '#title' => 'NHS Number',
+    '#markup' => $message->NHS_NUMBER
+    );
+
+  $addressOptions = array();
+
+  $form['addresses'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+        'class' => array('ice_columns'),
+        ),
+    );
+
+  unset($pmiAddress['state_province_id']); // This gets in the way when we do an implode
+
+  $form['addresses']['pmi_address'] = array(
+    '#type' => 'item',
+    '#title' => 'PMI Address',
+    '#markup' => implode(",<br />",
+                  array_values(
+                    array_filter($pmiAddress)
+                    )
+                  )
+    );
+
+  $addressOptions['pmi'] = t('PMI');
+
+  if (!empty($existingContact) && !empty($existingContact['address_id'])) {
+    $form['addresses']['civicrm_address'] = array(
+      '#type' => 'item',
+      '#title' => 'CiviCRM Address',
+      '#markup' => implode(",<br />",
+                array_values(array_filter(array(
+                  $existingContact["street_address"],
+                  $existingContact["supplemental_address_1"],
+                  $existingContact["supplemental_address_2"],
+                  $existingContact["city"],
+                  $existingContact["state_province_name"],
+                  $existingContact["postal_code"],
+                  $existingContact["country"]
+                ))))
+      );
+
+    $addressOptions['civicrm'] = t('CiviCRM');
+  }
+
+  if (!empty($addressOptions)) {
+    $form['import_address'] = array(
+      '#type' => 'radios',
+      '#title' => t('Import address from'),
+      '#default_value' => empty($addressOptions['civicrm']) ? 'pmi' : 'civicrm',
+      '#options' => $addressOptions,
+      '#description' => t('Choose the address you want to use for the import.  If you choose the PMI address this will overwrite the existing address in CiviCRM.'),
+    );
+  }
+
+  $fullname = ucwords(strtolower("$message->FORENAMES $message->SURNAME"));
+
+  return confirm_form($form,"Confirm Ice Message for $fullname",'content/ice_messaging');
+}
+
+function _ice_messaging_confirm_form_submit($form, &$form_state) {
+  $message_id = $form_state['values']['message_id'];
+  $importAddress = $form_state['values']['import_address'];
+
+  $message = _ice_messaging_get_message($message_id);
+
+  if (empty($message)) {
+    drupal_set_message(t("Sorry, there is no unprocessed ICE message with ID number $message_id."), 'error');
+  } else {
+    ice_message_trigger_civicrm($message, ($importAddress == 'pmi'));
+    _markUpdateIceMessageStatus($message_id, 1);
+    drupal_set_message(t("The ICE message has been marked as processed."));
+  }
+
+  drupal_goto('content/ice_messaging');
+}
+
+function _ice_messaging_list() {
+  $rows = array();
+  db_set_active(ICE_MESSAGING_DB);
+  try {
+    $query = db_select(ICE_GENVASC_ORDERS,'ice');
+    $query
+      ->fields('ice', array(SYSTEM_NUMBER, NHS_NUMBER, REFERRAL_SOURCE, REFERRER, TITLE, FORENAMES, SURNAME, DATE_OF_BIRTH, TRANSACTION_DATE_TIME, ORDER_ID, ID))
+      ->condition('ice.' . PROCESSED, '0', '=');
+    $result = $query->execute();
+  } finally {
+    db_set_active();
+  }
+
+  foreach ($result as $record) {
+    $rows[] = array(
+      $record->SYSTEM_NUMBER,
+      $record->NHS_NUMBER,
+      $record->REFERRAL_SOURCE,
+      $record->REFERRER,
+      $record->FORENAMES,
+      $record->SURNAME,
+      $record->DATE_OF_BIRTH,
+      $record->TRANSACTION_DATE_TIME,
+      $record->ORDER_ID,
+      l('Process','content/ice_messaging/process/' . $record->ID),
+      l('Delete','content/ice_messaging/delete/' . $record->ID)
+      );
+  }
+
+  $attributes = array('datatable_options' => array());
+  return theme('datatable', array('header' => _getHeader(), 'attributes' => $attributes, 'rows' => $rows));
+}
+
+function _ice_messaging_get_message($message_id) {
+
+  try {
+    db_set_active(ICE_MESSAGING_DB);
+
+    $query = db_select(ICE_GENVASC_ORDERS,'ice');
+    $query
+      ->fields('ice', array(SYSTEM_NUMBER, NHS_NUMBER, REFERRAL_SOURCE, REFERRER, TITLE, FORENAMES, SURNAME, DATE_OF_BIRTH, GENDER, TRANSACTION_DATE_TIME, ORDER_ID, ID))
+      ->condition('ice.' . PROCESSED, '0', '=')
+      ->condition('ice.' . ID, $message_id, '=');
+
+    return $query->execute()->fetchObject();
+
+  } finally {
+    db_set_active();
+  }
+
+}
+
+function _ice_messaging_delete($message_id) {
+  if (_markUpdateIceMessageStatus($message_id, 2) == 0) {
+    drupal_set_message(t("Sorry, there is no unprocessed ICE message with ID number $message_id."), 'error');
+  } else {
+    drupal_set_message(t("The ICE message number $message_id has been marked as deleted."));
+  }
+}
+
+function _markUpdateIceMessageStatus($message_id, $newStatus) {
+  db_set_active(ICE_MESSAGING_DB);
+  
+  try {
+    $result = db_update(ICE_GENVASC_ORDERS)
+      ->fields(array(
+        PROCESSED=>$newStatus,
+        ))
+      ->condition(ID, $message_id, '=')
+      ->execute();
+  } finally {
+    db_set_active();
+  }
+
+  return $result;
+}
+
+function _getHeader() {
+  return array(
+    array(
+      'data'=> t('S number'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => TRUE,
+      ),
+    ),
+    array(
+      'data' => t('NHS number'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Source'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Referrer'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Forenames'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Surname'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('D.O.B.'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Transaction time'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t('Order ID'),
+      'datatable_options' => array(
+        'bSortable' => TRUE,
+        'bSearchable' => TRUE,
+      ),
+    ),
+    array(
+      'data' => t(''),
+      'datatable_options' => array(
+        'bSortable' => FALSE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+    array(
+      'data' => t(''),
+      'datatable_options' => array(
+        'bSortable' => FALSE,
+        'bSearchable' => FALSE,
+      ),
+    ),
+  );
+
+}
+
+/**
+ * Passes an array relating to the specified ICE message to civicrm's API such that a contact and a GENVASC case are created.
+ *
+ */
+function ice_message_trigger_civicrm($record, $importAddressFromPMI=False) {
+  civicrm_initialize();
+  $patient = array();
+
+  $s_number = getFormattedUhlSystemNumber($record->SYSTEM_NUMBER);
+  $nhs_number = getFormattedUhlSystemNumber($record->NHS_NUMBER);
+  $cont = lcbru_get_participant_by_nhs_or_s_number($s_number, $nhs_number);
+
+  if (is_null($cont)) {
+    drupal_set_message(t("There was no civicrm record for @s_number or @nhs_number. Creating.", array('@s_number' => $record->SYSTEM_NUMBER,'@nhs_number' => $record->NHS_NUMBER)));
+
+    $prefix = getPrefixOptionValueFromTitle($record->TITLE);
+    $gender = getGenderOptionValueFromTitle($record->GENDER);
+
+    $names = array_merge(str_word_count($record->FORENAMES,1), array('', ''));
+
+    $patient = create_civi_contact_with_custom_data(array(
+        'contact_type' => 'Individual', 
+        'contact_sub_type' => array(str_replace(" ","_",CIVI_SUBTYPE_CONTACT)), 
+        'last_name' => ucfirst(strtolower($record->SURNAME)), 
+        'birth_date' => $record->DATE_OF_BIRTH,
+        'first_name' => ucfirst(strtolower($names['0'])),
+        'middle_name' => ucfirst(strtolower($names['1'])),
+        'gender_id' => $gender,
+        "prefix_id" => $prefix, 
+      ),
+      array(
+        CIVI_FIELD_S_NUMBER => $record->SYSTEM_NUMBER,
+        CIVI_FIELD_NHS_NUMBER => $record->NHS_NUMBER,
+      ));
+
+  } else {
+    drupal_set_message(t("Patient found for S Number = '$record->SYSTEM_NUMBER' and NHS Number = '$record->NHS_NUMBER'"));
+
+    lcbru_synchronise_participant_nhs_and_s_number($record->SYSTEM_NUMBER, $record->NHS_NUMBER);
+
+    $patient = $cont;
+  }
+
+  if ($importAddressFromPMI) {
+    lcbru_import_address_from_pmi($patient['id']);
+  }
+
+  $practiceContactId = lcbru_get_practice_contact_id_by_ice_code_quick($record->REFERRAL_SOURCE);
+
+  if (empty($practiceContactId)) {
+    drupal_set_message("GP practice ICE code not found: " . $record->REFERRAL_SOURCE . " please add manually.", "error");
+  }
+
+  _ice_messaging_create_relationship_to_practice($patient['id'], $practiceContactId);
+  _ice_messaging_create_enrolment($patient['id'], $practiceContactId, $record->REFERRAL_SOURCE);
+}
+
+function _ice_messaging_create_relationship_to_practice($patientId, $practiceContactId) {
+  if (empty($practiceContactId)) {
+    return;
+  }
+
+  $contactPracticeRelationshipType = find_civi_relationship_type(CIVI_REL_SURGERY_PATIENT);
+  $existing_rel = civicrm_api('Relationship','get',array('version' => '3', 'contact_id_a' => $patientId, 'relationship_type_id' => $contactPracticeRelationshipType, 'is_active' => '1'));
+
+  if ($existing_rel['is_error']) {
+    throw new Exception("Error looking for relationships: " . $existing_rel['error_message']);
+  }
+
+  $hasRelationshipWithOtherPractice = FALSE;
+  $hasRelationshipWithSamePractice = FALSE;
+
+  foreach ($existing_rel['values'] as $existingRelationship) {
+    if ($existingRelationship['contact_id_b'] == $practiceContactId) {
+      $hasRelationshipWithSamePractice = TRUE;
+    } else {
+      $hasRelationshipWithOtherPractice = TRUE;
+    }
+  }
+
+  if ($hasRelationshipWithOtherPractice) {
+    drupal_set_message("That patient already has a GP surgery registered. Please check the record manually, and supply an 'end date' for one of the relationships.", "error");
+  }
+
+  if (!$hasRelationshipWithSamePractice) {
+    create_civi_relationship($contactPracticeRelationshipType, $patientId, $practiceContactId);
+  }
+}
+
+function _ice_messaging_create_enrolment($patientId, $practiceContactId, $iceCode) {
+  $recruitingPracticeRelationshipType = find_civi_relationship_type(CIVI_REL_RECRUITING_SITE);
+  $caseType = getCaseTypeIdFromTitle(CIVI_CASE_TYPE_GENVASC);
+  $caseStatus = CIVI_CASE_RECRUITED;
+  $patient = get_civi_contact($patientId);
+
+  $gptCode = null;
+
+  $enrollmentParameters = array(
+    "subject" => "GENVASC", 
+    "contact_id" => $patientId,
+    );
+
+  $existingEnrollment = get_civi_cases_of_type_for_contact($patientId, $caseType);
+
+  if (!empty($existingEnrollment)) {
+    $existingEnrollmentID = reset($existingEnrollment)['id'];
+    $gptCode = get_civi_custom_value($existingEnrollmentID,CIVI_FIELD_SET_GENVASC_DATA , CIVI_FIELD_GENVASC_ID);
+
+    $caseStatus = CIVI_CASE_EXCLUDED;
+
+    drupal_set_message("This participant is already recruited to this study.  Creating an excluded enrollment with the same GPT number of '{$gptCode['latest']}'.");
+  }
+
+  // Use the ICE message to create a GENVASC case
+  $enrolment = create_civi_case(CIVI_CASE_TYPE_GENVASC, $caseStatus, $enrollmentParameters, TRUE);
+
+  // Add the site address ICE code to the enrolment.
+  if ($enrolment['id'] != "") {
+    civicrm_api("CustomValue","create",array('version' => '3', 'entity_id' => $enrolment['id'], 'custom_' . str_replace(" ","_",CIVI_FIELD_SET_GENVASC_DATA) . ":" . CIVI_FIELD_GENVASC_POST_CODE_NAME => $patient['postal_code']));
+    civicrm_api("CustomValue","create",array('version' => '3', 'entity_id' => $enrolment['id'], 'custom_' . str_replace(" ","_",CIVI_FIELD_SET_GENVASC_DATA) . ":" . str_replace(" ","_",CIVI_FIELD_GENVASC_SITE_ID) => $iceCode));
+    civicrm_api('Relationship','create',array('version' => '3', 'contact_id_a' => $patientId, 'contact_id_b' => $practiceContactId, 'relationship_type_id' => $recruitingPracticeRelationshipType, 'case_id' => $enrolment['id'], 'is_active' => '1'));
+
+    if (!empty($gptCode['latest'])) {
+      civicrm_api("CustomValue","create",array('version' => '3', 'entity_id' => $enrolment['id'], 'custom_' . str_replace(" ","_",CIVI_FIELD_SET_GENVASC_DATA) . ":" . str_replace(" ","_",CIVI_FIELD_GENVASC_ID) => $gptCode['latest']));
+    }
+  }
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function ice_messaging_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#ice_messaging":
+      return '<p>' . t("Displays ICE messages received for the GENVASC recruitment process.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Validates whether the user can have access to the ICE messaging data.
+ */
+function ice_messaging_access() {
+  return user_access('access ICE messages');
+}
+
+/**
+ * Implements hook_permission() to restrict access to the ICE messaging data.
+ */
+function ice_messaging_permission() {
+  return array(
+    'access ICE messages' => array(
+      'title' => t('Access ICE messaging data'),
+      'description' => t('Allow users to access ICE messages.'),
+    ),
+    'administer ICE messages' => array(
+      'title' => t('Administer ICE messaging data'),
+      'description' => t('Allow users to delete, hide and unhide ICE messages.'),
+    ),
+  );
+}
+
+

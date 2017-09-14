@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>EMMACE4</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Reminder letter</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Collect consent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Check study consent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Check study questionnaire</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Input study data</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Receive questionnaire</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Discharge patient</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Send data to lead site</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Check study consent</name>
+        </ActivityType>
+        <ActivityType>
+          <name>Input study data</name>
+          <subject>Inpatient medication list</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Input study data</name>
+          <subject>Inpatient EQ-5D</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Input study data</name>
+          <subject>Inpatient BIPQ</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Discharge patient</name>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>post_discharged_timeline</name>
+      <label>Post-Discharge Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>30-day medications list</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>30-day EQ-5D</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>30-day BIPQ</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>30-day PROM</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>30-day SIMS</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Send data to lead site</name>
+          <subject>30-day Questionnaires</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>44</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Send data to lead site</name>
+          <subject>Send MINAP data to LEEDS</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>120</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>180-day medications list</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>194</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>180-day EQ-5D</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>194</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>180-day BIPQ</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>194</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>180-day SIMS</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>194</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Send data to lead site</name>
+          <subject>180-day Questionnaires</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>194</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>365-day medications list</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>379</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>365-day EQ-5D</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>379</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        
+        <ActivityType>
+          <name>Receive questionnaire</name>
+          <subject>365-day BIPQ</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>379</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Send data to lead site</name>
+          <subject>365-day Questionnaires</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>379</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

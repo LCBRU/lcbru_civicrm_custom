@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<extension key="org.civicrm.sms.nhsmail" type="module">
+  <file>nhsmail</file>
+  <name>NHS email -> SMS gateway</name>
+  <description>Work-in-progress extension to implement outbound SMS via the UK's secure NHS.net email -> SMS gateway.</description>
+  <license>AGPL</license>
+  <maintainer>
+    <author>Nick Holden at the Leicester Cardiovascular BRU</author>
+    <email>nrh11@le.ac.uk</email>
+  </maintainer>
+  <releaseDate>2013-12-06</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.3</ver>
+    <ver>4.4</ver>
+  </compatibility>
+  <comments>This is a new, partially developed module. It should work, provided you set one line in the API parameters within CiviCRM, which should be the flag "--cacert " followed by the absolute location of the NHS net server certificate. For support, contact nrh11@le.ac.uk</comments>
+  <urls>
+    <url desc="About NHS email ">http://systems.hscic.gov.uk/nhsmail/about</url>
+  </urls>
+  <civix>
+    <namespace>CRM/Nhsmail</namespace>
+  </civix>
+</extension>
+

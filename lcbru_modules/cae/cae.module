@@ -1,0 +1,80 @@
+<?php
+
+const CAE_PREMISSION_PRINT_LABELS = 'CAE print labels';
+
+function cae_permission() {
+  return array(
+    CAE_PREMISSION_PRINT_LABELS => array (
+      'title' => t('Print CAE Labels'), 
+      'description' => t('Print labels packs for the CAE study'),
+    ),
+  );
+}
+
+function cae_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['CAE Pack'] = array(
+      'name' => 'CAE Pack',
+      'permission' => CAE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('CaePt'),
+        ),
+      'labels' => array(
+        'Recruited Patient Notes' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_RECRUITED_PATIENT_NOTES,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{STUDY_PLACEHOLDER}' => 'SCAD CAE (UoL 0535)'
+            )
+          ),
+        'EDTA Small Samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 2.7ml (PURPLE) Room temp'
+            )
+          ),
+        'EDTA Samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 7.5ml (RED) On ice'
+            )
+          ),
+        'SERUM samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'SERUM 7.5ml (BROWN) Room temp'
+            )
+          ),
+        'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 4
+          ),
+        'Visit 1 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_SERUN_AND_EDTA_BAG,
+          'study_name' => 'CAE',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        ),
+    );
+}
+

@@ -1,0 +1,5 @@
+name = FOAMI Study
+description = FOAMI Study Enrollments
+core = 7.x
+configure = admin/config/content/foami
+dependencies[] = lcbru

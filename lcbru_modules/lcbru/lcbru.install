@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * The LCBRU module exists only to pre-populate a civicrm installation with the necessary data to function as the LCBRU intended.
+ * The module file therefore doesn't do anything. The important stuff here is in the lcbru.install file.
+ * 
+ * To complete the installation, copy the contents of the xml folder into the custom templates directory tree, at CRM/Case/xml/configuration/
+ */
+
+
+include_once "lib/init.php";
+/**
+ * Implements hook_enable().
+ */
+function lcbru_enable() {
+        civicrm_initialize();
+        
+        civicrm_api3('setting', 'create', array(
+                'enable_components' => array('CiviCase', 'CiviReport'),
+        ));
+
+	try {
+                lcbru_init_required();
+                
+                // Not implemented yet - creating the xml for the case type definitions, or copying an xml file into the config directory
+ 
+                drupal_set_message("LCBRU extension for CiviCRM was setup successfully.");
+                
+        }
+        catch(Exception $ex) {
+                drupal_set_message("An unexpected error occured during the LCBRU extension setup: ".$ex->getMessage(),"error");
+        }
+	
+        $typeCreator = new LcbruTypeCreator();
+        $typeCreator->recreate();
+
+        lcbru_import_titles();
+
+}

@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * A module to support Omics Register
+ */
+function omics_register_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_OMICS_REGISTER_ID') . '_')) {
+                if (_omics_register_isInvalidScadId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_OMICS_REGISTER_ID . " is not valid.  Should be of the format 'OmicsnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _omics_register_isInvalidScadId($value) {
+  $idGenerator = new IdGenerator('Omics');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function omics_register_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_OMICS_REGISTER_ID';
+}
+
+function omics_register_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_OMICS_REGISTER_ID':
+            $studyIdGenerator = new IdGenerator('Omics');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+

@@ -1,0 +1,251 @@
+<?php
+
+const ARCHIVER_BLOCK_TITLE = 'Archiver';
+const ARCHIVER_BLOCK_NAME = 'Archiver';
+const ARCHIVER_PERMISSION_NAME_HOOK = 'archiver_permission_name';
+const ARCHIVER_PERMISSION = 'access archiver';
+const ARCHIVER_URL_FORM = 'content/archiver';
+const ARCHIVER_URL_DUPLICATES = 'content/archiver/duplicates';
+
+
+function archiver_menu() {
+  $items[ARCHIVER_URL_FORM] = array(
+    'title' => 'Participant Archiver',
+    'description' => 'Archive study participants.',
+    'menu_name' => 'main-menu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_archiver_form'),
+    'access arguments' => array(ARCHIVER_PERMISSION),
+    'expanded' => TRUE,
+  );
+
+  $items[ARCHIVER_URL_DUPLICATES] = array(
+    'title' => 'Participant Archiver',
+    'description' => 'Archive study participants.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_archiver_duplicates',
+    'access arguments' => array(ARCHIVER_PERMISSION),
+    'expanded' => TRUE,
+  );
+
+  return $items;
+}
+
+
+function _archiver_form() {
+    $studies = _archiver_getArchivableStudies();
+    ksort($studies);
+
+    if (empty($studies)) {
+        return array(
+            'study' => array(
+                '#type' => 'item',
+                '#title' => 'You do not have permission to archive any studies',
+                ),
+            );
+    } else {
+        return array(
+            'study' => array(
+                '#type' => 'select',
+                '#title' => t('Study'),
+                '#default_value' => 1,
+                '#options' => $studies,
+                '#default_value' => SessionHelper::get('archiver', 'last_used_study', 0),
+                '#required' => TRUE
+                ),
+            'archive_box_barcode' => array(
+                '#title' => t('Archive Box Barcode'),
+                '#type' => 'textfield',
+                '#size' => '20',
+                '#maxlength' => '20',
+                '#default_value' => SessionHelper::get('archiver', 'last_used_box_barcode'),
+                '#required' => TRUE,
+                ),
+            'study_number' => array(
+                '#title' => t('Study Number'),
+                '#type' => 'textfield',
+                '#size' => '20',
+                '#maxlength' => '20',
+                '#required' => TRUE,
+                ),
+            'submit' => array(
+                '#type' => 'submit',
+                '#value' => 'Archive',
+                )
+            );
+    }
+}
+
+
+function _archiver_form_submit($form, &$form_state) {
+    Guard::AssertString_NotEmpty('study', $form_state['values']['study']);
+    Guard::AssertString_NotEmpty('archive_box_barcode', $form_state['values']['archive_box_barcode']);
+    Guard::AssertString_NotEmpty('study_number', $form_state['values']['study_number']);
+
+    SessionHelper::set('archiver', 'last_used_study', $form_state['values']['study']);
+    SessionHelper::set('archiver', 'last_used_box_barcode', $form_state['values']['archive_box_barcode']);
+
+    civicrm_initialize();
+
+    $studyNumber = trim($form_state['values']['study_number']);
+    $studyName = trim($form_state['values']['study']);
+    $archiveBarcode = trim($form_state['values']['archive_box_barcode']);
+
+    $cases = _archiver_getCasesForSearchString($studyName, $studyNumber);
+
+    if (empty($cases)) {
+        drupal_set_message("No unarchived studies for '$studyNumber'", 'warning');
+        return;
+    } else if (count($cases) > 1) {
+        drupal_goto(ARCHIVER_URL_DUPLICATES . "/$studyName/$studyNumber/$archiveBarcode");
+        return;
+    }
+
+    _archiver_archiveStudy(reset($cases), $archiveBarcode);
+    
+    drupal_set_message("$studyNumber has been archived.");  
+}
+
+
+function _archiver_getCasesForSearchString($studyName, $searchString) {
+    $oh = new OptionValueHelper(OptionValueHelper::ACTIVITY_TYPE);
+    $archiveActivityValue = $oh->getValueFromLabel(CIVI_ACTIVITY_ARCHIVING);
+
+    $conh = new ContactHelper();
+
+    $matching_contacts = $conh->searchSubjects($searchString, 10, False);
+
+    $ch = new CaseHelper();
+    $caseTypeId = $ch->getCaseTypeFromName($studyName)['id'];
+    $cases = $ch->getCasesForContactIds(array_keys($matching_contacts), array('case_type_id' => $caseTypeId));
+
+    $ah = new ActivityHelper();
+    $result = array();
+
+    foreach ($cases as $case) {
+        $case['contact'] = $matching_contacts[current($case['contact_id'])];
+
+        $archiveActivity = $ah->getActivitiesFromIds($case['activities'], array(
+            'is_deleted' => '0',
+            'is_current_revision' => '1',
+            'activity_type_id' => $archiveActivityValue
+        ));
+
+        if (count($archiveActivity) == 0) {
+            $result[] = $case;
+        }
+    }
+
+    return $result;
+}
+
+
+function _archiver_archiveStudy($case, $archiveBoxBarcode) {
+    $oh = new OptionValueHelper(OptionValueHelper::ACTIVITY_TYPE);
+    $archiveActivityValue = $oh->getValueFromLabel(CIVI_ACTIVITY_ARCHIVING);
+
+    $newActivity = CiviCrmApiHelper::createObject('Activity', array(
+        'activity_type_id' => $archiveActivityValue,
+        'case_id' => $case['id'],
+        'subject' => ts('Participant Archived'),
+        'target_contact_id' => $case['client_id'],
+        ));
+
+    $ch = new CustomFieldHelper();
+    $ch->saveValue($newActivity['id'], 'CIVI_FIELD_ARCHIVING_BOX_BARCODE', $archiveBoxBarcode);
+}
+
+
+function _archiver_getArchivableStudies() {
+    $result = array();
+
+    foreach (module_implements(ARCHIVER_PERMISSION_NAME_HOOK) as $module) {
+        $permissionName = module_invoke($module, ARCHIVER_PERMISSION_NAME_HOOK);
+
+        if (user_access($permissionName)) {
+            $result[module_invoke($module, LCBRU_CASE_TYPE_NAME_HOOK)] = module_invoke($module, LCBRU_CASE_TYPE_NAME_HOOK);
+        }
+    }
+
+    return $result;
+}
+
+
+function _archiver_duplicates($studyName, $studyNumber, $archiveBoxBarcodes) {
+    return drupal_get_form('_archiver_duplicates_form', $studyName, $studyNumber, $archiveBoxBarcodes);
+}
+
+
+function _archiver_duplicates_form($form, &$form_state, $studyName, $studyNumber, $archiveBoxBarcodes) {
+    Guard::AssertString_NotEmpty('studyName', $studyName);
+    Guard::AssertString_NotEmpty('studyNumber', $studyNumber);
+    Guard::AssertString_NotEmpty('archiveBoxBarcodes', $archiveBoxBarcodes);
+
+    civicrm_initialize();
+
+    $cases = _archiver_getCasesForSearchString($studyName, $studyNumber);
+
+    $caseH = new CaseHelper();
+    
+    $enrolmentSelects = array();
+    foreach ($cases as $case) {
+        $contactName = $case['contact']['first_name'] . ' ' . $case['contact']['last_name'];
+        $enrolmentSelects[$case['id']] = "$contactName - " . $caseH->getCaseTitle($case) . ": " . $caseH->getCaseFieldsDescription($case);
+    }
+
+    $result['enrolment'] = array(
+        '#type' => 'radios',
+        '#title' => t("Select which enrolment for '$studyNumber' to archive"),
+        '#options' => $enrolmentSelects,
+        '#required' => true
+      );
+
+    $result['archive_box_barcode'] = array(
+                '#type' => 'value',
+                '#value' => $archiveBoxBarcodes,
+            );
+
+    $result['study_number'] = array(
+                '#type' => 'value',
+                '#value' => $studyNumber,
+            );
+
+    $result['submit'] = array(
+                '#type' => 'submit',
+                '#value' => 'Archive',
+            );
+
+    $result['cancel'] = array(
+                '#markup' => l(t('Cancel'), ARCHIVER_URL_FORM),
+            );
+
+   return $result;
+}
+
+
+function _archiver_duplicates_form_submit($form, &$form_state) {
+    civicrm_initialize();
+    Guard::AssertInteger('enrolment', $form_state['values']['enrolment']);
+    Guard::AssertString_NotEmpty('archive_box_barcode', $form_state['values']['archive_box_barcode']);
+    Guard::AssertString_NotEmpty('archive_box_barcode', $form_state['values']['study_number']);
+
+    $ch = new CaseHelper();
+    $case = $ch->getCaseFromId($form_state['values']['enrolment']);
+    
+    _archiver_archiveStudy($case, $form_state['values']['archive_box_barcode']);
+    
+    drupal_set_message("{$form_state['values']['study_number']} has been archived.");
+
+    drupal_goto(ARCHIVER_URL_FORM);
+}
+
+
+function archiver_permission() {
+  return array(
+    ARCHIVER_PERMISSION => array(
+      'title' => t('Access Archiver'),
+      'description' => t('Allow users to access the Archiver.'),
+    ),
+  );
+}
+

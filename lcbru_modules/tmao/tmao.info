@@ -1,0 +1,6 @@
+name = TMAO Study
+description = TMAO Study Enrollments
+core = 7.x
+configure = admin/config/content/tmao
+dependencies[] = civicrm
+dependencies[] = lcbru

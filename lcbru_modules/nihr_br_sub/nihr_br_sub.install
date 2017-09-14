@@ -1,0 +1,8 @@
+<?php
+function nihr_br_sub_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function nihr_br_sub_disable() {
+}

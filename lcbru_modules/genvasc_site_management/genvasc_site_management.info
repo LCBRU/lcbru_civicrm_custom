@@ -1,0 +1,6 @@
+name = GENVASC Site Management
+description = GENVASC Site Management
+core = 7.x
+configure = admin/config/content/genvasc_site_management
+dependencies[] = civicrm
+dependencies[] = lcbru

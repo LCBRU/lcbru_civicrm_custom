@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>TMAO</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Telephone Participant</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Invitation letter</name>
+          <subject>Invitation &amp; PIS sent/given</subject>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Appointment</name>
+          <subject>Clinic Appointment</subject>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>previsit_timeline</name>
+      <label>Pre-Visit</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Telephone Participant</name>
+          <subject>Check pre-study samples and inclusion criteria</subject>
+          <reference_activity>Appointment</reference_activity>
+          <reference_offset>-2</reference_offset>
+          <reference_select>oldest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Issue Parking Permit</name>
+          <reference_activity>Appointment</reference_activity>
+          <reference_offset>-7</reference_offset>
+          <reference_select>oldest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>postvisit_timeline</name>
+      <label>Post-Visit</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Take study samples</name>
+        </ActivityType>
+        <ActivityType>
+          <name>Questionnaire completed</name>
+        </ActivityType>
+        <ActivityType>
+          <name>Letter to GP</name>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

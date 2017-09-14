@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>GENVASC_SITE_MANAGEMENT</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Telephone Site</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Internal Montoring Visit</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>initial_contact_timeline</name>
+      <label>Initial Contact Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+
+        <ActivityType>
+          <name>Invitation letter</name>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Telephone Site</name>
+          <subject>Invitation follow up</subject>
+          <reference_activity>Invitation letter</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Response received</name>
+          <reference_activity>Invitation letter</reference_activity>
+          <reference_offset>30</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>initiated_timeline</name>
+      <label>Initiated Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+
+        <ActivityType>
+          <name>Training and Initiation</name>
+          <status>Completed</status>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Telephone Site</name>
+          <subject>Site Status Check</subject>
+          <reference_activity>Training and Initiation</reference_activity>
+          <reference_offset>182</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Internal Montoring Visit</name>
+          <reference_activity>Training and Initiation</reference_activity>
+          <reference_offset>365</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>annual_review_timeline</name>
+      <label>Annual Review Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+
+        <ActivityType>
+          <name>Telephone Site</name>
+          <subject>Site Status Check</subject>
+          <reference_activity>Internal Montoring Visit</reference_activity>
+          <reference_offset>182</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Internal Montoring Visit</name>
+          <reference_activity>Internal Montoring Visit</reference_activity>
+          <reference_offset>365</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+
+  </ActivitySets>
+  <CaseRoles>
+  </CaseRoles>
+</CaseType>
+
+

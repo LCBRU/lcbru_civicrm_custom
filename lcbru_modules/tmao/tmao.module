@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the EMMACE-4 study
+ */
+
+function tmao_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_TMAO_ID') . '_')) {
+                if (_tmao_isInvalidTmaoId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_TMAO_ID . " is not valid.  Should be of format 'TMAOnnnn', where 'nnnn' is a 4 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _tmao_isInvalidTmaoId($value) {
+  return !preg_match('/^(TMAO\d{4}|)$/', $value);
+}
+
+function tmao_labels_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_TMAO_ID';
+}

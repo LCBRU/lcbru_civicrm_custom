@@ -1,0 +1,279 @@
+<?php
+
+/**
+ * @file
+ * A block module that displays a form allowing a MVO study ID to be input
+ * generating and returning randomised Identifiers for angio and cMR images, 
+ * which would be recorded as allocated in the database, and then 
+ * displayed on screen. Conversely, allows unblinding by submitting the 
+ * angio or cMR identifier, and returns the associated study ID.
+ */
+
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function mvo_id_generator_block_view($delta = '') {
+  switch($delta){
+    case 'mvo_id_generator':
+      $block['subject'] = t('MVO study identifiers');
+      if(user_access('MVO_IDs')){
+        $block['content'] = drupal_get_form('mvo_id_generator_formname');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the mvo ID generator form for the block.
+*/
+function mvo_id_generator_formname($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  //How many IDs to generate?
+  $form['study_id'] = array(
+    '#title' => t('Enter MVO study ID to blind'),
+    '#type' => 'textfield',
+    '#size' => 8,
+    '#maxlength' => 16,
+  );
+
+  //How many IDs to generate?
+  $form['image_id'] = array(
+    '#title' => t('Enter angio or CMR ID to unblind'),
+    '#type' => 'textfield',
+    '#size' => 8,
+    '#maxlength' => 16,
+  );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_validate()
+ */
+function mvo_id_generator_formname_validate($form, &$form_state) {
+  if ($form_state['values']['study_id'] == '' && $form_state['values']['image_id'] == '') {
+    form_set_error('',t('You must input either a study ID for blinding or an image ID to unblind.'));
+  } else if ($form_state['values']['study_id'] <> '' && $form_state['values']['image_id'] <> '') {
+    form_set_error('',t('Please only input either a study ID for blinding OR an image ID to unblind. Not both. Both is confusing.'));
+  } else if ((ctype_digit($form_state['values']['study_id']) == FALSE OR strlen($form_state['values']['study_id']) <> 3 OR $form_state['values']['study_id'] == '000') && $form_state['values']['image_id'] == '') {
+    form_set_error('',t('The MVO study ID must be a three digit number larger than zero.'));
+  }
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function mvo_id_generator_formname_submit($form, &$form_state) {
+  $mvo_id = '';
+  if ($form_state['values']['study_id'] <> '') {
+    // Check the study id is not already blinded, if it is, return the existing matching IDs
+    $mvo_id = mvo_check($form_state['values']['study_id']);
+    if (isset($mvo_id['angio_id'])) {
+      drupal_set_message(t('MVO imaging IDs already exist. Angio: @angio_id, CMR: @cmr_id.',array('@angio_id' => $mvo_id['angio_id'],'@cmr_id' => $mvo_id['cmr_id'])));
+    } else {
+      // Process the request for blinding
+      $mvo_id = mvo_blind($form_state['values']['study_id']);
+      drupal_set_message(t('MVO imaging IDs generated. Angio: @angio_id, CMR: @cmr_id.',array('@angio_id' => $mvo_id['angio_id'],'@cmr_id' => $mvo_id['cmr_id'])));
+    }
+  } else {
+    // Process the request for unblinding
+    $mvo_id = mvo_unblind($form_state['values']['image_id']);
+    if ($mvo_id['mvo_id'] <> "") { 
+      drupal_set_message(t('MVO unblinded study ID is @mvo_id.',array('@mvo_id' => $mvo_id['mvo_id'])));
+    }
+  }
+}
+
+
+/**
+ * Checks for existing database entry for the MVO study ID.
+ */
+function mvo_check($mvo_id) {
+  if (lock_acquire('mvo_id',3)) {
+    $result = db_query("SELECT mvo_id,angio_id,cmr_id FROM {mvo_ids} WHERE mvo_id = :mvo_id", array(':mvo_id' => $mvo_id));
+    if ($result->rowCount() > 0) {
+      $id_set = $result->fetchAssoc();
+    } else {
+      drupal_set_message(t('No existing records found matching that ID.'));
+    }
+    lock_release('mvo_id');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+
+/**
+ * Generates imaging IDs and stores them alongside the study ID in the database.
+ */
+function mvo_blind($mvo_id) {
+  if (lock_acquire('mvo_id',3)) {
+    $result = db_query("SELECT mvo_id,angio_id,cmr_id FROM {mvo_ids} WHERE mvo_id = :mvo_id", array(':mvo_id' => $mvo_id));
+    if ($result->rowCount() > 0) {
+      // Something is wrong, as we shouldn't get a result.
+      form_set_error('',t('That MVO ID seemed to be in the database already.'));
+    } else {
+      $id_set = mvo_generate_ids($mvo_id);
+    }
+    lock_release('mvo_id');
+    } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+/**
+ * Looks up thedatabase entry for an imaging ID and returns the MVO study ID.
+ */
+function mvo_unblind($imaging_id) {
+  if (lock_acquire('mvo_id',3)) {
+    $result = db_query("SELECT mvo_id,angio_id,cmr_id FROM {mvo_ids} WHERE angio_id = :imaging_id OR cmr_id = :imaging_id", array(':imaging_id' => $imaging_id));
+    if ($result->rowCount() == 0) {
+      // Something is wrong, as we should get a result.
+      form_set_error('',t('The imaging ID @imaging_id could not be found in the database.', array('@imaging_id' => $imaging_id)));
+    } else {
+      $id_set = $result->fetchAssoc();
+    }
+    lock_release('mvo_id');
+    } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+
+/**
+ * Generates a set of MVO imaging IDs and stores them in the database.
+ */
+function mvo_generate_ids($mvo_id) {
+  $min_id = '';
+  $max_id = '';
+  $range_id = '';
+  $ok = '';
+  $proposed_id = '';
+
+  if (lock_acquire('mvo_id_generator',3)) {
+    $min_id   = 10000;
+    $max_id   = 99999;
+    $range_id = 89999;
+
+    // In a while loop as we might not get an unused number.
+    $ok = FALSE;
+    while (!$ok) {
+      // Make a random number for angio ID
+      $proposed_angio_id = rand($min_id,$max_id);
+      // Test it against the database.
+      $result = db_query("SELECT angio_id FROM {mvo_ids} WHERE angio_id = :angio_id OR cmr_id = :angio_id", array(':angio_id' => $proposed_angio_id));
+      if ($result->rowCount() == 0) {
+        // In another while loop as we might not get an unused number.
+        $ok_cmr = FALSE;
+        while (!$ok_cmr) {
+          // Make a random number for CMR ID
+          $proposed_cmr_id = rand($min_id,$max_id);
+          // Test it against the database, and also ensure that it isn't the same as the proposed angio ID.
+          $result = db_query("SELECT cmr_id FROM {mvo_ids} WHERE cmr_id = :cmr_id OR angio_id = :cmr_id", array(':cmr_id' => $proposed_cmr_id));
+          if ($result->rowCount() == 0 && $proposed_cmr_id <> $proposed_angio_id) {
+            $ok_cmr = TRUE;
+          } 
+        }
+        $ok = TRUE;
+      } 
+    }
+    $query = db_insert('mvo_ids')
+      ->fields(array(
+        'mvo_id' => $mvo_id,
+        'angio_id' => $proposed_angio_id,
+        'cmr_id' => $proposed_cmr_id,
+      ))
+      ->execute();
+    lock_release('mvo_id_generator');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  $id_set['mvo_id']  = $mvo_id;
+  $id_set['angio_id'] = $proposed_angio_id;
+  $id_set['cmr_id'] = $proposed_cmr_id;
+  return $id_set;
+
+}
+
+/**
+ * Implements hook_permission()
+ */
+function mvo_id_generator_permission() {
+  return array(
+    'MVO_IDs' => array(
+      'title' => t('Blind or unblind MVO IDs'), 
+      'description' => t('Create unique and random IDs for use in the MVO study.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function mvo_id_generator_block_info() {
+  $blocks['mvo_id_generator'] = array(
+    'info' => t('MVO ID generator'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function mvo_id_generator_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#mvo_id_generator":
+      return '<p>' . t("Displays block to create MVO unique and random IDs.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_menu().
+ */
+function mvo_id_generator_menu() {
+  $items = array();
+  $items['admin/config/content/mvo_id_generator'] = array(
+    'title' => 'MVO ID generator',
+    'description' => 'Generates unique and random IDs for the MVO study',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mvo_id_generator_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: MVO id generator admin settings
+ *
+ * @see mvo_id_generator_menu()
+ */
+function mvo_id_generator_form($form, &$form_state) {
+  return system_settings_form($form);
+}
+

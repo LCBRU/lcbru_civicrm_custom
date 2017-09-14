@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>Indapamide</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Arrange Appointment</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Add to calendar</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Issue Parking Permit</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Notes Requested</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Acknowledgement</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Recruit and interview</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Collect consent</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Expense Reimbursement Submitted</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Letter to GP</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Baseline</subject>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Arrange Appointment</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>14</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>2nd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Add to calendar</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>14</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>2nd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Issue Parking Permit</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>14</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>2nd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Expense Reimbursement Submitted</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>14</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>2nd Visit</subject>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Arrange Appointment</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>45</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>3rd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Add to calendar</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>45</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>3rd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Issue Parking Permit</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>45</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>3rd Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Expense Reimbursement Submitted</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>45</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>3rd Visit</subject>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Arrange Appointment</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>76</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>4th Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Add to calendar</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>76</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>4th Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Issue Parking Permit</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>76</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>4th Visit</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Expense Reimbursement Submitted</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>76</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>4th Visit</subject>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

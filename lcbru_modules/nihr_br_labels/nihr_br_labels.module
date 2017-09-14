@@ -1,0 +1,371 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the NIHR Bioresource. Two main features:
+ * A page in the main menu to provide a form for uploading a file of participants to be bulk loaded 
+ * into CiviCRM specifically for the BioResource, together with recruitment activities.
+ *
+ * A block that displays a form allowing a specified number of nihr_br 
+ * ID numbers to be generated, noted as allocated in the database, and then 
+ * printed as barcode labels. Multiple labels per ID can be configured.
+ */
+
+require_once("constants.php");
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the label printing block.
+ */
+function nihr_br_labels_block_view($delta = '') {
+  switch($delta){
+    case 'nihr_br_labels':
+      $block['subject'] = t('BioResource ID labels');
+      if(user_access('print nihr_br labels')){
+        $block['content'] = drupal_get_form('nihr_br_labels_form');
+      }
+      break;
+
+    case 'nihr_br_ids':
+      $block['subject'] = t('BioResource ID lookup');
+      if(user_access('print nihr_br labels')){
+        $block['content'] = drupal_get_form('nihr_br_lookup_form');
+      }
+      break;
+    }
+
+    return $block;
+}
+
+/**
+ * Constructs the nihr_br ID label printing form for the block.
+*/
+function nihr_br_labels_form($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+   $form['participants'] = array(
+    '#type' => 'select',
+    '#title' => t('Participants'),
+    '#default_value' => 1,
+    '#options' => array_combine(range(1,10),range(1,10)),
+    '#required' => TRUE
+    );
+
+   $form['labelcount'] = array(
+    '#type' => 'select',
+    '#title' => t('Labels per participant'),
+    '#default_value' => 1,
+    '#options' => array_combine(range(1,5),range(1,5)),
+    '#required' => TRUE
+    );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Print',
+  );
+
+  return $form;
+}
+
+/**
+ * Constructs the nihr_br ID lookup form for the block.
+*/
+function nihr_br_lookup_form($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  //Old ID to lookup
+  $form['old_id'] = array(
+    '#title' => t('Scan or enter old barcode'),
+    '#type' => 'textfield',
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#required' => TRUE
+  );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Look up',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit()
+ */
+function nihr_br_labels_form_submit($form, &$form_state) {
+  Guard::AssertInteger('$participants', $form_state['values']['participants']);
+  Guard::AssertInteger('$labelCount', $form_state['values']['labelcount']);
+
+  $ids = [];
+
+  for ($i = 0; $i < $form_state['values']['participants']; $i++) {
+    $ids[] = nihr_br_generate_id();
+  }
+
+  $lp = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
+
+  foreach ($ids as $id) {
+    $lp->printStudySample($id, $form_state['values']['labelcount']);
+  }
+
+  drupal_set_message(t('The following Bioresource labels have been created and printed: ' . join(', ', $ids)));
+}
+
+
+/**
+ * Implements hook_form_submit()
+ */
+function nihr_br_lookup_form_submit($form, &$form_state) {
+  $old_id = $form_state['values']['old_id'];
+  $number_portion = substr($old_id,2,7);
+  $check_digit = nihr_br_calc_check_char($number_portion);
+  $new_id = 'BR' . $number_portion . $check_digit;
+
+  drupal_set_message(t('The new BioResource ID for @old_id is: @new_id',array('@old_id' => $old_id,'@new_id' => $new_id)));
+}
+
+
+/**
+ * Generates a nihr_br ID and stores it in the database.
+ */
+function nihr_br_generate_id() {
+  $min_id = '';
+  $max_id = '';
+  $ok = '';
+  $proposed_id = '';
+  $check_character = '';
+
+  if (lock_acquire('nihr_br_labels',3)) {
+    $min_id   = 1000000;
+    $max_id   = 9999999;
+
+    // In a while loop as we might not get an unused number.
+    $ok = FALSE;
+    while (!$ok) {
+      // Make a random number.
+      $proposed_id = rand($min_id,$max_id);
+      // Test it against the database.
+      $query = db_select('nihr_br_ids');
+      $query
+        ->condition('nihr_br_ids.nihr_br_id',$proposed_id,'=')
+        ->fields('nihr_br_ids',array('nihr_br_id'))
+      ;
+      $result = $query->countQuery()->execute()->fetchField();
+      if ($result == 0) {
+        $ok = TRUE;
+      } 
+    }
+
+    // Get the check character
+    $check_character = nihr_br_calc_check_char($proposed_id);
+
+    // Put it in the database
+    $query = db_insert('nihr_br_ids')
+      ->fields(array(
+        'nihr_br_id' => $proposed_id,
+        'check_digit' => $check_character
+      ))
+      ->execute();
+    lock_release('nihr_br_labels');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return 'BR'.$proposed_id . $check_character;
+}
+
+
+/**
+ * Calculates the correct check character for a nihr_br ID.
+ */
+function nihr_br_calc_check_char($id) {
+
+switch ($id % 23) {
+    case 0:
+        return "Z";
+        break;
+    case 1:
+        return "A";
+        break;
+    case 2:
+        return "B";
+        break;
+    case 3:
+        return "C";
+        break;
+    case 4:
+        return "D";
+        break;
+    case 5:
+        return "E";
+        break;
+    case 6:
+        return "F";
+        break;
+    case 7:
+        return "G";
+        break;
+    case 8:
+        return "H";
+        break;
+    case 9:
+        return "J";
+        break;
+    case 10:
+        return "K";
+        break;
+    case 11:
+        return "L";
+
+        break;
+    case 12:
+        return "M";
+        break;
+    case 13:
+        return "N";
+        break;
+    case 14:
+        return "P";
+        break;
+    case 15:
+        return "Q";
+        break;
+    case 16:
+        return "R";
+        break;
+    case 17:
+        return "S";
+        break;
+    case 18:
+        return "T";
+        break;
+    case 19:
+        return "V";
+        break;
+    case 20:
+        return "W";
+        break;
+    case 21:
+        return "X";
+        break;
+    case 22:
+        return "Y";
+        break;
+  }
+  return;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function nihr_br_labels_permission() {
+  return array(
+    'print nihr_br labels' => array(
+      'title' => t('Print BioResource labels'), 
+      'description' => t('Create and print BioResource ID labels.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nihr_br_labels_block_info() {
+  $blocks['nihr_br_labels'] = array(
+    'info' => t('NIHR BioResource label printing'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  $blocks['nihr_br_ids'] = array(
+    'info' => t('NIHR BioResource ID lookup'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function nihr_br_labels_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#nihr_br_labels":
+      return '<p>' . t("Displays page for uploading BioResource recruitment activity into CiviCRM and a block to create BioResource IDs and print ID labels.") . '</p>';
+      break;
+  }
+} 
+
+
+function nihr_br_labels_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    $brIdEmpty = false;
+    $brLegacyIdEmpty = false;
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_BIORESOURCE_LEGACY_ID') . '_')) {
+                if (empty($field)) {
+                  $brLegacyIdEmpty = true;
+                } else if (_nihr_br_labels_isInvalidBioresourceLegacyId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BIORESOURCE_LEGACY_ID . " is not valid.  Should be a 'BRnnnnnnnn', where 'nnnnnnnn' is a 8 digit number");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_BIORESOURCE_ID) . '_')) {
+                if (empty($field)) {
+                  $brIdEmpty = true;
+                } else if (_nihr_br_labels_isInvalidBioresourceId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BIORESOURCE_ID . " is not valid.  Should be a 'BRnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check character");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _nihr_br_labels_isInvalidBioresourceId($value) {
+  if (!preg_match('/^(BR\d{7}[A-Z])$/', $value)) {
+    return true;
+  }
+
+  $numericPortion = substr($value, 2, 7);
+  $checkNumber = $numericPortion % 23;
+
+  return substr($value, 9, 1) != nihr_br_calc_check_char($checkNumber);
+}
+
+function _nihr_br_labels_isInvalidBioresourceLegacyId($value) {
+  return !preg_match('/^(BR\d{8})$/', $value);
+}
+
+function nihr_br_labels_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_BIORESOURCE_ID);
+    $studyIds[] = 'CIVI_FIELD_BIORESOURCE_LEGACY_ID';
+}
+
+function nihr_br_labels_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    if ($fieldName == str_replace(" ","_",CIVI_FIELD_BIORESOURCE_ID)) {
+      return nihr_br_generate_id();
+    }
+}
+
+function nihr_br_labels_lcbru_getStudyIdFieldName($studyId) {
+    if (!_nihr_br_labels_isInvalidBioresourceId($studyId)) {
+        return str_replace(" ","_",CIVI_FIELD_BIORESOURCE_ID);
+    } elseif (!_nihr_br_labels_isInvalidBioresourceLegacyId($studyId)) {
+        return 'CIVI_FIELD_BIORESOURCE_LEGACY_ID';   
+    }
+}

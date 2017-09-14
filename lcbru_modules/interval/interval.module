@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the INTERVAL study
+ */
+
+function interval_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_INTERVAL_ID) . '_')) {
+                if (_interval_isInvalidIntervalId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_INTERVAL_ID . " is not valid.  Should be a 8 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _interval_isInvalidIntervalId($value) {
+  return !preg_match('/^\d{8}$/', $value);
+}
+
+function interval_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_INTERVAL_ID';
+}

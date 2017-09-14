@@ -1,0 +1,192 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function genvasc_labels_schema() {
+  $schema['genvasc_ids'] =  array(
+
+    'description' => 'The table for used GENVASC IDs.',
+    'fields' => array(
+      'genvasc_id' => array(
+        'description' => 'GENVASC IDs already used.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      ),
+    'primary key' => array('genvasc_id'),
+  );
+  $schema['genvasc_portal_recruits'] =  array(
+    'description' => 'The table for used to record participants recruited in the portal.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Recruit ID',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE),
+      'create_user' => array(
+        'type' => 'varchar',
+        'length' => '500',
+        'description' => 'User that created the record',
+        'not null' => FALSE),
+      'create_date' => array(
+        'mysql_type' => 'DATETIME',
+        'description' => 'Date record was created',
+        'not null' => FALSE),
+      'practice_id' => array(
+        'description' => 'CiviCRM contact ID for practice',
+        'type' => 'int',
+        'not null' => TRUE),
+      'nhs_number' => array(
+        'description' => 'The participants NHS Number',
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE),
+      'dob' => array(
+        'description' => 'Date of birth',
+        'mysql_type' => 'DATE',
+        'not null' => TRUE),
+      'date_recruited' => array(
+        'description' => 'Date ... er ... recruited',
+        'mysql_type' => 'DATE',
+        'not null' => TRUE),
+      'daps_submission_participant_id' => array(
+        'description' => 'DAPS Submission participant ID',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE),
+      'date_processed' => array(
+        'description' => 'Date processed',
+        'mysql_type' => 'DATE',
+        'not null' => FALSE),
+      'contact_id' => array(
+        'description' => 'participant contact id',
+        'type' => 'int',
+        'not null' => FALSE),
+      'case_id' => array(
+        'description' => 'participant case id',
+        'type' => 'int',
+        'not null' => FALSE),
+      'delete_user' => array(
+        'type' => 'varchar',
+        'length' => '500',
+        'description' => 'User that deleted',
+        'not null' => FALSE),
+      'delete_date' => array(
+        'mysql_type' => 'DATETIME',
+        'description' => 'Date record was deleted',
+        'not null' => FALSE),
+      'delete_reason' => array(
+        'type' => 'varchar',
+        'length' => '500',
+        'description' => 'Reason for the recruit being deleted',
+        'not null' => FALSE),
+      ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'daps_submission_participant_id' => array('daps_submission_participant_id'),
+    ),
+    'indexes' => array(
+      'date_processed'        => array('date_processed'),
+    ),
+    'foreign keys' => array(
+      'daps_submission_participant_id' => array(
+        'table' => 'daps_submission_participant',
+        'columns' => array('id' => 'daps_submission_participant_id'),
+       ),
+     ),
+  );
+
+  return $schema;
+}
+
+function genvasc_labels_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function genvasc_labels_update_7001() {
+  db_create_table('etl_portal_recruits', drupal_get_schema_unprocessed('genvasc_labels', 'etl_portal_recruits'));
+  return 'Add the etl_portal_recruits table.';
+}
+
+function genvasc_labels_update_7002() {
+  db_create_table('genvasc_portal_recruits', drupal_get_schema_unprocessed('genvasc_labels', 'genvasc_portal_recruits'));
+  return 'Add the genvasc_portal_recruits table.';
+}
+
+function genvasc_labels_update_7003() {
+  db_add_field( 'genvasc_portal_recruits', 'contact_id', array(
+    'type' => 'int',
+    'description' => 'participant contact id',
+    'not null' => FALSE,
+  ));
+  db_add_field( 'genvasc_portal_recruits', 'case_id', array(
+    'type' => 'int',
+    'description' => 'participant case id',
+    'not null' => FALSE,
+  ));
+}
+
+function genvasc_labels_update_7004() {
+  db_add_field( 'genvasc_portal_recruits', 'delete_reason', array(
+    'type' => 'varchar',
+    'length' => '500',
+    'description' => 'Reason for the recruit being deleted',
+    'not null' => FALSE,
+  ));
+}
+
+function genvasc_labels_update_7005() {
+  db_add_field( 'etl_portal_recruits', 'civicrm_case_id', array(
+    'type' => 'int',
+    'description' => 'CiviCRM case ID',
+    'not null' => FALSE,
+  ));
+  db_add_field( 'etl_portal_recruits', 'civicrm_contact_id', array(
+    'type' => 'int',
+    'description' => 'CiviCRM contact ID',
+    'not null' => FALSE,
+  ));
+}
+
+function genvasc_labels_update_7006() {
+  db_add_index('genvasc_portal_recruits', 'case_id', array('case_id'));
+}
+
+function genvasc_labels_update_7007() {
+  db_drop_field('genvasc_portal_recruits', 'source_system');
+  db_drop_field('genvasc_portal_recruits', 'practice_code');
+  db_add_field( 'genvasc_portal_recruits', 'practice_id', array(
+    'type' => 'int',
+    'description' => 'CiviCRM contact ID for practice',
+    'not null' => FALSE,
+  ));
+  db_drop_table('etl_portal_recruits');
+}
+
+function genvasc_labels_update_7008() {
+  db_add_field( 'genvasc_portal_recruits', 'create_user', array(
+        'type' => 'varchar',
+        'length' => '500',
+        'description' => 'User that created the record',
+        'not null' => TRUE
+  ));
+  db_add_field( 'genvasc_portal_recruits', 'create_date', array(
+        'mysql_type' => 'DATETIME',
+        'description' => 'Date record was created',
+        'not null' => TRUE
+  ));
+  db_add_field( 'genvasc_portal_recruits', 'delete_user', array(
+        'type' => 'varchar',
+        'length' => '500',
+        'description' => 'User that deleted',
+        'not null' => FALSE,
+  ));
+  db_add_field( 'genvasc_portal_recruits', 'delete_date', array(
+        'mysql_type' => 'DATETIME',
+        'description' => 'Date record was deleted',
+        'not null' => FALSE,
+  ));
+}

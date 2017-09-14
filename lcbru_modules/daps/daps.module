@@ -1,0 +1,311 @@
+<?php
+
+require_once("Daps.php");
+
+const DAPS_ADMIN_PERMISSION = 'Administer DAPS';
+
+/**
+ * Implements hook_menu().
+ */
+function daps_menu() {
+  $items['content/daps/log'] = array(
+    'title' => 'DAPS log',
+    'description' => 'DAPS log.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_daps_log',
+    'access arguments' => array(DAPS_ADMIN_PERMISSION),
+    'expanded' => TRUE,
+  );
+  $items['content/daps/requests'] = array(
+    'title' => 'DAPS Requests',
+    'description' => 'DAPS Requests.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_daps_requests',
+    'access arguments' => array(DAPS_ADMIN_PERMISSION),
+    'expanded' => TRUE,
+  );
+  $items['admin/config/content/daps'] = array(
+    'title' => 'DAPS',
+    'description' => 'DAPS Config',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_daps_config_form'),
+    'access arguments' => array(DAPS_ADMIN_PERMISSION),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['content/daps/run_jobs_now'] = array(
+    'title' => 'Run DAPS jobs now',
+    'description' => 'Run the cron jobs now.',
+    'page callback' => '_daps_run_cron_now',
+    'access arguments' => array(DAPS_ADMIN_PERMISSION),
+    'type' => MENU_CALLBACK,
+    'expanded' => TRUE,
+  );
+
+  return $items;
+}
+
+function _daps_config_form($form, &$form_state) {
+  $helper = new CronHelper('DAPS');
+  $helper->addSettingsToForm($form);
+
+  $form['daps_run_jobs_now'] = array(
+      '#type' => 'link',
+      '#title' => t('Run Jobs Now.'),
+      '#href' => "content/daps/run_jobs_now",
+  );
+
+  return system_settings_form($form);
+}
+
+function daps_cron() {
+  $helper = new CronHelper('DAPS');
+  $helper->runCron(function() {
+      _daps_run_cron();
+  });
+}
+
+function _daps_run_cron_now() {
+  _daps_run_cron();
+  drupal_goto('admin/config/content/daps');
+}
+
+function _daps_run_cron() {
+  $daps = new Daps();
+  $daps->import();
+  $daps->abandonOldSubmissions();
+}
+
+function _daps_log($action = '',$batch_id = '') {
+
+  switch ($action) {
+    case 'participants':
+      return _daps_participant_log($batch_id);
+      break;
+    default:
+      return _daps_batches_log();
+      break;
+  }
+}
+
+function _daps_requests($action = '',$daps_submission_id = '') {
+
+  switch ($action) {
+    case 'participants':
+      return _daps_request_participants($daps_submission_id);
+      break;
+    default:
+      return _daps_request_submissions();
+      break;
+  }
+}
+
+function _daps_batches_log() {
+  db_set_active('daps');
+  try {
+    $result = db_query('
+      SELECT
+          b.ID AS batch_id
+        , b.FILENAME AS request_filename
+        , b.LOAD_DATE AS load_date
+        , f.DATESENT AS sent_date
+        , f.DATERECV AS returned_date
+      FROM DBS_TRACING_BATCH b
+      JOIN DBS_TRACING_FILES f ON f.BATCH_ID = b.ID
+      ');
+  } finally {
+    db_set_active();
+  }
+
+  $rows = array();
+
+  foreach ($result as $record) {
+    $rows[] = array(
+      $record->request_filename,
+      $record->load_date,
+      $record->sent_date,
+      $record->returned_date,
+      l('Participants',"content/daps/log/participants/{$record->batch_id}"),
+      );
+  }
+
+  $header = array(
+    array(
+      'data' => t('Filename'),
+      'datatable_options' => unserialize(DATATABLES_SEARCHABLE_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Load date'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Sent date'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Returned date'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => '',
+      'datatable_options' => unserialize(DATATABLES_LINK_COLUMN_OPTION)
+    ),
+  );
+
+  $attributes = array('datatable_options' => array());
+  return theme('datatable', array('header' => $header, 'attributes' => $attributes, 'rows' => $rows));
+}
+
+function _daps_participant_log($batch_id) {
+  Guard::AssertInteger('$batch_id', $batch_id);
+
+  db_set_active('daps');
+
+  try {
+    $result = db_query('
+      SELECT
+          SYSTEM_NUMBER_CURRENT AS uhl_system_number
+        , NHS_NUMBER AS nhs_number
+        , DBS_FORENAMES AS forenames
+        , DBS_SURNAME AS surname
+        , [DATE OF BIRTH] AS date_of_birth
+        , MATCH_DEMOGRAPHIC_LEVEL AS match_level
+      FROM DBS_TRACING
+      WHERE batch_id = :batch_id
+      ', array(':batch_id' => $batch_id));
+  } finally {
+    db_set_active();
+  }
+
+  $rows = array();
+
+  foreach ($result as $record) {
+    $rows[] = array(
+      $record->uhl_system_number,
+      $record->nhs_number,
+      $record->forenames,
+      $record->surname,
+      $record->date_of_birth,
+      $record->match_level,
+      l('Back',"content/daps/log/"),
+      );
+  }
+
+  $header = array(
+    array(
+      'data' => t('UHL System Number'),
+      'datatable_options' => unserialize(DATATABLES_SEARCHABLE_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('NHS Number'),
+      'datatable_options' => unserialize(DATATABLES_SEARCHABLE_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Forenames'),
+      'datatable_options' => unserialize(DATATABLES_SEARCHABLE_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Surname'),
+      'datatable_options' => unserialize(DATATABLES_SEARCHABLE_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Date of Birth'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Match Level'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => '',
+      'datatable_options' => unserialize(DATATABLES_LINK_COLUMN_OPTION)
+    ),
+  );
+
+  $attributes = array('datatable_options' => array());
+  return theme('datatable', array('header' => $header, 'attributes' => $attributes, 'rows' => $rows));
+}
+
+function _daps_request_submissions() {
+  $result = db_query('
+    SELECT
+        id
+      , date_created
+      , date_submitted
+      , date_returned
+    FROM daps_submission
+    ');
+
+  $rows = array();
+
+  foreach ($result as $record) {
+    $rows[] = array(
+      $record->date_created,
+      $record->date_submitted,
+      $record->date_returned,
+      l('Participants',"content/daps/requests/participants/{$record->id}"),
+      );
+  }
+
+  $header = array(
+    array(
+      'data' => t('Created'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Submitted'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => t('Returned'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => '',
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+  );
+
+  $attributes = array('datatable_options' => array());
+  return theme('datatable', array('header' => $header, 'attributes' => $attributes, 'rows' => $rows));
+}
+
+function _daps_request_participants($daps_submission_id) {
+  $result = db_query('
+    SELECT
+        id
+      , identifier
+    FROM daps_submission_participant
+    ');
+
+  $rows = array();
+
+  foreach ($result as $record) {
+    $rows[] = array(
+      $record->identifier,
+      l('Back',"content/daps/requests/"),
+      );
+  }
+
+  $header = array(
+    array(
+      'data' => t('Identifier'),
+      'datatable_options' => unserialize(DATATABLES_OTHER_COLUMN_OPTION)
+    ),
+    array(
+      'data' => '',
+      'datatable_options' => unserialize(DATATABLES_LINK_COLUMN_OPTION)
+    ),
+  );
+
+  $attributes = array('datatable_options' => array());
+  return theme('datatable', array('header' => $header, 'attributes' => $attributes, 'rows' => $rows));
+}
+
+function daps_permission() {
+  return array(
+    DAPS_ADMIN_PERMISSION => array(
+      'title' => t(DAPS_ADMIN_PERMISSION),
+      'description' => t(DAPS_ADMIN_PERMISSION),
+    ),
+  );
+}

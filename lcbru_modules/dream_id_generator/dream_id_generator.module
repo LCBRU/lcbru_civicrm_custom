@@ -1,0 +1,291 @@
+<?php
+
+/**
+ * @file
+ * A block module that displays a form allowing a DREAM study ID to be input
+ * generating and returning randomised Identifiers for MRI images, 
+ * which would be recorded as allocated in the database, and then 
+ * displayed on screen. Conversely, allows unblinding by submitting the 
+ * MRI identifier, and returns the associated study ID.
+ */
+
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function dream_id_generator_block_view($delta = '') {
+  switch($delta){
+    case 'dream_id_generator':
+      $block['subject'] = t('DREAM study identifiers');
+      if(user_access('Generate dream IDs')){
+        $block['content'] = drupal_get_form('dream_id_generator_formname');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the dream ID generator form for the block.
+*/
+function dream_id_generator_formname($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+  //Provide some instructions
+  $form['dream_form'] = array(
+    '#title' => t("Use the four digit DREAM study ID without the 'D' or 'K' prefix"),
+    '#type' => 'item',
+  );
+
+  //Blinding
+  $form['study_id'] = array(
+    '#title' => t('Enter DREAM study ID to blind'),
+    '#type' => 'textfield',
+    '#size' => 8,
+    '#maxlength' => 16,
+  );
+
+  //Unblinding
+  $form['image_id'] = array(
+    '#title' => t('Enter MRI ID to unblind'),
+    '#type' => 'textfield',
+    '#size' => 8,
+    '#maxlength' => 16,
+  );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_validate()
+ */
+function dream_id_generator_formname_validate($form, &$form_state) {
+  if ($form_state['values']['study_id'] == '' && $form_state['values']['image_id'] == '') {
+    form_set_error('',t('You must input either a study ID for blinding or an MRI ID to unblind.'));
+  } else if ($form_state['values']['study_id'] <> '' && $form_state['values']['image_id'] <> '') {
+    form_set_error('',t('Please only input either a study ID for blinding OR an image ID to unblind. Not both. Both is confusing.'));
+  } else if ((ctype_digit($form_state['values']['study_id']) == FALSE OR strlen($form_state['values']['study_id']) <> 4 OR $form_state['values']['study_id'] == '000') && $form_state['values']['image_id'] == '') {
+    form_set_error('',t('The DREAM study ID must be a four digit number larger than zero.'));
+  }
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function dream_id_generator_formname_submit($form, &$form_state) {
+  $dream_id = '';
+  if ($form_state['values']['study_id'] <> '') {
+    // Check the study id is not already blinded, if it is, return the existing matching IDs
+    $dream_id = dream_check($form_state['values']['study_id']);
+    if (isset($dream_id['baseline_mri_id'])) {
+      drupal_set_message(t('DREAM imaging IDs already exist. Baseline: @baseline_mri_id, follow-up: @followup_mri_id.',array('@baseline_mri_id' => $dream_id['baseline_mri_id'],'@followup_mri_id' => $dream_id['followup_mri_id'])));
+    } else {
+      // Process the request for blinding
+      $dream_id = dream_blind($form_state['values']['study_id']);
+      drupal_set_message(t('DREAM imaging IDs generated.  Baseline: @baseline_mri_id, follow-up: @followup_mri_id.',array('@baseline_mri_id' => $dream_id['baseline_mri_id'],'@followup_mri_id' => $dream_id['followup_mri_id'])));
+    }
+  } else {
+    // Process the request for unblinding
+    $id_set = array();
+    $id_set = dream_unblind($form_state['values']['image_id']);
+    if ($id_set['dream_id'] <> "") { 
+      drupal_set_message(t('DREAM unblinded study ID is @dream_id.',array('@dream_id' => $id_set['dream_id'])));
+    }
+  }
+}
+
+
+/**
+ * Checks for existing database entry for the DREAM study ID.
+ */
+function dream_check($dream_id) {
+  $id_set = array();
+  if (lock_acquire('dream_id',3)) {
+    $result = db_query("SELECT dream_id,baseline_mri_id,followup_mri_id FROM {dream_ids} WHERE dream_id = :dream_id", array(':dream_id' => $dream_id));
+    if ($result->rowCount() > 0) {
+      $id_set = $result->fetchAssoc();
+    } else {
+      drupal_set_message(t('No existing records found matching that ID.'));
+    }
+    lock_release('dream_id');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+
+/**
+ * Generates imaging IDs and stores them alongside the study ID in the database.
+ */
+function dream_blind($dream_id) {
+  $id_set = array();
+  if (lock_acquire('dream_id',3)) {
+    $result = db_query("SELECT dream_id,baseline_mri_id,followup_mri_id FROM {dream_ids} WHERE dream_id = :dream_id", array(':dream_id' => $dream_id));
+    if ($result->rowCount() > 0) {
+      // Something is wrong, as we shouldn't get a result.
+      form_set_error('',t('That DREAM ID seemed to be in the database already.'));
+    } else {
+      $id_set = dream_generate_ids($dream_id);
+    }
+    lock_release('dream_id');
+    } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+/**
+ * Looks up thedatabase entry for an imaging ID and returns the DREAM study ID.
+ */
+function dream_unblind($imaging_id) {
+  $id_set = array();
+  if (lock_acquire('dream_id',3)) {
+    $result = db_query("SELECT dream_id,baseline_mri_id,followup_mri_id FROM {dream_ids} WHERE baseline_mri_id = :imaging_id OR followup_mri_id = :imaging_id", array(':imaging_id' => $imaging_id));
+    if ($result->rowCount() == 0) {
+      // Something is wrong, as we should get a result.
+      form_set_error('',t('The imaging ID @imaging_id could not be found in the database.', array('@imaging_id' => $imaging_id)));
+      $id_set['dream_id'] == "";
+    } else {
+      $id_set = $result->fetchAssoc();
+    }
+    lock_release('dream_id');
+    } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return $id_set;
+}
+
+
+/**
+ * Generates a set of DREAM imaging IDs and stores them in the database.
+ */
+function dream_generate_ids($dream_id) {
+  $id_set = array();
+  $min_id = '';
+  $max_id = '';
+  $range_id = '';
+  $ok = '';
+  $proposed_id = '';
+
+  if (lock_acquire('dream_id_generator',3)) {
+    $min_id   = 10000;
+    $max_id   = 99999;
+    $range_id = 89999;
+
+    // In a while loop as we might not get an unused number.
+    $ok = FALSE;
+    while (!$ok) {
+      // Make a random number for MRI ID
+      $proposed_baseline_id = rand($min_id,$max_id);
+      // Test it against the database.
+      $result = db_query("SELECT baseline_mri_id FROM {dream_ids} WHERE baseline_mri_id = :baseline_id OR followup_mri_id = :baseline_id", array(':baseline_id' => $proposed_baseline_id));
+      if ($result->rowCount() == 0) {
+        // In another while loop as we might not get an unused number.
+        $ok_cmr = FALSE;
+        while (!$ok_cmr) {
+          // Make a random number for followup MRI ID
+          $proposed_followup_id = rand($min_id,$max_id);
+          // Test it against the database, and also ensure that it isn't the same as the proposed baseline ID.
+          $result = db_query("SELECT followup_mri_id FROM {dream_ids} WHERE followup_mri_id = :followup_id OR baseline_mri_id = :followup_id", array(':followup_id' => $proposed_followup_id));
+          if ($result->rowCount() == 0 && $proposed_followup_id <> $proposed_baseline_id) {
+            $ok_cmr = TRUE;
+          } 
+        }
+        $ok = TRUE;
+      } 
+    }
+    $query = db_insert('dream_ids')
+      ->fields(array(
+        'dream_id' => $dream_id,
+        'baseline_mri_id' => $proposed_baseline_id,
+        'followup_mri_id' => $proposed_followup_id,
+      ))
+      ->execute();
+    lock_release('dream_id_generator');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  $id_set['dream_id']  = $dream_id;
+  $id_set['baseline_mri_id'] = $proposed_baseline_id;
+  $id_set['followup_mri_id'] = $proposed_followup_id;
+  return $id_set;
+
+}
+
+/**
+ * Implements hook_permission()
+ */
+function dream_id_generator_permission() {
+  return array(
+    'Generate dream IDs' => array(
+      'title' => t('Generate DREAM IDs'), 
+      'description' => t('Create unique and random blinded imaging IDs for use in the DREAM study.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function dream_id_generator_block_info() {
+  $blocks['dream_id_generator'] = array(
+    'info' => t('DREAM ID generator'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function dream_id_generator_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#dream_id_generator":
+      return '<p>' . t("Displays block to create DREAM unique and random IDs.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_menu().
+ */
+function dream_id_generator_menu() {
+  $items = array();
+  $items['admin/config/content/dream_id_generator'] = array(
+    'title' => 'DREAM ID generator',
+    'description' => 'Generates unique and random IDs for the DREAM study',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dream_id_generator_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: DREAM id generator admin settings
+ *
+ * @see dream_id_generator_menu()
+ */
+function dream_id_generator_form($form, &$form_state) {
+  return system_settings_form($form);
+}
+

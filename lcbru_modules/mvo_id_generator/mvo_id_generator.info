@@ -1,0 +1,4 @@
+name = MVO study ID blinder / unblinder
+description = Generates unique random imaging IDs for the MVO study, and allows blinding / unblinding from study IDs to imaging IDs
+core = 7.x
+configure = admin/config/content/mvo_id_generator

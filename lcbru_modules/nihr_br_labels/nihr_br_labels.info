@@ -1,0 +1,7 @@
+name = NIHR BioResource
+description = Generates unique IDs and labels for NIHR BioResource, and imports mailing list process data.
+core = 7.x
+configure = admin/config/content/nihr_br_labels
+dependencies[] = civicrm
+dependencies[] = lcbru
+

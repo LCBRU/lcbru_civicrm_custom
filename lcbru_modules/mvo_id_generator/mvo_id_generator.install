@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function mvo_id_generator_schema() {
+  $schema['mvo_ids'] =  array(
+
+    'description' => 'The table for used MVO IDs.',
+    'fields' => array(
+      'mvo_id' => array(
+        'description' => 'MVO study ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      'angio_id' => array(
+        'description' => 'Angiography ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      'cmr_id' => array(
+        'description' => 'Cardiac MRI ID',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      ),
+    'primary key' => array('mvo_id'),
+  );
+
+  return $schema;
+}
+

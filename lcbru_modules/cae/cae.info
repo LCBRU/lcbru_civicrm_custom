@@ -1,0 +1,6 @@
+name = CAE Study
+description = CAE Study Enrollments
+core = 7.x
+configure = admin/config/content/cae
+dependencies[] = lcbru
+dependencies[] = label_printer

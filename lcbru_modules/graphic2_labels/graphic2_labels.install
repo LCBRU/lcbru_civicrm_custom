@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function graphic2_labels_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function graphic2_labels_disable() {
+}
+
+

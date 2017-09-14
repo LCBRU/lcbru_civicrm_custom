@@ -1,0 +1,7 @@
+name = Label generator for GRAPHIC 2 
+description = Generates labels for GRAPHIC 2 study.
+core = 7.x
+configure = admin/config/content/graphic2_labels
+dependencies[] = civicrm
+dependencies[] = lcbru
+

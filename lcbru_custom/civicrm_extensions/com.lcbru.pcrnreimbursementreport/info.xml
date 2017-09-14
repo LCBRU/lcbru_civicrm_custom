@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<extension key="com.lcbru.pcrnreimbursementreport" type="report">
+  <file>pcrnreimbursementreport</file>
+  <name>PCRN Reimbursement Report</name>
+  <description>Produces the PCRN Remibursement report for contacts in a particular group</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Richard Bramley</author>
+    <email>rab63@le.ac.uk</email>
+  </maintainer>
+  <releaseDate>2014-10-16</releaseDate>
+  <version>1.0</version>
+  <develStage>beta</develStage>
+  <compatibility>
+    <ver>4.2</ver>
+  </compatibility>
+  <comments>This module will work.</comments>
+  <civix/>
+  <typeInfo>
+    <component>CiviCase</component>
+    <reportUrl>com.lcbru.pcrnreimbursementreport</reportUrl>
+  </typeInfo>
+</extension>

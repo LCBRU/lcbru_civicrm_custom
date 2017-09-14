@@ -1,0 +1,6 @@
+name = Blind Unblind Tool
+description = Tool to blind and unblind participant IDs
+core = 7.x
+configure = admin/config/content/blind_unblind
+dependencies[] = lcbru
+dependencies[] = label_printer

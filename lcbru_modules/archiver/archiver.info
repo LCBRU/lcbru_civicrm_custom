@@ -1,0 +1,6 @@
+name = Archive Participants
+description = Archiver Participants
+core = 7.x
+configure = admin/config/content/archiver
+dependencies[] = civicrm
+dependencies[] = lcbru

@@ -1,0 +1,7 @@
+name = SCAD
+description = Manage participants in the SCAD study.
+core = 7.x
+configure = admin/config/content/scad
+dependencies[] = civicrm
+dependencies[] = lcbru
+

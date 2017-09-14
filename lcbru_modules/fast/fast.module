@@ -1,0 +1,304 @@
+<?php
+
+const FAST_PREMISSION_CONFIG = 'FAST Configuration';
+const FAST_PREMISSION_PRINT_LABELS = 'FAST print labels';
+const FAST_IMPORT_CRON_JOB = 'FAST Import';
+const FAST_LAST_PROCESSED_VARIABLE_NAME = 'FAST LAST PROCESSED';
+
+function fast_permission() {
+  return array(
+    FAST_PREMISSION_PRINT_LABELS => array (
+      'title' => t('Print FAST Labels'), 
+      'description' => t('Print labels packs for the FAST study'),
+    ),
+    FAST_PREMISSION_CONFIG => array(
+      'title' => t(FAST_PREMISSION_CONFIG), 
+      'description' => t(FAST_PREMISSION_CONFIG),
+    ),
+  );
+}
+
+function fast_menu() {
+  $items['admin/config/content/fast'] = array(
+    'title' => FAST_PREMISSION_CONFIG,
+    'description' => FAST_PREMISSION_CONFIG,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_fast_config_form'),
+    'access arguments' => array(FAST_PREMISSION_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/content/fast/run_cron_now'] = array(
+    'title' => 'Run FAST Cron',
+    'description' => 'Run Fast Cron',
+    'page callback' => '_fast_run_cron_now',
+    'access arguments' => array(FAST_PREMISSION_CONFIG),
+    'type' => MENU_CALLBACK,
+    'expanded' => TRUE,
+  );
+  return $items;
+}
+
+
+function fast_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['FAST Pack'] = array(
+      'name' => 'FAST Pack',
+      'permission' => FAST_PREMISSION_PRINT_LABELS,
+      'labels' => array(
+        'samples' => array(
+          'id_generator' => new IdGenerator('FST'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 6
+          ),
+        ),
+    );
+  $definitions['FAST Pack x100'] = array(
+      'name' => 'FAST Pack',
+      'permission' => FAST_PREMISSION_PRINT_LABELS,
+      'labels' => array(
+        'samples' => array(
+          'id_generator' => new IdGenerator('FST'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 100,
+          'labels_per_id' => 6
+          ),
+        ),
+    );
+
+}
+
+function fast_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_FAST_ID') . '_')) {
+                if (fast_isInvalidFastId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_FAST_ID . " is not valid.  Should be of the format 'FSTnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function fast_isInvalidFastId($value) {
+  $idGenerator = new IdGenerator('FST');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function fast_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_FAST_ID';
+}
+
+function fast_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_FAST_ID':
+            $studyIdGenerator = new IdGenerator('FST');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+
+function _fast_config_form($form, &$form_state) {
+
+  $helper = new CronHelper(FAST_IMPORT_CRON_JOB);
+  $helper->addSettingsToForm($form);
+
+  $form['Run Now'] = array(
+    '#type' => 'submit',
+    '#value' => t('Run Now'),
+    '#submit' => array('_fast_run_cron_now'),
+  );
+  $form['Reset Last Processed'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset Last Processed'),
+    '#submit' => array('_fast_reset_last_processed'),
+  );
+
+  return system_settings_form($form);
+}
+
+function fast_cron() {
+
+  civicrm_initialize();
+
+  $helper = new CronHelper(FAST_IMPORT_CRON_JOB);
+  $creator_id = $helper->getCronUserContactId();
+  $helper->runCron(function() use ($creator_id) {
+        $errors = _fast_run_import($creator_id);
+
+        if (!empty($errors)) {
+            watchdog('fast_cron', 'Errors found');
+            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, 'FAST CIVICRM Load Errors', print_r($errors, True));
+        } else {
+            watchdog('fast_cron', 'No errors found');
+        }
+  });
+}
+
+function _fast_reset_last_processed() {
+    variable_set(FAST_LAST_PROCESSED_VARIABLE_NAME, '');
+    pp('Last Processed Reset');
+    drupal_goto('admin/config/content/fast');
+}
+
+function _fast_run_cron_now() {
+    set_time_limit(500);
+    civicrm_initialize();
+    $validation_errors = _fast_run_import();
+
+    if (!empty($validation_errors)) {
+        foreach ($validation_errors as $e) {
+            drupal_set_message($e, 'error');
+        }
+    }
+
+    drupal_set_message('FAST Participants Imported');
+    drupal_goto('admin/config/content/fast');
+}
+
+function _fast_run_import($creator_id) {
+    try {
+        db_set_active('redcap');
+
+        $last_processed_date = variable_get(FAST_LAST_PROCESSED_VARIABLE_NAME, '0');
+
+        watchdog('fast_cron', "Last Processed: $last_processed_date");
+
+        $participant_details = ArrayHelper::objectToArray(db_query("
+
+SELECT *
+FROM (
+    SELECT
+        CASE
+        WHEN @prev_value = last_update THEN @rank_count
+        WHEN @prev_value := last_update THEN @rank_count := @rank_count + 1
+        END AS rank,
+        x.*
+    FROM (SELECT @prev_value := NULL, @rank_count := 0) y
+    , (
+                SELECT
+                    GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
+                    s.CIVI_FIELD_FAST_ID,
+                    s.start_date,
+                    first_name,
+                    last_name,
+                    street_address,
+                    supplemental_address_2,
+                    city,
+                    state_province,
+                    postal_code,
+                    phone,
+                    email,
+                    NHS_number,
+                    CASE gender
+                            WHEN 0 THEN 'Female'
+                            WHEN 1 THEN 'male'
+                         END AS gender,
+                    birth_date,
+                    CASE
+                        WHEN wthdrwl_date IS NOT NULL THEN 'withdrawn'
+                        WHEN recruited = 1 THEN 'recruited'
+                    END AS case_status
+                FROM    (
+                    SELECT
+                          rd.record,
+                          rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'fst_label' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_2' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_3' THEN VALUE ELSE NULL END) AS city,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_4' THEN VALUE ELSE NULL END) AS state_province,
+                        GROUP_CONCAT(CASE WHEN field_name = 'postcode' THEN VALUE ELSE NULL END) AS postal_code,
+                        GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
+                        GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
+                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gp_practice' THEN VALUE ELSE NULL END) AS gp_practice,
+                        GROUP_CONCAT(CASE WHEN field_name = 'patient_reruited' THEN VALUE ELSE NULL END) AS recruited
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 48
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN (
+                     SELECT
+                            rd.record,
+                            rd.project_id,
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
+                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                         REPLACE(GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
+                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrwl_date' THEN VALUE ELSE NULL END) AS wthdrwl_date
+                     FROM    redcap_data rd
+                     WHERE rd.project_id = 43
+                     GROUP BY rd.record, rd.project_id
+                ) q ON q.CIVI_FIELD_FAST_ID = s.CIVI_FIELD_FAST_ID
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                LEFT JOIN redcap_log_event eq
+                    ON eq.project_id = q.project_id
+                    AND eq.pk = q.record
+                    AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                WHERE s.recruited = 1
+                GROUP BY s.CIVI_FIELD_FAST_ID
+    ) x
+    WHERE last_update > :last_processed_date
+    ORDER BY last_update
+) z
+WHERE rank < 10
+
+        ", array(
+            ':last_processed_date' => $last_processed_date
+            ))->fetchAll());
+
+    } finally {
+        db_set_active();
+    }
+
+    $caseH = new CaseHelper();
+    $fastCaseType = $caseH->getCaseTypeFromName(CIVI_CASE_TYPE_FAST);
+
+    $pi = new ParticipantImporter(
+        $fastCaseType['id'],
+        True,
+        True
+    );
+
+    $errors = array();
+
+    watchdog('fast_cron', "Importing " . count($participant_details) . " records");
+
+    foreach ($participant_details as $p) {
+        if (!empty($creator_id)) {
+            $p['creator_id'] = $creator_id;
+        }
+
+        $e = $pi->getSingleValidationErrors($p);
+
+        if ($p['last_update'] > $last_processed_date) {
+            $last_processed_date = $p['last_update'];
+            variable_set(FAST_LAST_PROCESSED_VARIABLE_NAME, $last_processed_date);
+        }
+
+        if (empty($e)) {
+            $pi->importSingle($p);
+        } else {
+            $errors = array_merge($errors, $e);
+        }
+    }
+
+    return $errors;
+
+}
+

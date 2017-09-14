@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the EMMACE-4 study
+ */
+
+require_once("constants.php");
+
+function emmace_4_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_EMMACE_4_ID) . '_')) {
+                if (_emmace_4_isInvalidEmmace4Id($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_EMMACE_4_ID . " is not valid.  Should be 'GRL****'");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _emmace_4_isInvalidEmmace4Id($value) {
+  return !preg_match('/^GRL\d{4}$/', $value);
+}
+
+function emmace_4_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_EMMACE_4_ID);
+}

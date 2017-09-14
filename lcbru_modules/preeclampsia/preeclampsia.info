@@ -1,0 +1,5 @@
+name = Pre-Eclampsi Study
+description = Pre-Eclampsi Study Enrollments
+core = 7.x
+configure = admin/config/content/preeclampsia
+dependencies[] = lcbru

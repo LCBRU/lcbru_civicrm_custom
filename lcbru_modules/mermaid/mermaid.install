@@ -1,0 +1,8 @@
+<?php
+function mermaid_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function mermaid_disable() {
+}

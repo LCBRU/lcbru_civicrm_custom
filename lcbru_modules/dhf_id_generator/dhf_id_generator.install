@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function dhf_id_generator_schema() {
+  $schema['dhf_ids'] =  array(
+
+    'description' => 'The table for used DHF IDs.',
+    'fields' => array(
+      'dhf_id' => array(
+        'description' => 'DHF IDs already used.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => '0'),
+      ),
+    'primary key' => array('dhf_id'),
+  );
+
+  return $schema;
+}
+

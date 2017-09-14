@@ -1,0 +1,6 @@
+name = Participant Search
+description = Search Participants
+core = 7.x
+configure = admin/config/content/participant_search
+dependencies[] = civicrm
+dependencies[] = lcbru

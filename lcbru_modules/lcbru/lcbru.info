@@ -1,0 +1,7 @@
+name = LCBRU civicrm configuration module
+description = Set up data elements for LCBRU use of civicrm
+core = 7.x
+configure = admin/config/content/lcbru
+dependencies[] = civicrm
+files[] = ext_libs/Parsedown.php
+

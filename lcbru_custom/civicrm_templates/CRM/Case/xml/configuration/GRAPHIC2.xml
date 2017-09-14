@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>GRAPHIC2</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Arrange interview</name>
+    </ActivityType>
+     <ActivityType>
+      <name>Reminder Sent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Response received</name>
+    </ActivityType>
+      <ActivityType>
+      <name>Recruit and interview</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Process study samples</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Attach ABPM device</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Collect ABPM device</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Letter to GP</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Invitation letter</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+    <ActivitySet>
+      <name>recruited_timeline</name>
+      <label>Recruited Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Arrange interview</name>
+          <reference_activity>Response received</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+         <ActivityType>
+          <name>Recruit and interview</name>
+          <reference_activity>Arrange interview</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Process study samples</name>
+          <reference_activity>Recruit and interview</reference_activity>
+          <reference_offset>2</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Attach ABPM device</name>
+          <reference_activity>Recruit and interview</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Collect ABPM device</name>
+          <reference_activity>Attach ABPM device</reference_activity>
+          <reference_offset>1</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Letter to GP</name>
+          <reference_activity>Collect ABPM device</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Thank you letter to participant</name>
+          <reference_activity>Collect ABPM device</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Recruiter for study</name>
+    </RelationshipType>
+    <RelationshipType>
+        <name>processed samples in lab</name>
+    </RelationshipType>	  
+ </CaseRoles>
+<!-- Set this to 1 if you want case activities to be emailed to assignees even when globally disabled -->
+<CaseTypeActivityNotifications>1</CaseTypeActivityNotifications>
+<!-- Set this to 1 if you want case activity notifications to have attachments even when globally disabled -->
+<CaseTypeActivityNotificationsIcal>1</CaseTypeActivityNotificationsIcal>
+</CaseType>

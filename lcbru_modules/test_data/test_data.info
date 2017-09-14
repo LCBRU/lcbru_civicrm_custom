@@ -1,0 +1,7 @@
+name = Test Data
+description = Test Data
+core = 7.x
+configure = admin/config/content/test_data
+dependencies[] = civicrm
+dependencies[] = lcbru
+dependencies[] = participant_importer

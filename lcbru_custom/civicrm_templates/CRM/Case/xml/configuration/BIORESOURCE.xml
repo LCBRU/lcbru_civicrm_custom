@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>BIORESOURCE</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Invitation letter</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Reminder letter</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Check study consent</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Check study questionnaire</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Post out consent form</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Post out questionnaire</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Input study data</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Letter to GP</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Invitation letter</name>
+          <status>Completed</status>
+          <subject>NIHR BioResource - initial invitation sent</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Reminder letter</name>
+          <subject>NIHR BioResource - reminder sent</subject>
+          <reference_activity>Invitation letter</reference_activity>
+          <reference_offset>21</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+    <ActivitySet>
+      <name>recruited_timeline</name>
+      <label>Recruited Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Check study consent</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>1</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Check study questionnaire</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>1</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Input study data</name>
+          <reference_activity>Check study questionnaire</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

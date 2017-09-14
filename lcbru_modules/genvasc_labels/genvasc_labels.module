@@ -1,0 +1,446 @@
+<?php
+
+/**
+ * @file
+ * A block module that displays a form allowing a specified number of GENVASC 
+ * ID numbers to be generated, noted as allocated in the database, and then 
+ * printed as barcode labels. Multiple labels per ID can be configured.
+ */
+
+require_once("constants.php");
+require_once("genvasc_new_recruits.php");
+require_once("genvasc_invoicing.php");
+
+const GENVASC_ARCHIVE_PERMISSION = 'genvasc_archive';
+const GENVASC_DAPS_CRON_JOB = 'GENVASC DAPS Integration';
+const GENVASC_PORTAL_PERMISSION = 'GENVASC portal permission';
+const GENVASC_INVOICING_PERMISSION = 'GENVASC submission permission';
+
+/**
+ * Implements hook_block_view().
+ * 
+ * Prepares the contents of the block.
+ */
+function genvasc_labels_block_view($delta = '') {
+  switch($delta){
+    case 'genvasc_labels':
+      $block['subject'] = t('GENVASC ID labels');
+      if(user_access('print genvasc labels')){
+        $block['content'] = drupal_get_form('genvasc_labels_formname');
+      }
+    return $block;
+  }
+  
+}
+
+/**
+ * Constructs the GENVASC ID label printing form for the block.
+*/
+function genvasc_labels_formname($form, &$form_state) {
+  // Form elements
+  $form = array();
+
+   $form['participants'] = array(
+    '#type' => 'select',
+    '#title' => t('Participants'),
+    '#default_value' => 1,
+    '#options' => array_combine(range(1,10),range(1,10)),
+    '#required' => TRUE
+    );
+
+  // Submit
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Print',
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_formname_submit()
+ */
+function genvasc_labels_formname_submit($form, &$form_state) {
+  Guard::AssertInteger('$participants', $form_state['values']['participants']);
+
+  $ids = [];
+
+  for ($i = 0; $i < $form_state['values']['participants']; $i++) {
+    $ids[] = genvasc_generate_id();
+  }
+
+  $lp = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
+
+  foreach ($ids as $id) {
+    $lp->printStudySample($id, 2);
+  }
+
+  drupal_set_message(t('The following GENVASC labels have been created and printed: ' . join(', ', $ids)));
+
+}
+
+/**
+ * Generates a GENVASC ID and stores it in the database.
+ */
+function genvasc_generate_id() {
+  $min_id = '';
+  $max_id = '';
+  $range_id = '';
+  $ok = '';
+  $proposed_id = '';
+
+  if (lock_acquire('genvasc_labels',3)) {
+    $min_id   = 10000000;
+    $max_id   = 99999999;
+    $range_id = 89999999;
+
+    // In a while loop as we might not get an unused number.
+    $ok = FALSE;
+    while (!$ok) {
+      // Make a random number.
+      $proposed_id = rand($min_id,$max_id);
+      // Test it against the database.
+      $query = db_select('genvasc_ids');
+      $query
+        ->condition('genvasc_ids.genvasc_id',$proposed_id,'=')
+        ->fields('genvasc_ids',array('genvasc_id'))
+      ;
+      $result = $query->countQuery()->execute()->fetchField();
+      if ($result == 0) {
+        $ok = TRUE;
+      } 
+    }
+    $query = db_insert('genvasc_ids')
+      ->fields(array(
+        'genvasc_id' => $proposed_id
+      ))
+      ->execute();
+    lock_release('genvasc_labels');
+  } else {
+    form_set_error('',t('Unable to secure a lock on the database.'));
+  }
+  return 'GPt'.$proposed_id;
+
+}
+
+/**
+ * Implements hook_permission()
+ */
+function genvasc_labels_permission() {
+  $permissions = array(
+    'print genvasc labels' => array(
+      'title' => t('Print GENVASC labels'), 
+      'description' => t('Create and print GENVASC ID labels.'),
+    ),
+    GENVASC_ARCHIVE_PERMISSION => array(
+      'title' => t('Archive GENVASC participants'), 
+      'description' => t('Archive GENVASC Participants.'),
+    ),
+  );
+  $permissions[GENVASC_PORTAL_PERMISSION] = array(
+    'title' => t(GENVASC_PORTAL_PERMISSION), 
+    'description' => t(GENVASC_PORTAL_PERMISSION),
+  );
+  $permissions[GENVASC_INVOICING_PERMISSION] = array(
+    'title' => t(GENVASC_INVOICING_PERMISSION), 
+    'description' => t(GENVASC_INVOICING_PERMISSION),
+  );
+
+  return $permissions;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function genvasc_labels_block_info() {
+  $blocks['genvasc_labels'] = array(
+    'info' => t('GENVASC labels'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path 
+ *   Which path of the site we're using to display help
+ * @param arg 
+ *   Array that holds the current path as returned from arg() function
+ */
+function genvasc_labels_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#genvasc_labels":
+      return '<p>' . t("Displays block to create GENVASC IDs and print ID labels.") . '</p>';
+      break;
+  }
+} 
+
+/**
+ * Implements hook_menu().
+ */
+function genvasc_labels_menu() {
+  $items = array();
+  $items['admin/config/content/genvasc_labels'] = array(
+    'title' => 'GENVASC ID and label generator',
+    'description' => 'Generates an ID and prints labels for the GENVASC study',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('genvasc_labels_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/content/genvasc_labels/run_genvasc_daps_now'] = array(
+    'title' => 'Run GENVASC DAPS Integration jobs now',
+    'description' => 'Run the cron jobs now.',
+    'page callback' => '_genvasc_run_daps_now',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_CALLBACK,
+    'expanded' => TRUE,
+  );
+  $items['content/genvasc_portal/new_recruits'] = array(
+    'title' => 'GENVASC Recruits',
+    'description' => 'GENVASC Portal new Recruits.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_genvasc_labels_new_recruits',
+    'access arguments' => array(GENVASC_PORTAL_PERMISSION),
+    'expanded' => TRUE,
+  );
+  $items['content/genvasc_portal/practices'] = array(
+    'title' => 'Autocomplete for practices',
+    'page callback' => '_genvasc_labels_practices_callback',
+    'access arguments' => array(GENVASC_PORTAL_PERMISSION),  //or whatever permission makes sense
+    'type' => MENU_CALLBACK
+  );
+  $items['content/genvasc_invoicing'] = array(
+    'title' => 'GENVASC Submissions',
+    'description' => 'GENVASC Submissions.',
+    'menu_name' => 'main-menu',
+    'page callback' => '_genvasc_labels_invoicing_tab',
+    'access arguments' => array(GENVASC_INVOICING_PERMISSION),
+    'expanded' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Page callback: GENVASC labels settings
+ *
+ * @see genvasc_labels_menu()
+ */
+function genvasc_labels_form($form, &$form_state) {
+
+  $form['genvasc_automatic_mark_available_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Automatic Mark Available for Cohort Job enabled'),
+    '#default_value' => variable_get('genvasc_automatic_mark_available_enabled', 0),
+  );
+
+  $helper = new CronHelper(GENVASC_DAPS_CRON_JOB);
+  $helper->addSettingsToForm($form);
+
+  $form['genvasc_daps_run_now'] = array(
+      '#type' => 'link',
+      '#title' => t('Run GENVASC DAPS Now.'),
+      '#href' => "admin/config/content/genvasc_labels/run_genvasc_daps_now",
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Drupal Cron Job Hook
+ * 
+ * This method is run every time the Drupal cron runs
+ */
+function genvasc_labels_cron() {
+  watchdog('genvasc_labels_cron', 'Started');
+
+  // Perform bootstrap
+  civicrm_initialize();   
+
+  automaticallyMarkAvailableForCohort();
+
+  $helper = new CronHelper(GENVASC_DAPS_CRON_JOB);
+  $helper->runCron(function() {
+      _genvasc_run_daps();
+  });
+
+  watchdog('genvasc_labels_cron', 'Completed');
+}
+
+function _genvasc_run_daps_now() {
+  _genvasc_run_daps();
+  drupal_set_message(GENVASC_DAPS_CRON_JOB . ' has run.');
+
+  drupal_goto('admin/config/content/genvasc_labels');
+}
+
+function _genvasc_run_daps() {
+  $portal = new GenvascPortal();
+  $portal->doDapsSubmission();
+}
+
+/**
+ * Automatically give GENVASC cases a status of Available for Cohorting
+ * If they match the appropriate criteria. Create activities to show what has been done.
+ */
+function automaticallyMarkAvailableForCohort() {
+  if (!variable_get('genvasc_automatic_mark_available_enabled', 0)) {
+    return;
+  }
+
+  $cases = getCasesDueForMarkAvailableForCohort();
+
+  watchdog('genvasc_labels_cron: automaticallyMarkAvailableForCohort', sprintf('Cases found = %d', count($cases)));
+
+  $case_status_group_id = civicrm_api("OptionGroup","get",array ('version' => '3', 'name' => 'case_status'))['id'];
+  $availableCaseStatusId = reset(civicrm_api("OptionValue","get", array ('version' => '3', 'option_group_id' => $case_status_group_id, 'name' => CIVI_CASE_AVAILABLE))['values'])['value'];
+  $activity_status_group_id = civicrm_api("OptionGroup","get", array ('version' => '3', 'name' => 'activity_status'))['id'];
+  $completedActivityStatusId = reset(civicrm_api("OptionValue","get", array ('version' => '3', 'option_group_id' => $activity_status_group_id, 'name' => 'Completed'))['values'])['value'];
+  $activity_type_group_id = civicrm_api("OptionGroup","get", array ('version' => '3', 'name' => 'activity_type'))['id'];
+  $statusChangedActivityStatusId = reset(civicrm_api("OptionValue","get", array ('version' => '3', 'option_group_id' => $activity_type_group_id, 'name' => 'Change Case Status'))['values'])['value'];
+  $cronUserId = civicrm_api("Contact","get", array ('version' => '3', 'first_name' => 'cron', 'last_name' => 'system'))['id'];
+
+  $processedCount = 0;
+
+  foreach ($cases as $case) {
+
+    watchdog('genvasc_labels_cron: automaticallyMarkAvailableForCohort', sprintf('Processing Case ID = %d', $case['case']['id']));
+
+    $caseUpdate = [
+          'version' => '3'
+        , 'id' => $case['case']['id']
+        , 'status_id' => $availableCaseStatusId
+        ];
+
+    $activityUpdate = [
+          'version' => '3'
+        , 'id' => $case['activity']['id']
+        , 'status_id' => $completedActivityStatusId
+        ];
+
+    $statusChangeActivity = [
+          'version' => '3'
+        , 'activity_type_id' => $statusChangedActivityStatusId
+        , 'case_id' => $case['case']['id']
+        , 'subject' => ts('Case status changed from %1 to %2', [1 => 'Recruited', 2 => CIVI_CASE_AVAILABLE])
+        , 'target_contact_id' => $case['case']['client_id']
+        , 'source_contact_id' => $cronUserId
+        ];
+
+    civicrm_api("Case", "create", $caseUpdate);
+    civicrm_api("Activity", "create", $statusChangeActivity);
+    civicrm_api("Activity", "create", $activityUpdate);
+
+    $processedCount++;
+  }  
+
+  watchdog('genvasc_labels_cron: automaticallyMarkAvailableForCohort', sprintf('Cases processed = %d', $processedCount));
+}
+
+/**
+ * Find cases that are due for marking available for cohorting.
+ * Returns the cases along with the overdue mark avaialable for
+ * cohorting activity.
+ */
+function getCasesDueForMarkAvailableForCohort() {
+
+    $genvascCaseTypeId = getCaseTypeIdFromTitle(CIVI_CASE_TYPE_GENVASC);
+
+    $case_status_group_id = civicrm_api("OptionGroup","get", array ('version' => '3', 'name' => 'case_status'))['id'];
+    $recruitedCaseStatusId = reset(civicrm_api("OptionValue","get", array ('version' => '3', 'option_group_id' => $case_status_group_id, 'name' => CIVI_CASE_RECRUITED))['values'])['value'];
+    $activity_type_group_id = civicrm_api("OptionGroup","get", array ('version' => '3', 'name' => 'activity_type'))['id'];
+    $markAvailableForCohortingActivityTypeId = reset(civicrm_api("OptionValue","get", array ('version' => '3', 'option_group_id' => $activity_type_group_id, 'name' => CIVI_ACTIVITY_MAKE_AVAILABLE))['values'])['value'];
+
+  $cases = civicrm_api('Case', 'get', array(
+    'version' => 3,
+    'q' => 'civicrm/ajax/rest',
+    'case_type_id' => $genvascCaseTypeId,
+    'status_id' => $recruitedCaseStatusId,
+    'is_deleted' => 0,
+    'return' => 'activities'
+  ));
+
+  $result = array();
+  $now = new DateTime();
+
+  foreach ($cases['values'] as $case) {
+    foreach ($case['activities'] as $activityId) {
+      $actResult = civicrm_api('Activity', 'get', array(
+            'version' => 3
+          , 'q' => 'civicrm/ajax/rest'
+          , 'id' => $activityId
+          , 'is_current_revision' => 1
+          , 'activity_type_id' => $markAvailableForCohortingActivityTypeId
+        ));
+
+      if (!empty($actResult['values'])) {
+        // Reset, as the name in no way implies, returns the first
+        // value from an associative array.
+        $activity = reset($actResult['values']);
+        if (new DateTime($activity['activity_date_time']) < $now) {
+          $result[] = ['case' => $case, 'activity' => $activity];
+          break;
+        }
+      }
+    }
+  }
+
+  return $result;
+}
+
+function genvasc_labels_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $caseFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $caseFormBeginning)) {
+        foreach ($fields as $key => &$field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_GENVASC_POST_CODE_NAME) . '_')) {
+                if (!is_postcode($field) && !empty($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_GENVASC_POST_CODE . " is not a valid post code.");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_GENVASC_ID) . '_')) {
+                if (_genvasc_labels_isInvalidGptId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_GENVASC_ID . " is not valid.  Should be 'GPt********' (8 digits)");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function _genvasc_labels_isInvalidGptId($value) {
+  return !preg_match('/^GPt\d{8}$/', $value);
+}
+
+function genvasc_labels_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_GENVASC_ID);
+}
+
+function genvasc_labels_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case str_replace(" ","_",CIVI_FIELD_GENVASC_ID):
+            return genvasc_generate_id();
+            break;
+    }
+}
+
+function genvasc_labels_archiver_permission_name() {
+    return GENVASC_ARCHIVE_PERMISSION;
+}
+
+function genvasc_labels_lcbru_case_type_name() {
+    return 'GENVASC';
+}
+
+function genvasc_labels_lcbru_getStudyIdFieldName($studyId) {
+    if (!_genvasc_labels_isInvalidGptId($studyId)) {
+        return str_replace(" ","_",CIVI_FIELD_GENVASC_ID);
+    }
+}
+

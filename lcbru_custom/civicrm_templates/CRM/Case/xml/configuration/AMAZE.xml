@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>AMAZE</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType> 
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Discharge patient</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Recruit to study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Intervention</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Follow up</name>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <subject>Operation</subject>
+          <name>Intervention</name>
+        </ActivityType>
+        <ActivityType>
+          <name>Discharge patient</name>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>post_discharged_timeline</name>
+      <label>Post-Discharge Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>6 week follow up</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>42</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>6 month follow up</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>182</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>12 month follow up</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>365</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>24 month follow up</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>730</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+        <ActivityType>
+          <name>Follow up</name>
+          <subject>60 month follow up</subject>
+          <reference_activity>Discharge patient</reference_activity>
+          <reference_offset>1825</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+    <RelationshipType>
+        <name>Surgeon</name>
+    </RelationshipType>
+ </CaseRoles>
+</CaseType>
+
+

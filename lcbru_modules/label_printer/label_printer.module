@@ -1,0 +1,121 @@
+<?php
+
+require_once("IdGenerator.php");
+require_once("LabelPrinter.php");
+
+function label_printer_block_info() {
+  $blocks['label_printer'] = array(
+    'info' => t('Label Printing')
+  );
+  return $blocks;
+}
+
+
+function label_printer_block_view($blockName = '') {
+  switch($blockName){
+    case 'label_printer':
+      $block['subject'] = t('Label Printing');
+      $block['content'] = drupal_get_form('_label_printer_form');
+    return $block;
+  }
+  
+}
+
+function _label_printer_form($form, &$form_state) {
+	$definitions = _label_printer_get_available_definitions();
+	ksort($definitions);
+
+	if (empty($definitions)) {
+		return null;
+	} else {
+		return array(
+			'labels' => array(
+			    '#type' => 'select',
+			    '#title' => t('Labels'),
+			    '#default_value' => 1,
+			    '#options' => array_combine(array_keys($definitions), array_keys($definitions)),
+			    '#default_value' => SessionHelper::get('label_printer', 'last_printed_labels', 0),
+			    '#required' => TRUE
+				),
+			'submit' => array(
+				'#type' => 'submit',
+				'#value' => 'Print Labels',
+				)
+			);
+	}
+}
+
+function _label_printer_form_submit($form, &$form_state) {
+  Guard::AssertString_NotEmpty('$labels', $form_state['values']['labels']);
+  $labels = $form_state['values']['labels'];
+
+  SessionHelper::set('label_printer', 'last_printed_labels', $labels);
+
+  $def = _label_printer_get_available_definitions()[$labels];
+
+  if ($def) {
+  	_label_printer_print_labels_from_definition($def);
+  	drupal_set_message("${def['name']} labels printed");
+  } else {
+  	drupal_set_message("${def['name']} definition not found", 'error');
+  }
+}
+
+function _label_printer_print_labels_from_definition(array $definition) {
+	$participant_ids = array_map(function($v){ return $v->next(); }, ArrayHelper::get($definition, 'participant_id_generators', array()));
+
+	foreach ($definition['labels'] as $l) {
+
+		$printer = new LabelPrinter($l['printer']);
+		$labels = '';
+
+		for ($i=0; $i < $l['id_count']; $i++) { 
+			$fields = array();
+
+			if (!empty($l['id_generator'])) {
+				$fields['{ID_PLACEHOLDER}'] = $l['id_generator']->next();
+			} elseif (!empty($l['participant_id'])) {
+				$fields['{ID_PLACEHOLDER}'] = $participant_ids[$l['participant_id']];
+			}
+
+			if (array_key_exists('study_name', $l)) {
+				$fields['{STUDY_PLACEHOLDER}'] = $l['study_name'];
+			}
+
+			if (array_key_exists('fields', $l)) {
+				$fields = array_merge($fields, $l['fields']);
+			}
+
+		    $labels .= $printer->getLabelFromTemplateFile(
+		    	$l['template'],
+		    	$fields
+		    	);
+
+		}
+
+		$printer->printLabel($labels, $l['labels_per_id']);
+	}
+}
+
+function _label_printer_get_available_definitions() {
+    $result = array();
+
+    foreach (_label_printer_get_all_definitions() as $key => $def) {
+    	if (user_access($def['permission'])) {
+    		$result[$key] = $def;
+    	}
+    }
+
+    return $result;
+}
+
+function _label_printer_get_all_definitions() {
+    $result = array();
+
+    foreach (module_implements('label_printer_populateDefinitions') as $module) {
+      $function = $module . '_label_printer_populateDefinitions';
+      $function($result);
+    }
+
+    return $result;
+}

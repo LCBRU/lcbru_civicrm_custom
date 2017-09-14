@@ -1,0 +1,6 @@
+name = LENTEN Study
+description = LENTEN Study Enrollments
+core = 7.x
+configure = admin/config/content/lenten
+dependencies[] = lcbru
+dependencies[] = label_printer

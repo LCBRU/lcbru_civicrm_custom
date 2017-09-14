@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CaseType>
+  <name>GENVASC</name>
+  <ActivityTypes>
+    <ActivityType>
+      <name>Open Case</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Recruit to study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Take study samples</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Fetch samples from pathology</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Check study consent</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Process study samples</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Mark as available for cohorting</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Withdraw from study</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Status</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Change Case Start Date</name>
+    </ActivityType>
+    <ActivityType>
+      <name>Submitted for Reimbursement</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Archiving</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+  </ActivityTypes>
+  <ActivitySets>
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
+        <ActivityType>
+          <name>Open Case</name>
+          <status>Completed</status>
+        </ActivityType>
+        <ActivityType>
+          <name>Recruit to study</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Submitted for Reimbursement</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+          <subject>Genvasc</subject>
+        </ActivityType>
+        <ActivityType>
+          <name>Take study samples</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>0</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Fetch samples from pathology</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>3</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Check study consent</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>3</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Process study samples</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>4</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+        <ActivityType>
+          <name>Mark as available for cohorting</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>30</reference_offset>
+          <reference_select>newest</reference_select>
+          <status>Automated</status>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+  </ActivitySets>
+  <CaseRoles>
+    <RelationshipType>
+        <name>Study Administrator</name>
+        <creator>1</creator>
+    </RelationshipType>
+    <RelationshipType>
+        <name>Study Manager</name>
+        <manager>1</manager>
+    </RelationshipType>
+    <RelationshipType>
+        <name>Venepuncturist</name>
+    </RelationshipType>	  
+    <RelationshipType>
+        <name>Principal Investigator</name>
+    </RelationshipType>	  
+    <RelationshipType>
+        <name>Recruiter for study</name>
+    </RelationshipType>	  
+    <RelationshipType>
+        <name>processed samples in lab</name>
+    </RelationshipType>	  
+    <RelationshipType>
+        <name>Recruiting site for study</name>
+    </RelationshipType>   
+ </CaseRoles>
+</CaseType>

@@ -1,0 +1,287 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function label_printer_schema() {
+  $schema['unique_ids'] =  array(
+
+    'description' => 'The table for used unique random IDs.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The table ID',
+        'type' => 'serial',
+        'not null' => TRUE),
+      'ordinal' => array(
+        'description' => 'The ordinal number from which the unque ID is created',
+        'type' => 'int',
+        'not null' => TRUE),
+      'prefix' => array(
+        'description' => 'The prefix',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE),
+      'unique_id' => array(
+        'description' => 'The prefix',
+        'type' => 'int',
+        'not null' => TRUE),
+      'check_digit' => array(
+        'description' => 'The check digit',
+        'type' => 'varchar',
+        'length' => 1,
+        'not null' => TRUE),
+      'fullcode' => array(
+        'description' => 'The full code including prefix and check digit',
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE),
+      ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'prefix_ordinal' => array('prefix', 'ordinal'),
+      'prefix_unique_id' => array('prefix', 'unique_id'),
+      'fullcode' => array('fullcode'),
+    ),
+  );
+  $schema['numbers'] =  array(
+
+    'description' => 'Generic Numbers Table.',
+    'fields' => array(
+      'number' => array(
+        'description' => 'The number',
+        'type' => 'int',
+        'not null' => TRUE),
+      ),
+    'primary key' => array('number'),
+  );
+  $schema['legacy_ids'] =  array(
+    'description' => 'The table for used LEGACY IDs - hence its name.',
+    'fields' => array(
+      'prefix' => array(
+        'description' => 'ID Prefix',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE),
+      'id' => array(
+        'description' => 'Sample ID',
+        'type' => 'int',
+        'not null' => TRUE),
+      ),
+    'primary key' => array('id', 'prefix'),
+    'unique keys' => array(
+      'prefix_id' => array('prefix', 'id'),
+    ),
+  );
+
+   return $schema;
+}
+
+function label_printer_update_7001() {
+  db_create_table('numbers', drupal_get_schema_unprocessed('label_printer', 'numbers'));
+  return 'Add the numbers table.';
+}
+
+/*
+function label_printer_update_7002() {
+  $result = db_query('
+    INSERT INTO numbers (number)
+    SELECT
+        SEQ.SeqValue AS number
+    FROM
+    (
+    SELECT
+        (
+                 ONES.SeqValue
+            +     TENS.SeqValue * 10
+            +     HUNDREDS.SeqValue * 100
+            +     THOUSANDS.SeqValue * 1000
+            +     TENTHOUSANDS.SeqValue * 10000
+            +     HUNDREDTHOUSANDS.SeqValue * 100000
+            +     MILLIONS.SeqValue * 1000000
+            +     TENMILLIONS.SeqValue * 10000000
+            ) SeqValue
+    FROM
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) ONES
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) TENS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) HUNDREDS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) THOUSANDS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) TENTHOUSANDS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) HUNDREDTHOUSANDS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) MILLIONS
+    CROSS JOIN
+        (
+        SELECT 0  SeqValue
+        UNION ALL
+        SELECT 1 SeqValue
+        UNION ALL
+        SELECT 2 SeqValue
+        UNION ALL
+        SELECT 3 SeqValue
+        UNION ALL
+        SELECT 4 SeqValue
+        UNION ALL
+        SELECT 5 SeqValue
+        UNION ALL
+        SELECT 6 SeqValue
+        UNION ALL
+        SELECT 7 SeqValue
+        UNION ALL
+        SELECT 8 SeqValue
+        UNION ALL
+        SELECT 9 SeqValue
+        ) TENMILLIONS
+    ) SEQ
+    ');
+  return 'Populate numbers table.';
+}
+*/
+function label_printer_update_7003() {
+  db_create_table('legacy_ids', drupal_get_schema_unprocessed('label_printer', 'legacy_ids'));
+  return 'Add the legacy_ids table.';
+}

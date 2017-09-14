@@ -1,0 +1,139 @@
+<?php
+
+const PARTICIPANT_SEARCH_TITLE = 'Participant ID Search';
+const PARTICIPANT_SEARCH_RESULTS_PATH = 'content/participant_search';
+const PARTICIPANT_SEARCH_SEARCH_STRING = 'PARTICIPANT_SEARCH_SEARCH_STRING';
+
+function participant_search_block_info() {
+	return array (
+		PARTICIPANT_SEARCH_TITLE => array(
+		    'info' => t(PARTICIPANT_SEARCH_TITLE),
+			),
+		);
+}
+
+function participant_search_block_view($blockName = '') {
+	$blocks = array (
+		PARTICIPANT_SEARCH_TITLE => array(
+			'subject' => t(PARTICIPANT_SEARCH_TITLE),
+			'content' => drupal_get_form('_participant_search_form')
+			),
+		);
+    return $blocks[$blockName];
+}
+
+
+function participant_search_menu() {
+	$items[PARTICIPANT_SEARCH_RESULTS_PATH] = array(
+		'title' => 'Participant Search Results',
+		'description' => 'Results of participant search',
+		'page callback' => '_participant_search_results',
+		'access callback' => 'user_is_logged_in',
+        'type' => MENU_CALLBACK,
+		'expanded' => TRUE,
+	);
+
+	return $items;
+}
+
+
+function _participant_search_form($form, &$form_state) {
+	return array(
+//		'#method' => 'get',
+//		'#action' => url("/content/participant_search"),
+	    PARTICIPANT_SEARCH_SEARCH_STRING => array(
+	        '#type' => 'textfield',
+	        '#size' => '20',
+	        '#maxlength' => '50',
+	        '#required' => TRUE,
+            '#description' => t('Enter NHS Number, UHL System Number or Study ID')
+	        ),
+	    'submit' => array(
+	        '#type' => 'submit',
+	        '#value' => 'Search',
+	        )
+	    );
+}
+
+
+function _participant_search_form_submit($form, &$form_state) {
+    civicrm_initialize();
+
+    $searchString = trim($form_state['values'][PARTICIPANT_SEARCH_SEARCH_STRING]);
+
+	$form_state['redirect'] = PARTICIPANT_SEARCH_RESULTS_PATH . "/$searchString";
+}
+
+function _participant_search_results($searchString) {
+    civicrm_initialize();
+
+//    $searchString = drupal_get_query_parameters()[PARTICIPANT_SEARCH_SEARCH_STRING];
+    $ch = new ContactHelper();
+
+    $matches = $ch->searchSubjects($searchString);
+
+    $html = "
+    	<p>Participants found for search string '$searchString':</p>
+    ";
+
+    if (count($matches) > 10) {
+    	$html .= '<em>Results limited to the first 10 matches</em>';
+    	$matches = array_slice($matches, 0, 10);
+    }
+
+    $html .= "
+    	<ul>
+    ";
+
+    foreach ($matches as $m) {
+    	$caseH = new CaseHelper();
+
+    	$name = "{$m['first_name']} {$m['last_name']}";
+
+    	$fields = array();
+
+    	if (!empty($m['birth_date'])){
+		    $fields[] = '<strong>Date of Birth</strong>: ' . date('d-M-Y', strtotime($m['birth_date']));
+    	}
+    	if (!empty($m['NHS number'])){
+		    $fields[] = '<strong>NHS Number</strong>: ' . $m['NHS number'];
+    	}
+    	if (!empty($m['UHL S number'])){
+		    $fields[] = '<strong>UHL S number</strong>: ' . $m['UHL S number'];
+    	}
+
+        $url = CRM_Utils_System::url('civicrm/contact/view',
+          'reset=1&cid=' . $m['contact_id']
+        );
+
+    	$fields_string = join('; &nbsp; ', $fields);
+
+    	$cases = $caseH->getCasesForContactId($m['contact_id']);
+
+    	$cases_string = '';
+
+    	foreach ($cases as $c) {
+    		$cases_string .= "
+    		<li>
+    			<h3><a href='{$c['url']}' target='_blank'>{$caseH->getCaseTitle($c)}</a></h3>
+    			<p>{$caseH->getCaseFieldsDescription($c)}</p>
+    		</li>";
+    	}
+
+    	$html .= "
+    		<li>
+    			<h1><a href='$url' target='_blank'>$name</a></h1>
+    			<p>$fields_string</p>
+    			<ul>
+    				$cases_string
+    			</ul>
+    		</li>
+    	";
+    }
+
+    $html .= "
+    	</ul>
+    ";
+
+    return $html;
+}

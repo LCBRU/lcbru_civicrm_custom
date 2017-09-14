@@ -1,0 +1,8 @@
+name = GENVASC ID and Label generator
+description = Generates unique IDs and prints labels for GENVASC study.
+core = 7.x
+configure = admin/config/content/genvasc_labels
+dependencies[] = civicrm
+dependencies[] = lcbru
+dependencies[] = daps
+dependencies[] = participant_importer

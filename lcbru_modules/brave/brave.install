@@ -1,0 +1,10 @@
+<?php
+
+function brave_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function brave_disable() {
+}
+

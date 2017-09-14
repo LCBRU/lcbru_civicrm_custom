@@ -1,0 +1,53 @@
+<?php
+
+const BRICCS_ARCHIVE_PERMISSION = 'briccs_archive';
+
+function briccs_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(str_replace(" ","_",CIVI_FIELD_BRICCS_ID)) . '_')) {
+                if (briccs_isInvalidBriccsId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_BRICCS_ID . " is not valid.  Should be of the format 'BPtnnnnnnnn', where 'nnnnnnnn' is a 8 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function briccs_isInvalidBriccsId($value) {
+  return !preg_match('/^(BPt\d{8})?$/', $value);
+}
+
+function briccs_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = str_replace(" ","_",CIVI_FIELD_BRICCS_ID);
+}
+
+function briccs_lcbru_getStudyIdFieldName($studyId) {
+    if (!briccs_isInvalidBriccsId($studyId)) {
+        return str_replace(" ","_",CIVI_FIELD_BRICCS_ID);
+    }
+}
+
+/**
+ * Register study specific permissions
+ */
+function briccs_permission() {
+  return array(
+    BRICCS_ARCHIVE_PERMISSION => array(
+      'title' => t('Archive BRICCS participants'), 
+      'description' => t('Archive BRICCS Participants.'),
+    ),
+  );
+}
+
+function briccs_archiver_permission_name() {
+    return BRICCS_ARCHIVE_PERMISSION;
+}
+
+function briccs_lcbru_case_type_name() {
+    return 'BRICCS';
+}
