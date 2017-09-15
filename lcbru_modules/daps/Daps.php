@@ -398,25 +398,31 @@ class Daps
     try {
       $result = ArrayHelper::objectToArray(db_query('
           SELECT
-              LOCAL_ID AS daps_submission_participant_id
-            , SYSTEM_NUMBER_CURRENT AS uhl_system_number
-            , NHS_NUMBER AS nhs_number
-            , GENDER AS gender
-            , DBS_FORENAMES AS forenames
-            , DBS_SURNAME AS surname
-            , CONVERT(VARCHAR(8), [DATE OF BIRTH], 112) AS date_of_birth
-            , DBS_TITLE AS title
-            , DBS_ADDRESS_LINE_1 AS address_line_1
-            , DBS_ADDRESS_LINE_2 AS address_line_2
-            , DBS_ADDRESS_LINE_3 AS address_line_3
-            , DBS_ADDRESS_LINE_4 AS address_line_4
-            , DBS_ADDRESS_LINE_5 AS address_line_5
-            , DBS_POSTCODE AS postcode
-            , DATE_OF_DEATH AS date_of_death
-            , CASE WHEN NSTS_RETURNED_CURRENT_CENTRAL_REGISTER_POSTING = \'D\' THEN 1 ELSE 0 END AS is_deceased
-          FROM DBS_TRACING
-          WHERE batch_id = :batch_id
-            AND LEN(COALESCE(LOCAL_ID, \'\')) > 0
+              dbs.LOCAL_ID AS daps_submission_participant_id
+            , dbs.SYSTEM_NUMBER_CURRENT AS uhl_system_number
+            , dbs.NHS_NUMBER AS nhs_number
+            , CASE
+                WHEN nnits.NSTS_RETURNED_SEX = 1 THEN \'Male\'
+                WHEN nnits.NSTS_RETURNED_SEX = 2 THEN \'Female\'
+              END AS gender
+            , dbs.DBS_FORENAMES AS forenames
+            , dbs.DBS_SURNAME AS surname
+            , CONVERT(VARCHAR(8), dbs.[DATE OF BIRTH], 112) AS date_of_birth
+            , dbs.DBS_TITLE AS title
+            , dbs.DBS_ADDRESS_LINE_1 AS address_line_1
+            , dbs.DBS_ADDRESS_LINE_2 AS address_line_2
+            , dbs.DBS_ADDRESS_LINE_3 AS address_line_3
+            , dbs.DBS_ADDRESS_LINE_4 AS address_line_4
+            , dbs.DBS_ADDRESS_LINE_5 AS address_line_5
+            , dbs.DBS_POSTCODE AS postcode
+            , dbs.DATE_OF_DEATH AS date_of_death
+            , CASE WHEN dbs.NSTS_RETURNED_CURRENT_CENTRAL_REGISTER_POSTING = \'D\' THEN 1 ELSE 0 END AS is_deceased
+          FROM DBS_TRACING dbs
+          JOIN  [DWPATMATCH].[dbo].[DBS_NNITS_RESULTS] nnits
+            ON REPLACE(dbs.NHS_NUMBER, \' \', \'\')  =  REPLACE(nnits.New_NHS_NUMBER, \' \', \'\')
+            AND nnits.BATCH_ID = dbs.BATCH_ID
+          WHERE dbs.batch_id = :batch_id
+            AND LEN(COALESCE(dbs.LOCAL_ID, \'\')) > 0
         ', array(':batch_id' => $batch_id))
         ->fetchAll());
     } finally {
