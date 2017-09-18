@@ -257,6 +257,8 @@ class CronHelper
             $cronFunction();
             
         } catch (Exception $ex) {
+            watchdog($this->jobTitle, $ex->getMessage(), null, 'error');
+            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, 'Error: ' . $this->jobTitle, $ex->getMessage());
             throw $ex;
         } finally {
             $this->end();

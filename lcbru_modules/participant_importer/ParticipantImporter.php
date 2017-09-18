@@ -59,6 +59,18 @@ class ParticipantImporter
     }
 
     /**
+     * Sets the creator_id to use for creating the cases and contacts
+     *
+     * @param integer creator_id
+     *
+     */
+    public function setCreatorId($creatorId) {
+        Guard::AssertInteger('$creatorId', $creatorId);
+
+        $this->creatorId = $creatorId;
+    }
+
+    /**
      * Returns the validation errors of the CSV.
      *
      * @param string $filepath the path to the CSV file
@@ -226,6 +238,10 @@ class ParticipantImporter
             if (empty($subjectData['case_status'])) {
               $defaults['case_status_id'] = $this->recruitedCaseStatusValue;
             }
+
+            if (!empty($this->creatorId)) {
+                $defaults['creator_id'] = $this->creatorId;
+            }
         }
 
         $request = array_merge(
@@ -317,6 +333,10 @@ class ParticipantImporter
 
         if (!empty($existingContact)) {
             $request['id'] = $existingContact['contact_id'];
+        } else {
+            if (!empty($this->creatorId)) {
+                $request['creator_id'] = $this->creatorId;
+            }
         }
 
         return CiviCrmApiHelper::createObject('contact', $request)['id'];
