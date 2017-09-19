@@ -28,3 +28,10 @@ function _interval_isInvalidIntervalId($value) {
 function interval_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_INTERVAL_ID';
 }
+
+function interval_lcbru_getStudyIdFieldName($studyId) {
+    if (!_interval_isInvalidIntervalId($studyId)) {
+        return 'CIVI_FIELD_INTERVAL_ID';   
+    }
+}
+
