@@ -96,6 +96,12 @@ function fast_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_FAST_ID';
 }
 
+function fast_lcbru_getStudyIdFieldName($studyId) {
+    if (!fast_isInvalidFastId($studyId)) {
+        return 'CIVI_FIELD_FAST_ID';   
+    }
+}
+
 function fast_lcbru_getAutoCustomFieldValue($fieldName) {
     Guard::AssertString_NotEmpty('$fieldName', $fieldName);
 
