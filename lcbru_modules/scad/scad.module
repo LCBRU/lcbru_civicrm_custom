@@ -39,6 +39,7 @@ function _scad_isInvalidScadId($value) {
 
 function scad_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_SCAD_ID';
+    $studyIds[] = 'CIVI_FIELD_SCAD_BRICCS_ID';
 }
 
 function scad_lcbru_getAutoCustomFieldValue($fieldName) {
@@ -49,6 +50,15 @@ function scad_lcbru_getAutoCustomFieldValue($fieldName) {
             $studyIdGenerator = new IdGenerator('ScPt');
             return $studyIdGenerator->next();
             break;
+    }
+}
+
+function scad_lcbru_getStudyIdFieldName($studyId) {
+    if (!_scad_isInvalidScadId($studyId)) {
+        return 'CIVI_FIELD_SCAD_ID';
+    } elseif (!briccs_isInvalidBriccsId($studyId)) {
+        pp('This bit worked');
+        return 'CIVI_FIELD_SCAD_BRICCS_ID';   
     }
 }
 
