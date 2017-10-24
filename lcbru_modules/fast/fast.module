@@ -159,7 +159,7 @@ function _fast_reset_last_processed() {
 function _fast_run_cron_now() {
     set_time_limit(500);
     civicrm_initialize();
-    $validation_errors = _fast_run_import();
+    $validation_errors = _fast_run_import(NULL);
 
     if (!empty($validation_errors)) {
         foreach ($validation_errors as $e) {
@@ -219,7 +219,7 @@ FROM (
                           rd.record,
                           rd.project_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'fst_label' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
+                        rd.record AS CIVI_FIELD_FAST_ID,
                         GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
                         GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
                         GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
@@ -263,6 +263,7 @@ FROM (
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
                 WHERE s.recruited = 1
+                    AND LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_FAST_ID, '')))) > 0
                 GROUP BY s.CIVI_FIELD_FAST_ID
     ) x
     WHERE last_update > :last_processed_date
@@ -295,23 +296,17 @@ WHERE rank < 10
 
     watchdog('fast_cron', "Importing " . count($participant_details) . " records");
 
-    foreach ($participant_details as $p) {
+    if (count($participant_details) > 0) {
 
-        $e = $pi->getSingleValidationErrors($p);
+        $errors = $pi->batchValidateAndImport($participant_details);
 
-        if ($p['last_update'] > $last_processed_date) {
-            $last_processed_date = $p['last_update'];
+        $last_update = end($participant_details)['last_update'];
+
+        if ($last_update > $last_processed_date) {
+            $last_processed_date = $last_update;
             variable_set(FAST_LAST_PROCESSED_VARIABLE_NAME, $last_processed_date);
-        }
-
-        if (empty($e)) {
-            $pi->importSingle($p);
-        } else {
-            $errors = array_merge($errors, $e);
         }
     }
 
     return $errors;
-
 }
-
