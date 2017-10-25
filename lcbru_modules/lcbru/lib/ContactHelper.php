@@ -59,7 +59,7 @@ class ContactHelper
       if (!empty($uhlSystemNumber)) {
         $cons = $this->getSubjects(array($this->uhlSystemNumberFieldIdName => $uhlSystemNumber));
 
-        $potentialContacts = $potentialContacts + $con;
+        $potentialContacts = $potentialContacts + $cons;
       }
 
       if (!empty($nhsNumber)) {
