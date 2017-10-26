@@ -33,10 +33,10 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           'id_generator' => new IdGenerator('LenSa'),
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 8,
+          'id_count' => 4,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'EDTA 7.5ml (RED) On ice'
+            '{MESSAGE_PLACEHOLDER}' => 'Falcon 20ml On ice'
             )
           ),
         'Participant Label' => array(
@@ -44,7 +44,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
-          'labels_per_id' => 4
+          'labels_per_id' => 8
           ),
         'Visit 1 EDTA Bag' => array(
           'participant_id' => 'study_id',
