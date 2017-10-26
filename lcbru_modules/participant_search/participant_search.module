@@ -1,6 +1,6 @@
 <?php
 
-const PARTICIPANT_SEARCH_TITLE = 'Participant ID Search';
+const PARTICIPANT_SEARCH_TITLE = 'Participant Search';
 const PARTICIPANT_SEARCH_RESULTS_PATH = 'content/participant_search';
 const PARTICIPANT_SEARCH_SEARCH_STRING = 'PARTICIPANT_SEARCH_SEARCH_STRING';
 
