@@ -201,6 +201,31 @@ class ParticipantImporter
     }
 
     /**
+     * Validates and Imports the participants from an array and creates a
+     * case if required.  Returns an array of validation errors.
+     *
+     * @param array $participants
+     *
+     * @return array
+     */
+    public function batchValidateAndImport(array $participants) {
+        $errors = array();
+        
+        foreach ($participants as $p) {
+
+            $e = $this->getSingleValidationErrors($p);
+
+            if (empty($e)) {
+                $this->importSingle($p);
+            } else {
+                $errors = array_merge($errors, $e);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Creates a case
      *
      * @param string $contactId the contact ID
