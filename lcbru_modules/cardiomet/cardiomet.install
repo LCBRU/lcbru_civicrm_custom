@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function cardiomet_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function cardiomet_disable() {
+}
+

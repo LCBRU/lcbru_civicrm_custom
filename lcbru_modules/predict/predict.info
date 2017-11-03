@@ -1,0 +1,6 @@
+name = PREDICT Study
+description = PREDICT Study Enrollments
+core = 7.x
+configure = admin/config/content/predict
+dependencies[] = lcbru
+dependencies[] = label_printer

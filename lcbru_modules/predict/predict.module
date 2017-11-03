@@ -1,0 +1,69 @@
+<?php
+
+const PREDICT_PREMISSION_PRINT_LABELS = 'PREDICT print labels';
+
+function predict_permission() {
+  return array(
+    PREDICT_PREMISSION_PRINT_LABELS => array (
+      'title' => t(PREDICT_PREMISSION_PRINT_LABELS), 
+      'description' => t(PREDICT_PREMISSION_PRINT_LABELS),
+    ),
+  );
+}
+
+function predict_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['PREDICT Pack'] = array(
+      'name' => 'PREDICT Pack',
+      'permission' => PREDICT_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('PrePt'),
+        ),
+      'labels' => array(
+        'Serun Samples' => array(
+          'id_generator' => new IdGenerator('PreSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 2,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '4.9ml Serum'
+            )
+          ),
+        'Lithium Hep. Samples' => array(
+          'id_generator' => new IdGenerator('PreSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 2,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '4.9ml Lithium Hep.'
+            )
+          ),
+        'EDTA Samples' => array(
+          'id_generator' => new IdGenerator('PreSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '4.9ml EDTA'
+            )
+          ),
+        'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 3
+          ),
+        'Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_PREDICT,
+          'study_name' => 'PREDICT',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        ),
+    );
+}

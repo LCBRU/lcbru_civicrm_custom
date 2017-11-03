@@ -1,0 +1,6 @@
+name = CARDIOMET Study
+description = CARDIOMET Study Enrollments
+core = 7.x
+configure = admin/config/content/cardiomet
+dependencies[] = lcbru
+dependencies[] = label_printer

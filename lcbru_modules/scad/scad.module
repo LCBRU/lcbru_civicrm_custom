@@ -242,7 +242,7 @@ function scad_cron() {
   $helper = new CronHelper(SCAD_IMPORT_CRON_JOB);
   $creator_id = $helper->getCronUserContactId();
   $helper->runCron(function() use ($creator_id) {
-        $errors = _fast_run_import($creator_id);
+        $errors = _scad_run_import($creator_id);
 
         if (!empty($errors)) {
             watchdog(SCAD_IMPORT_CRON_JOB, 'Errors found');
@@ -296,61 +296,79 @@ FROM (
     , (
                 SELECT
                     GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
-                    s.CIVI_FIELD_FAST_ID,
-                    s.start_date,
-                    first_name,
-                    last_name,
-                    street_address,
-                    supplemental_address_2,
-                    city,
-                    state_province,
-                    postal_code,
-                    phone,
-                    email,
-                    NHS_number,
+                    CASE WHEN s.record LIKE 'ScPt%' THEN s.record ELSE '<auto generate>' END CIVI_FIELD_SCAD_ID,
+                    CASE WHEN s.record LIKE 'BPt%' THEN s.record END CIVI_FIELD_SCAD_BRICCS_ID,
+                    CASE WHEN s.record LIKE 'BPt%' THEN s.record END BRICCS_ID,
+                    s.record,
+                    s.scad_local_id CIVI_FIELD_SCAD_VISIT_ID,
+                    scad_reg_id,
+                    start_date,
                     CASE gender
                             WHEN 0 THEN 'Female'
                             WHEN 1 THEN 'male'
                          END AS gender,
+                    CASE rec_type
+                            WHEN '0' THEN 'Healthy volunteer'
+                            WHEN '1' THEN 'SCAD'
+                          END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
                     birth_date,
                     CASE
-                        WHEN wthdrwl_date IS NOT NULL THEN 'withdrawn'
-                        WHEN recruited = 1 THEN 'recruited'
-                    END AS case_status
+                        WHEN withdrawn_y_n = 1 THEN 'withdrawn'
+                        ELSE 'recruited'
+                    END AS case_status,
+                    first_name,
+                    last_name,
+                    supplemental_address_1,
+                    street_address,
+                    supplemental_address_2,
+                    city,
+                    state_province,
+                    country,
+                    postal_code,
+                    LEFT(phone, 32),
+                    email,
+                    REPLACE(nhs_number, ' ', '') NHS_number,
+                    UHL_S_number
                 FROM    (
-                    SELECT
-                          rd.record,
-                          rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'fst_label' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
-                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
-                        GROUP_CONCAT(CASE WHEN field_name = 'add_2' THEN VALUE ELSE NULL END) AS supplemental_address_2,
-                        GROUP_CONCAT(CASE WHEN field_name = 'add_3' THEN VALUE ELSE NULL END) AS city,
-                        GROUP_CONCAT(CASE WHEN field_name = 'add_4' THEN VALUE ELSE NULL END) AS state_province,
-                        GROUP_CONCAT(CASE WHEN field_name = 'postcode' THEN VALUE ELSE NULL END) AS postal_code,
-                        GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
-                        GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
-                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
-                        GROUP_CONCAT(CASE WHEN field_name = 'gp_practice' THEN VALUE ELSE NULL END) AS gp_practice,
-                        GROUP_CONCAT(CASE WHEN field_name = 'patient_reruited' THEN VALUE ELSE NULL END) AS recruited
-                    FROM    redcap_data rd
-                    WHERE rd.project_id = 48
-                    GROUP BY rd.record, rd.project_id
+SELECT
+    rd.record,
+    rd.project_id,
+    GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
+    GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
+    GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
+    GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+    GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+    GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+    GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+    GROUP_CONCAT(CASE WHEN field_name = 'withdrawn_y_n' THEN VALUE ELSE NULL END) AS withdrawn_y_n
+FROM    redcap_data rd
+WHERE rd.project_id = 28
+GROUP BY rd.record, rd.project_id
+
                 ) s
-                LEFT JOIN (
-                     SELECT
-                            rd.record,
-                            rd.project_id,
-                         GROUP_CONCAT(CASE WHEN field_name = 'study_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
-                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-                         REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
-                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrwl_date' THEN VALUE ELSE NULL END) AS wthdrwl_date
-                     FROM    redcap_data rd
-                     WHERE rd.project_id = 43
-                     GROUP BY rd.record, rd.project_id
-                ) q ON q.CIVI_FIELD_FAST_ID = s.CIVI_FIELD_FAST_ID
+                JOIN (
+
+SELECT
+    rd.record,
+    rd.project_id,
+    GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
+    GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
+    GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
+    GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
+    GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
+    GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
+    GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
+FROM    redcap_data rd
+WHERE rd.project_id = 31
+GROUP BY rd.record, rd.project_id
+
+                ) q ON q.record = s.scad_reg_id
                 LEFT JOIN redcap_log_event es
                     ON es.project_id = s.project_id
                     AND es.pk = s.record
@@ -365,8 +383,7 @@ FROM (
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
-                WHERE s.recruited = 1
-                GROUP BY s.CIVI_FIELD_FAST_ID
+                GROUP BY s.record
     ) x
     WHERE last_update > :last_processed_date
     ORDER BY last_update

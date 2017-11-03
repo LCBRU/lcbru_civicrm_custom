@@ -27,6 +27,8 @@ class LabelPrinter
 
   const PRINTER_BRU_TEST_BAG = '10.161.54.248';
 
+  const LABEL_BAG_PREDICT = 'PredictBag.zpl';
+  const LABEL_BAG_CARDIOMET = 'CardiometBag.zpl';
   const LABEL_BAG_LENTEN_EDTA = 'LentenEdtaBag.zpl';
   const LABEL_BAG_LENTEN_UHL = 'LentenUhlBag.zpl';
   const LABEL_BAG_URINE = 'UrineLabel.zpl';
