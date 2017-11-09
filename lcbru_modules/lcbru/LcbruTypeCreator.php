@@ -102,6 +102,9 @@ class LcbruTypeCreator
         if (module_exists('interval')) {
             $this->recreateCaseInterval();
         }
+        if (module_exists('lenten')) {
+            $this->recreateCaseLenten();
+        }
         if (module_exists('mermaid')) {
             $this->recreateCaseMermaid();
         }
@@ -828,6 +831,21 @@ class LcbruTypeCreator
                 , 'Interval - V1 15/05/2015' => 'Interval - V1 15/05/2015'
                 )
             );
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the LENTEN module
+     *
+     * @return void
+     */
+    private function recreateCaseLenten() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_LENTEN);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LENTEN);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LENTEN_ID', CIVI_FIELD_LENTEN_ID);
 
         watchdog(__METHOD__, 'completed');
     }
