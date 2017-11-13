@@ -7,7 +7,7 @@
 $databases['ice_messaging'] = array (
     'default' =>
     array (
-      'database' => 'genvasc-ice',
+      'database' => 'genvasc-ice-test',
       'username' => 'briccs_admin',
       'password' => 'bR1cc5100',
       'host' => 'UHLSQLBRICCSDB\\UHLBRICCSDB',

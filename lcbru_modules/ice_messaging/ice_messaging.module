@@ -47,6 +47,8 @@ function _ice_messaging_data($action = '',$message_id = '') {
 function _ice_messaging_confirm_form($form, &$form_state, $message_id) {
   civicrm_initialize();
 
+  $pmi = new PmiHelper();
+
   $message = _ice_messaging_get_message($message_id);
 
   if (empty($message)) {
@@ -74,7 +76,7 @@ function _ice_messaging_confirm_form($form, &$form_state, $message_id) {
     return;
   }
 
-  $pmiDetails = lcbru_getUhlPmiDetails($s_number);
+  $pmiDetails = $pmi->get_pmi_details($s_number);
 
   if (empty($pmiDetails)) {
     drupal_set_message(t("Patient '$message->SYSTEM_NUMBER' does not exist in the PMI, please add them using Patient Centre."), 'error');
@@ -82,7 +84,7 @@ function _ice_messaging_confirm_form($form, &$form_state, $message_id) {
     return;
   }
 
-  $pmiAddress = lcbru_getAddressFromPmiDetails($pmiDetails);
+  $pmiAddress = $pmi->get_address_from_pmi($pmiDetails);
 
   if (empty($pmiAddress)) {
     drupal_set_message(t("Patient '$message->SYSTEM_NUMBER' does not have an address in the PMI, please add the address using Patient Centre."), 'error');
@@ -403,7 +405,8 @@ function ice_message_trigger_civicrm($record, $importAddressFromPMI=False) {
   }
 
   if ($importAddressFromPMI) {
-    lcbru_import_address_from_pmi($patient['id']);
+    $pmi = new PmiHelper();
+    $pmi->import_address($patient['id']);
   }
 
   $practiceContactId = lcbru_get_practice_contact_id_by_ice_code_quick($record->REFERRAL_SOURCE);

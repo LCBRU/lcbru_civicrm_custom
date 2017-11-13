@@ -2,15 +2,13 @@
 
 /**
  * @file
- * A module to support recruitment into the EMMACE-4 study
+ * A module to support recruitment into the SCAD study
  */
 
-const SCAD_PREMISSION_CONFIG = 'SCAD Configuration';
-const SCAD_IMPORT_CRON_JOB = 'SCAD Import';
 const SCAD_PREMISSION_PRINT_LABELS = 'print SCAD labels';
 const SCAD_PREMISSION_BLIND = 'blind SCAD';
 const SCAD_PREMISSION_UNBLIND = 'Unblind SCAD';
-const SCAD_LAST_PROCESSED_VARIABLE_NAME = 'SCAD LAST PROCESSED';
+
 
 function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
 
@@ -33,17 +31,19 @@ function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
     return;
 }
 
+
 function _scad_isInvalidScadId($value) {
   $idGenerator = new IdGenerator('ScPt');
 
   return !$idGenerator->validate($value);
-
 }
+
 
 function scad_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_SCAD_ID';
     $studyIds[] = 'CIVI_FIELD_SCAD_BRICCS_ID';
 }
+
 
 function scad_lcbru_getAutoCustomFieldValue($fieldName) {
     Guard::AssertString_NotEmpty('$fieldName', $fieldName);
@@ -56,6 +56,7 @@ function scad_lcbru_getAutoCustomFieldValue($fieldName) {
     }
 }
 
+
 function scad_lcbru_getStudyIdFieldName($studyId) {
     if (!_scad_isInvalidScadId($studyId)) {
         return 'CIVI_FIELD_SCAD_ID';
@@ -63,6 +64,7 @@ function scad_lcbru_getStudyIdFieldName($studyId) {
         return 'CIVI_FIELD_SCAD_BRICCS_ID';   
     }
 }
+
 
 function scad_label_printer_populateDefinitions(array &$definitions) {
   $definitions['SCAD Pack'] = array(
@@ -139,9 +141,7 @@ function scad_label_printer_populateDefinitions(array &$definitions) {
     );
 }
 
-/**
- * Register study specific permissions
- */
+
 function scad_permission() {
   return array(
     SCAD_PREMISSION_PRINT_LABELS => array(
@@ -156,16 +156,10 @@ function scad_permission() {
       'title' => t('Unblind SCAD IDs'), 
       'description' => t('Lookup unblind IDs from blind IDs for SCAD'),
     ),
-    SCAD_PREMISSION_CONFIG => array (
-      'title' => t(SCAD_PREMISSION_CONFIG),
-      'description' => t(SCAD_PREMISSION_CONFIG),
-    ),
   );
 }
 
-/**
- * Implements hook_block_info().
- */
+
 function scad_block_info() {
   $blocks['scad'] = array(
     'info' => t('SCAD label printing'), //The name that will appear in the block list.
@@ -173,6 +167,7 @@ function scad_block_info() {
   );
   return $blocks;
 }
+
 
 function scad_blind_unblind_populateDefinitions(array &$definitions) {
     $definitions['SCAD'] = array(
@@ -196,104 +191,10 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
 }
 
 
-function scad_menu() {
-  $items['admin/config/content/scad'] = array(
-    'title' => SCAD_PREMISSION_CONFIG,
-    'description' => SCAD_PREMISSION_CONFIG,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('_scad_config_form'),
-    'access arguments' => array(SCAD_PREMISSION_CONFIG),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/config/content/scad/run_cron_now'] = array(
-    'title' => 'Run SCAD Cron',
-    'description' => 'Run SCAD Cron',
-    'page callback' => '_scad_run_cron_now',
-    'access arguments' => array(SCAD_PREMISSION_CONFIG),
-    'type' => MENU_CALLBACK,
-    'expanded' => TRUE,
-  );
-  return $items;
-}
-
-function _scad_config_form($form, &$form_state) {
-
-  $helper = new CronHelper(SCAD_IMPORT_CRON_JOB);
-  $helper->addSettingsToForm($form);
-
-  $form['Run Now'] = array(
-    '#type' => 'submit',
-    '#value' => t('Run Now'),
-    '#submit' => array('_scad_run_cron_now'),
-  );
-  $form['Reset Last Processed'] = array(
-    '#type' => 'submit',
-    '#value' => t('Reset Last Processed'),
-    '#submit' => array('_scad_reset_last_processed'),
-  );
-
-  return system_settings_form($form);
-}
-
-function scad_cron() {
-
-  civicrm_initialize();
-
-  $helper = new CronHelper(SCAD_IMPORT_CRON_JOB);
-  $creator_id = $helper->getCronUserContactId();
-  $helper->runCron(function() use ($creator_id) {
-        $errors = _scad_run_import($creator_id);
-
-        if (!empty($errors)) {
-            watchdog(SCAD_IMPORT_CRON_JOB, 'Errors found');
-            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, SCAD_IMPORT_CRON_JOB . ' Load Errors', print_r($errors, True));
-        } else {
-            watchdog(SCAD_IMPORT_CRON_JOB, 'No errors found');
-        }
-  });
-}
-
-function _scad_reset_last_processed() {
-    variable_set(SCAD_LAST_PROCESSED_VARIABLE_NAME, '');
-    pp('Last Processed Reset');
-    drupal_goto('admin/config/content/scad');
-}
-
-function _scad_run_cron_now() {
-    set_time_limit(500);
-    civicrm_initialize();
-    $validation_errors = _scad_run_import(NULL);
-
-    if (!empty($validation_errors)) {
-        foreach ($validation_errors as $e) {
-            drupal_set_message($e, 'error');
-        }
-    }
-
-    drupal_set_message('SCAD Participants Imported');
-    drupal_goto('admin/config/content/scad');
-}
-
-function _scad_run_import($creator_id) {
-    try {
-        db_set_active('redcap');
-
-        $last_processed_date = variable_get(SCAD_LAST_PROCESSED_VARIABLE_NAME, '0');
-
-        watchdog(SCAD_IMPORT_CRON_JOB, "Last Processed: $last_processed_date");
-
-        $participant_details = ArrayHelper::objectToArray(db_query("
-
-SELECT *
-FROM (
-    SELECT
-        CASE
-        WHEN @prev_value = last_update THEN @rank_count
-        WHEN @prev_value := last_update THEN @rank_count := @rank_count + 1
-        END AS rank,
-        x.*
-    FROM (SELECT @prev_value := NULL, @rank_count := 0) y
-    , (
+function scad_participant_importer_populateDefinitions() {
+    return array(
+        'SCAD REDCap' => array(
+            'query' => "
                 SELECT
                     GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
                     CASE WHEN s.record LIKE 'ScPt%' THEN s.record ELSE '<auto generate>' END CIVI_FIELD_SCAD_ID,
@@ -330,44 +231,41 @@ FROM (
                     REPLACE(nhs_number, ' ', '') NHS_number,
                     UHL_S_number
                 FROM    (
-SELECT
-    rd.record,
-    rd.project_id,
-    GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
-    GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
-    GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
-    GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
-    GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-    GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-    GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-    GROUP_CONCAT(CASE WHEN field_name = 'withdrawn_y_n' THEN VALUE ELSE NULL END) AS withdrawn_y_n
-FROM    redcap_data rd
-WHERE rd.project_id = 28
-GROUP BY rd.record, rd.project_id
-
+                    SELECT
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
+                        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                        GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                        GROUP_CONCAT(CASE WHEN field_name = 'withdrawn_y_n' THEN VALUE ELSE NULL END) AS withdrawn_y_n
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 28
+                    GROUP BY rd.record, rd.project_id
                 ) s
                 JOIN (
-
-SELECT
-    rd.record,
-    rd.project_id,
-    GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
-    GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
-    GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
-    GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
-    GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
-    GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
-    GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
-FROM    redcap_data rd
-WHERE rd.project_id = 31
-GROUP BY rd.record, rd.project_id
-
+                    SELECT
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
+                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
+                        GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
+                        GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
+                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 31
+                    GROUP BY rd.record, rd.project_id
                 ) q ON q.record = s.scad_reg_id
                 LEFT JOIN redcap_log_event es
                     ON es.project_id = s.project_id
@@ -384,49 +282,10 @@ GROUP BY rd.record, rd.project_id
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
                 GROUP BY s.record
-    ) x
-    WHERE last_update > :last_processed_date
-    ORDER BY last_update
-) z
-WHERE rank < 10
-
-        ", array(
-            ':last_processed_date' => $last_processed_date
-            ))->fetchAll());
-
-    } finally {
-        db_set_active();
-    }
-
-    $caseH = new CaseHelper();
-    $caseType = $caseH->getCaseTypeFromName(CIVI_CASE_TYPE_SCAD);
-
-    $pi = new ParticipantImporter(
-        $caseType['id'],
-        True,
-        True
+                ",
+             'case_type_name' => CIVI_CASE_TYPE_SCAD,
+             'add_pmi' => 0
+        )
     );
-
-    if (!empty($creator_id)) {
-        $pi->setCreatorId($creator_id);
-    }
-
-    $errors = array();
-
-    watchdog(SCAD_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records");
-
-    if (count($participant_details) > 0) {
-
-        $errors = $pi->batchValidateAndImport($participant_details);
-
-        $last_update = end($participant_details)['last_update'];
-
-        if ($last_update > $last_processed_date) {
-            $last_processed_date = $last_update;
-            variable_set(SCAD_LAST_PROCESSED_VARIABLE_NAME, $last_processed_date);
-        }
-    }
-
-    return $errors;
 }
 

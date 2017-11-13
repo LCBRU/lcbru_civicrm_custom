@@ -95,6 +95,24 @@ class ContactHelper
       return $result;
     }
 
+    /**
+     * @param string $uhlSystemNumber the participant's UHL system number
+     * @param boolean $nhsNumber the participant's NHS system number
+     * @param boolean $participantStudyIds optional array of study IDs with fields called:
+     *                  'isParticipantStudyIdFieldName' and 'participantStudyId'
+     */
+    public function getSubjectFromId($contactId) {
+        Guard::AssertInteger('$contactId', $contactId);
+
+        $results = $this->getSubjects(array('id' => $contactId));
+
+        if (empty($results)) {
+          throw new Exception("Subject does not exist for contact ID = $contactId");
+        }
+
+        return reset($results);
+    }
+
     public function getSubjectFromParticipantStudyIds($participantStudyIds) {
       $result = array();
 

@@ -1294,46 +1294,6 @@ function isDateValidAndInRange($date, $startDate, $endDate) {
   return isDateInRange(strtotime($date), $startDate, $endDate);
 }
 
-function lcbru_getUhlPmiDetails($sNumber) {
-  $result = NULL;
-
-  db_set_active('PmiDb');
-
-  try {
-    $queryResult = db_query("Select * FROM UHL_PMI_QUERY_BY_ID( :sNumber )", array(':sNumber' => $sNumber));
-
-      $pmiDetails = $queryResult->fetchAssoc();
-
-      // The PMI helpfully returns a row of NULLs if it
-      // doesn't find a record.  Therefore, if the 'main_pat_id'
-      // is NULL, nothing was found.
-
-      if (!is_null($pmiDetails['main_pat_id'])) {
-        $result = $pmiDetails;
-      }
-
-  } catch (Exception $ex) {
-    db_set_active();
-    throw $ex;
-  } finally {
-    db_set_active();
-  }
-
-  return $result;
-}
-
-function lcbru_getAddressFromPmiDetails($pmiDetails) {
-  if (!is_null($pmiDetails)) {
-    return addressSplit(array(
-              $pmiDetails["pat_addr1"],
-              $pmiDetails["pat_addr2"],
-              $pmiDetails["pat_addr3"],
-              $pmiDetails["pat_addr4"],
-              $pmiDetails["postcode"]
-              ));
-  }
-}
-
 function lcbru_get_contact_by_custom_field($filterFieldName, $filterValue) {
   
   if (empty($filterValue)) {
@@ -1576,43 +1536,6 @@ function lcbru_string_starts_with($string, $substring) {
 function lcbru_get_contact_s_number($contactID) {
     $sNumberField = get_civi_custom_value($contactID, CIVI_FIELD_SET_IDENTIFIERS, CIVI_FIELD_S_NUMBER);
     return $sNumberField['latest'];
-}
-
-function lcbru_import_address_from_pmi($contactID) {
-  if (empty($contactID)) {
-    throw new Exception("parameter Contact ID is empty.");
-  }
-
-  $contact = get_civi_contact($contactID);
-
-  if (empty($contact)) {
-    return;
-  }
-
-  $sNumber = lcbru_get_contact_s_number($contactID);
-
-  if (empty($sNumber)) {
-    return;
-  }
-
-  $pmiDetails = lcbru_getUhlPmiDetails($sNumber);
-
-  if (empty($pmiDetails)) {
-    return;
-  }
-
-  $params = array_merge(lcbru_getAddressFromPmiDetails($pmiDetails), array(
-    "version" => "3",
-    "contact_id" => $contactID,
-    "is_primary" => "1",
-    "location_type_id" => "1",
-    ));
-
-  if (!empty($contact['address_id'])) {
-    $params['id'] = $contact['address_id'];
-  }
-
-  civicrm_api('address', 'create', $params);
 }
 
 function lcbru_get_custom_field_id_name($name) {

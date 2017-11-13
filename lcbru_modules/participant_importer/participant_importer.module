@@ -3,6 +3,7 @@
 require_once("ParticipantImporter.php");
 
 const PARTICIPANT_IMPORTER_PERMISSION = 'access Participant Importer';
+const PARTICIPANT_IMPORTER_PERMISSION_CONFIG = 'Participant Importer Configuration';
 const PARTICIPANT_IMPORTER_FORM_CSVFILE = 'csvfile';
 const PARTICIPANT_IMPORTER_FORM_CSVFILE_FORMAT = 'csvfile_format';
 const PARTICIPANT_IMPORTER_FORM_CASE_TYPE = 'case_type';
@@ -11,6 +12,23 @@ const PARTICIPANT_IMPORTER_FORM_CREATE_NEW_PARTICIPANTS = 'create_new_participan
 const PARTICIPANT_IMPORTER_FORM_CREATE_NEW_CASES = 'create_new_cases';
 const PARTICIPANT_IMPORTER_FORM_IGNORE_CASE_STATUSES = 'ignore_case_statuses';
 const PARTICIPANT_IMPORTER_FORM_HELP = 'help_text';
+const PARTICIPANT_IMPORTER_IMPORT_CRON_JOB = 'Participant Importer Import';
+
+/**
+ * Implements hook_permission() to restrict access to the PMI Importer data.
+ */
+function participant_importer_permission() {
+  return array(
+    PARTICIPANT_IMPORTER_PERMISSION => array(
+      'title' => t('Access Participant Importer'),
+      'description' => t('Allow users to access the Participant Importer.'),
+    ),
+    PARTICIPANT_IMPORTER_PERMISSION_CONFIG => array (
+      'title' => t(PARTICIPANT_IMPORTER_PERMISSION_CONFIG), 
+      'description' => t(PARTICIPANT_IMPORTER_PERMISSION_CONFIG),
+    ),
+  );
+}
 
 /**
  * Implements hook_menu().
@@ -23,6 +41,14 @@ function participant_importer_menu() {
     'page callback' => '_participant_importer_form',
     'access arguments' => array(PARTICIPANT_IMPORTER_PERMISSION),
     'expanded' => TRUE,
+  );
+  $items['admin/config/content/participant_importer'] = array(
+    'title' => PARTICIPANT_IMPORTER_PERMISSION_CONFIG,
+    'description' => PARTICIPANT_IMPORTER_PERMISSION_CONFIG,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_participant_importer_config_form'),
+    'access arguments' => array(PARTICIPANT_IMPORTER_PERMISSION_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
   );
 
   return $items;
@@ -295,18 +321,6 @@ function _participant_importer_help_form_submit($form, &$form_state) {
   drupal_goto('content/participant_importer/');
 }
 
-/**
- * Implements hook_permission() to restrict access to the PMI Importer data.
- */
-function participant_importer_permission() {
-  return array(
-    PARTICIPANT_IMPORTER_PERMISSION => array(
-      'title' => t('Access Participant Importer'),
-      'description' => t('Allow users to access the Participant Importer.'),
-    ),
-  );
-}
-
 function _get_csv_from_filename($filepath, $format_name) {
   $result = new CsvHelper($filepath, CsvHelper::NAMES_IN_HEADER);
 
@@ -377,5 +391,180 @@ function _participant_importer_csvfile_formats_options() {
   return $result;
 }
 
+function _participant_importer_config_form($form, &$form_state) {
 
+    $helper = new CronHelper(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB);
+    $helper->addSettingsToForm($form);
 
+    $form['Run Now'] = array(
+        '#type' => 'submit',
+        '#value' => t('Run All Now'),
+        '#submit' => array('_participant_importer_run_cron_now'),
+        '#job_name' => ''
+    );
+
+    foreach (_participant_importer_get_all_definitions() as $name => $parameters) {
+        $form[$name] = array(
+            '#type' => 'container',
+            '#title' => $name,
+        );
+        $form[$name]['title'] = array(
+            '#markup' => "<h1>$name</h1>",
+        );
+        $form[$name]['$name Run Now'] = array(
+            '#type' => 'submit',
+            '#value' => t("Run $name Now"),
+            '#submit' => array('_participant_importer_run_cron_now'),
+            '#job_name' => $name
+        );
+        $form[$name]['$name Reset last processed'] = array(
+            '#type' => 'submit',
+            '#value' => t("Reset $name Last Processed Date"),
+            '#submit' => array('_participant_importer_reset_last_processed_date'),
+            '#job_name' => $name
+        );
+    }
+
+    return system_settings_form($form);
+}
+
+function _participant_importer_reset_last_processed_date(&$form, &$form_state) {
+    $job_name = $form_state['clicked_button']['#job_name'];
+    $last_processed_name = "Participant Importer $job_name last processed date";
+    variable_set($last_processed_name, 0);
+    watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Setting last processed for $job_name: 0");
+}
+
+function participant_importer_cron() {
+  civicrm_initialize();
+
+  $helper = new CronHelper(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB);
+  $creator_id = $helper->getCronUserContactId();
+  $helper->runCron(function() use ($creator_id) {
+        $errors = _participant_importer_run_import($creator_id, NULL);
+
+        if (!empty($errors)) {
+            watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'Errors found');
+            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, PARTICIPANT_IMPORTER_IMPORT_CRON_JOB . ' Load Errors', print_r($errors, True));
+        } else {
+            watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'No errors found');
+        }
+  });
+}
+
+function _participant_importer_run_cron_now(&$form, &$form_state) {
+    set_time_limit(500);
+    civicrm_initialize();
+    $validation_errors = _participant_importer_run_import(NULL, $form_state['clicked_button']['#job_name']);
+
+    if (!empty($validation_errors)) {
+        foreach ($validation_errors as $e) {
+            drupal_set_message($e, 'error');
+        }
+    }
+
+    drupal_set_message(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB . ' completed');
+    drupal_goto('admin/config/content/participant_importer');
+}
+
+function _participant_importer_run_import($creator_id, $job_name) {
+    foreach (_participant_importer_get_all_definitions() as $name => $parameters) {
+        if (is_null($job_name) || $job_name == '' || $job_name == $name) {
+            _participant_importer_run_import_for(
+                $name,
+                $parameters,
+                $creator_id
+            );
+        }
+    }
+}
+
+function _participant_importer_run_import_for($name, $parameters, $creator_id) {
+    $last_processed_name = "Participant Importer $name last processed date";
+    $query = "
+
+SELECT *
+FROM (
+    SELECT
+        CASE
+        WHEN @prev_value = last_update THEN @rank_count
+        WHEN @prev_value := last_update THEN @rank_count := @rank_count + 1
+        END AS rank,
+        x.*
+    FROM (SELECT @prev_value := NULL, @rank_count := 0) y
+    , (
+        ${parameters['query']}
+    ) x
+    WHERE last_update > :last_processed_date
+    ORDER BY last_update
+) z
+WHERE rank < 10
+
+    ";
+
+    try {
+        db_set_active('redcap');
+
+        $last_processed_date = variable_get($last_processed_name, '0');
+
+        watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Last Processed for ${parameters['case_type_name']}: $last_processed_date");
+
+        $participant_details = ArrayHelper::objectToArray(
+            db_query(
+                $query,
+                array(':last_processed_date' => $last_processed_date)
+            )->fetchAll()
+        );
+
+    } finally {
+        db_set_active();
+    }
+
+    $caseH = new CaseHelper();
+    $caseType = $caseH->getCaseTypeFromName($parameters['case_type_name']);
+
+    $pi = new ParticipantImporter(
+        $caseType['id'],
+        True,
+        True
+    );
+
+    if (!empty($creator_id)) {
+        $pi->setCreatorId($creator_id);
+    }
+
+    $errors = array();
+
+    watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
+
+    if ($parameters['add_pmi']) {
+        $pmi = new PmiHelper();
+
+        $participant_details = $pmi->add_pmi_details($participant_details);
+    }
+
+    if (count($participant_details) > 0) {
+        $errors = $pi->batchValidateAndImport($participant_details);
+
+        $last_update = end($participant_details)['last_update'];
+
+        if ($last_update > $last_processed_date) {
+            $last_processed_date = $last_update;
+            variable_set($last_processed_name, $last_processed_date);
+            watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Setting last processed for ${parameters['case_type_name']}: $last_processed_date");
+        }
+    }
+
+    return $errors;
+}
+
+function _participant_importer_get_all_definitions() {
+    $result = array();
+
+    foreach (module_implements('participant_importer_populateDefinitions') as $module) {
+      $function = $module . '_participant_importer_populateDefinitions';
+      $result = array_merge($result, $function());
+    }
+
+    return $result;
+}

@@ -1,9 +1,6 @@
 <?php
 
-const FAST_PREMISSION_CONFIG = 'FAST Configuration';
 const FAST_PREMISSION_PRINT_LABELS = 'FAST print labels';
-const FAST_IMPORT_CRON_JOB = 'FAST Import';
-const FAST_LAST_PROCESSED_VARIABLE_NAME = 'FAST LAST PROCESSED';
 
 function fast_permission() {
   return array(
@@ -11,33 +8,8 @@ function fast_permission() {
       'title' => t('Print FAST Labels'), 
       'description' => t('Print labels packs for the FAST study'),
     ),
-    FAST_PREMISSION_CONFIG => array(
-      'title' => t(FAST_PREMISSION_CONFIG), 
-      'description' => t(FAST_PREMISSION_CONFIG),
-    ),
   );
 }
-
-function fast_menu() {
-  $items['admin/config/content/fast'] = array(
-    'title' => FAST_PREMISSION_CONFIG,
-    'description' => FAST_PREMISSION_CONFIG,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('_fast_config_form'),
-    'access arguments' => array(FAST_PREMISSION_CONFIG),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/config/content/fast/run_cron_now'] = array(
-    'title' => 'Run FAST Cron',
-    'description' => 'Run Fast Cron',
-    'page callback' => '_fast_run_cron_now',
-    'access arguments' => array(FAST_PREMISSION_CONFIG),
-    'type' => MENU_CALLBACK,
-    'expanded' => TRUE,
-  );
-  return $items;
-}
-
 
 function fast_label_printer_populateDefinitions(array &$definitions) {
   $definitions['FAST Pack'] = array(
@@ -113,84 +85,10 @@ function fast_lcbru_getAutoCustomFieldValue($fieldName) {
     }
 }
 
-function _fast_config_form($form, &$form_state) {
-
-  $helper = new CronHelper(FAST_IMPORT_CRON_JOB);
-  $helper->addSettingsToForm($form);
-
-  $form['Run Now'] = array(
-    '#type' => 'submit',
-    '#value' => t('Run Now'),
-    '#submit' => array('_fast_run_cron_now'),
-  );
-  $form['Reset Last Processed'] = array(
-    '#type' => 'submit',
-    '#value' => t('Reset Last Processed'),
-    '#submit' => array('_fast_reset_last_processed'),
-  );
-
-  return system_settings_form($form);
-}
-
-function fast_cron() {
-
-  civicrm_initialize();
-
-  $helper = new CronHelper(FAST_IMPORT_CRON_JOB);
-  $creator_id = $helper->getCronUserContactId();
-  $helper->runCron(function() use ($creator_id) {
-        $errors = _fast_run_import($creator_id);
-
-        if (!empty($errors)) {
-            watchdog('fast_cron', 'Errors found');
-            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, 'FAST CIVICRM Load Errors', print_r($errors, True));
-        } else {
-            watchdog('fast_cron', 'No errors found');
-        }
-  });
-}
-
-function _fast_reset_last_processed() {
-    variable_set(FAST_LAST_PROCESSED_VARIABLE_NAME, '');
-    pp('Last Processed Reset');
-    drupal_goto('admin/config/content/fast');
-}
-
-function _fast_run_cron_now() {
-    set_time_limit(500);
-    civicrm_initialize();
-    $validation_errors = _fast_run_import(NULL);
-
-    if (!empty($validation_errors)) {
-        foreach ($validation_errors as $e) {
-            drupal_set_message($e, 'error');
-        }
-    }
-
-    drupal_set_message('FAST Participants Imported');
-    drupal_goto('admin/config/content/fast');
-}
-
-function _fast_run_import($creator_id) {
-    try {
-        db_set_active('redcap');
-
-        $last_processed_date = variable_get(FAST_LAST_PROCESSED_VARIABLE_NAME, '0');
-
-        watchdog('fast_cron', "Last Processed: $last_processed_date");
-
-        $participant_details = ArrayHelper::objectToArray(db_query("
-
-SELECT *
-FROM (
-    SELECT
-        CASE
-        WHEN @prev_value = last_update THEN @rank_count
-        WHEN @prev_value := last_update THEN @rank_count := @rank_count + 1
-        END AS rank,
-        x.*
-    FROM (SELECT @prev_value := NULL, @rank_count := 0) y
-    , (
+function fast_participant_importer_populateDefinitions() {
+    return array(
+        'Fast REDCap' => array(
+            'query' => "
                 SELECT
                     GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
                     s.CIVI_FIELD_FAST_ID,
@@ -265,48 +163,10 @@ FROM (
                 WHERE s.recruited = 1
                     AND LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_FAST_ID, '')))) > 0
                 GROUP BY s.CIVI_FIELD_FAST_ID
-    ) x
-    WHERE last_update > :last_processed_date
-    ORDER BY last_update
-) z
-WHERE rank < 10
-
-        ", array(
-            ':last_processed_date' => $last_processed_date
-            ))->fetchAll());
-
-    } finally {
-        db_set_active();
-    }
-
-    $caseH = new CaseHelper();
-    $fastCaseType = $caseH->getCaseTypeFromName(CIVI_CASE_TYPE_FAST);
-
-    $pi = new ParticipantImporter(
-        $fastCaseType['id'],
-        True,
-        True
+            ",
+             'case_type_name' => CIVI_CASE_TYPE_FAST,
+             'add_pmi' => 0
+        )
     );
-
-    if (!empty($creator_id)) {
-        $pi->setCreatorId($creator_id);
-    }
-
-    $errors = array();
-
-    watchdog('fast_cron', "Importing " . count($participant_details) . " records");
-
-    if (count($participant_details) > 0) {
-
-        $errors = $pi->batchValidateAndImport($participant_details);
-
-        $last_update = end($participant_details)['last_update'];
-
-        if ($last_update > $last_processed_date) {
-            $last_processed_date = $last_update;
-            variable_set(FAST_LAST_PROCESSED_VARIABLE_NAME, $last_processed_date);
-        }
-    }
-
-    return $errors;
 }
+

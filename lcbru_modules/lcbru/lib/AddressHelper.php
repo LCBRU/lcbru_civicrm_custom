@@ -106,4 +106,27 @@ class AddressHelper
 
         return true;
     }
+
+
+    public static function create_address($contact_id, array $address, $is_primary, $location_type_id, $address_id) {
+        Guard::AssertInteger('$contact_id', $contact_id);
+        Guard::AssertBoolean('$is_primary', $is_primary);
+        Guard::AssertInteger('$location_type_id', $location_type_id);
+
+        $params = array_merge($address, array(
+            'contact_id' => $contact_id,
+            'location_type_id' => $location_type_id,
+        ));
+
+        if ($is_primary) {
+            $params['is_primary'] = 1;
+        }
+
+        if ($address_id) {
+            $params['id'] = $address_id;
+        }
+
+        return CiviCrmApiHelper::createObject('Address', $params);
+
+    }
 }

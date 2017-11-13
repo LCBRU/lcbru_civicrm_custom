@@ -1,19 +1,12 @@
 <?php
 
 const LENTEN_PREMISSION_PRINT_LABELS = 'LENTEN print labels';
-const LENTEN_PERMISSION_CONFIG = 'LENTEN Configuration';
-const LENTEN_IMPORT_CRON_JOB = 'LENTEN Import';
-const LENTEN_LAST_PROCESSED_VARIABLE_NAME = 'LENTEN LAST PROCESSED';
 
 function lenten_permission() {
   return array(
     LENTEN_PREMISSION_PRINT_LABELS => array (
       'title' => t(LENTEN_PREMISSION_PRINT_LABELS), 
       'description' => t(LENTEN_PREMISSION_PRINT_LABELS),
-    ),
-    LENTEN_PERMISSION_CONFIG => array (
-      'title' => t(LENTEN_PERMISSION_CONFIG), 
-      'description' => t(LENTEN_PERMISSION_CONFIG),
     ),
   );
 }
@@ -125,208 +118,59 @@ function lenten_lcbru_getStudyIdFieldName($studyId) {
 }
 
 
-function lenten_menu() {
-  $items['admin/config/content/lenten'] = array(
-    'title' => LENTEN_PERMISSION_CONFIG,
-    'description' => LENTEN_PERMISSION_CONFIG,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('_lenten_config_form'),
-    'access arguments' => array(LENTEN_PERMISSION_CONFIG),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/config/content/lenten/run_cron_now'] = array(
-    'title' => 'Run LENTEN Cron',
-    'description' => 'Run LENTEN Cron',
-    'page callback' => '_lenten_run_cron_now',
-    'access arguments' => array(LENTEN_PERMISSION_CONFIG),
-    'type' => MENU_CALLBACK,
-    'expanded' => TRUE,
-  );
-  return $items;
-}
-
-
-function _lenten_config_form($form, &$form_state) {
-
-  $helper = new CronHelper(LENTEN_IMPORT_CRON_JOB);
-  $helper->addSettingsToForm($form);
-
-  $form['Run Now'] = array(
-    '#type' => 'submit',
-    '#value' => t('Run Now'),
-    '#submit' => array('_lenten_run_cron_now'),
-  );
-  $form['Reset Last Processed'] = array(
-    '#type' => 'submit',
-    '#value' => t('Reset Last Processed'),
-    '#submit' => array('_lenten_reset_last_processed'),
-  );
-
-  return system_settings_form($form);
-}
-
-function lenten_cron() {
-
-  civicrm_initialize();
-
-  $helper = new CronHelper(LENTEN_IMPORT_CRON_JOB);
-  $creator_id = $helper->getCronUserContactId();
-  $helper->runCron(function() use ($creator_id) {
-        $errors = _lenten_run_import($creator_id);
-
-        if (!empty($errors)) {
-            watchdog(LENTEN_IMPORT_CRON_JOB, 'Errors found');
-            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, LENTEN_IMPORT_CRON_JOB . ' Load Errors', print_r($errors, True));
-        } else {
-            watchdog(LENTEN_IMPORT_CRON_JOB, 'No errors found');
-        }
-  });
-}
-
-function _lenten_reset_last_processed() {
-    variable_set(LENTEN_LAST_PROCESSED_VARIABLE_NAME, '');
-    pp('Last Processed Reset');
-    drupal_goto('admin/config/content/lenten');
-}
-
-function _lenten_run_cron_now() {
-    set_time_limit(500);
-    civicrm_initialize();
-    $validation_errors = _lenten_run_import(NULL);
-
-    if (!empty($validation_errors)) {
-        foreach ($validation_errors as $e) {
-            drupal_set_message($e, 'error');
-        }
-    }
-
-    drupal_set_message('LENTEN Participants Imported');
-    drupal_goto('admin/config/content/lenten');
-}
-
-function _lenten_run_import($creator_id) {
-    try {
-        db_set_active('redcap');
-
-        $last_processed_date = variable_get(LENTEN_LAST_PROCESSED_VARIABLE_NAME, '0');
-
-        watchdog(LENTEN_IMPORT_CRON_JOB, "Last Processed: $last_processed_date");
-
-        $participant_details = ArrayHelper::objectToArray(db_query("
-
-
-SELECT *
-FROM (
-    SELECT
-        CASE
-        WHEN @prev_value = last_update THEN @rank_count
-        WHEN @prev_value := last_update THEN @rank_count := @rank_count + 1
-        END AS rank,
-        x.*
-    FROM (SELECT @prev_value := NULL, @rank_count := 0) y
-    , (
-                SELECT
-                    MAX(COALESCE(es.ts, 0)) AS last_update,
-                    s.record CIVI_FIELD_LENTEN_ID,
-                    s.record,
-                    start_date,
-                    CASE gender
-                            WHEN 0 THEN 'Female'
-                            WHEN 1 THEN 'male'
-                         END AS gender,
-                    birth_date,
-                    CASE
-                        WHEN wthdrawal_date IS NOT NULL THEN 'withdrawn'
-                        WHEN consent_signed = '1' THEN 'recruited'
-                        ELSE NULL
-                    END AS case_status,
-                    UHL_S_number
-                FROM    (
-SELECT
-    rd.record,
-    rd.project_id,
-    GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
-    GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
-    GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-    GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-    GROUP_CONCAT(CASE WHEN field_name = 'consent_signed' THEN VALUE ELSE NULL END) AS consent_signed,
-    GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrawal_date
-FROM    redcap_data rd
-WHERE rd.project_id = 56
-GROUP BY rd.record, rd.project_id
-                ) s
-                LEFT JOIN redcap_log_event es
-                    ON es.project_id = s.project_id
-                    AND es.pk = s.record
-                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND es.page NOT IN ('DataImportController:index')
-                GROUP BY s.record
-    ) x
-    WHERE
-        UHL_S_Number IS NOT NULL
-        AND case_status IS NOT NULL
-        AND record IS NOT NULL
-      AND last_update > :last_processed_date
-    ORDER BY last_update
-) z
-WHERE rank < 10
-
-
-        ", array(
-            ':last_processed_date' => $last_processed_date
-            ))->fetchAll());
-
-    } finally {
-        db_set_active();
-    }
-
-    $caseH = new CaseHelper();
-    $caseType = $caseH->getCaseTypeFromName(CIVI_CASETYPE_LENTEN);
-
-    $pi = new ParticipantImporter(
-        $caseType['id'],
-        True,
-        True
+function lenten_participant_importer_populateDefinitions() {
+    return array(
+        'Lenten REDCap' => array(
+            'query' => "
+                SELECT *
+                FROM (
+                    SELECT
+                        MAX(COALESCE(es.ts, 0)) AS last_update,
+                        s.record CIVI_FIELD_LENTEN_ID,
+                        s.record,
+                        s.project_id,
+                        s.start_date,
+                        CASE s.gender
+                                WHEN 0 THEN 'Female'
+                                WHEN 1 THEN 'male'
+                             END AS gender,
+                        s.birth_date,
+                        CASE
+                            WHEN s.wthdrawal_date IS NOT NULL THEN 'withdrawn'
+                            WHEN s.consent_signed = '1' THEN 'recruited'
+                            ELSE NULL
+                        END AS case_status,
+                        s.UHL_S_number
+                     FROM (
+                        SELECT
+                            rd.record,
+                            rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
+                            GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'consent_signed' THEN VALUE ELSE NULL END) AS consent_signed,
+                            GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrawal_date
+                        FROM    redcap_data rd
+                        WHERE rd.project_id = 56
+                        GROUP BY rd.record, rd.project_id
+                    ) s
+                    LEFT JOIN redcap_log_event es
+                        ON es.project_id = s.project_id
+                        AND es.pk = s.record
+                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                        # Ignore events caused by the data import from
+                        # the mobile app
+                        AND es.page NOT IN ('DataImportController:index')
+                    GROUP BY s.record
+                ) x
+                WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_LENTEN_ID, ''))) > 0
+                        AND LENGTH(TRIM(COALESCE(UHL_S_Number, ''))) > 0
+                        AND case_status IS NOT NULL
+                ",
+             'case_type_name' => CIVI_CASETYPE_LENTEN,
+             'add_pmi' => 1
+        )
     );
-
-    if (!empty($creator_id)) {
-        $pi->setCreatorId($creator_id);
-    }
-
-    $errors = array();
-
-    watchdog(LENTEN_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records");
-
-    $supplementedParticipantDetails = array();
-
-    foreach ($participant_details as $p) {
-        $pmi_details = lcbru_getUhlPmiDetails($p['UHL_S_number']);
-        $p['NHS_number'] = getFormattedNhsNumber($pmi_details['nhs_number']);
-        $p['first_name'] = $pmi_details['first_name'];
-        $p['middle_name'] = $pmi_details['middle_name'];
-        $p['last_name'] = $pmi_details['last_name'];
-        $p['is_deceased'] = $pmi_details['death_indicator'];
-        $pmiAddress = lcbru_getAddressFromPmiDetails($pmi_details);
-
-        $supplementedParticipantDetails[] = array_merge($p, $pmiAddress);
-    }
-
-    pp($supplementedParticipantDetails);
-
-    if (count($supplementedParticipantDetails) > 0) {
-
-        $errors = $pi->batchValidateAndImport($supplementedParticipantDetails);
-
-        $last_update = end($supplementedParticipantDetails)['last_update'];
-
-        if ($last_update > $last_processed_date) {
-            $last_processed_date = $last_update;
-            variable_set(LENTEN_LAST_PROCESSED_VARIABLE_NAME, $last_processed_date);
-        }
-    }
-
-    return $errors;
 }
 

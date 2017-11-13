@@ -4,4 +4,5 @@ core = 7.x
 configure = admin/config/content/ice_messaging
 dependencies[] = datatables
 dependencies[] = lcbru
+dependencies[] = genvasc_labels
 

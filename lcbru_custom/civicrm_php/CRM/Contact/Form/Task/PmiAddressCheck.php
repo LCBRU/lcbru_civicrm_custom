@@ -12,6 +12,8 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 	function buildQuickForm() {
     	CRM_Utils_System::setTitle(ts('PMI Address Check'));
 
+        $ph = new PmiHelper();
+        
     	$this->contactIdsForAddressImport = array();
     	$this->contactIdsForDeceasedFlagImport = array();
 
@@ -36,7 +38,7 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    		foreach ($this->_contactIds as $cId) {
    			$counts["contacts"]++;
    			$sNumber = lcbru_get_contact_s_number($cId);
-   			$pmiDetails = lcbru_getUhlPmiDetails($sNumber);
+   			$pmiDetails = $ph->get_pmi_details($sNumber);
    			$contact = get_civi_contact($cId);
    			$pmiDeceased = FALSE;
    			$civiDeceased = $contact['is_deceased'] == 1;
@@ -156,14 +158,18 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    	}
 
    	private function importAddresses() {
+        $ph = new PmiHelper();
+
    		foreach ($this->contactIdsForAddressImport as $cId => $sNumber) {
-        lcbru_import_address_from_pmi($cId);
+            $ph->import_address($cId);
    		}
    	}
 
    	private function importDeceasedFlag() {
+        $ph = new PmiHelper();
+        
    		foreach ($this->contactIdsForDeceasedFlagImport as $cId => $sNumber) {
-   			$pmiDetails = lcbru_getUhlPmiDetails($sNumber);
+   			$pmiDetails = $ph->get_pmi_details($sNumber);
 
    			$params = array(
    				"version" => "3",
