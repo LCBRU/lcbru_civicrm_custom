@@ -20,15 +20,16 @@ class LabelPrinter
 {
 
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
-  const PRINTER_BRU_CRF_SAMPLE = '125.200.4.45';
-  const PRINTER_BRU_CRF_BAG = '125.200.4.46';
-#  const PRINTER_BRU_CRF_SAMPLE = '10.161.54.248';
-#  const PRINTER_BRU_CRF_BAG = '10.161.54.248';
+#  const PRINTER_BRU_CRF_SAMPLE = '125.200.4.45';
+#  const PRINTER_BRU_CRF_BAG = '125.200.4.46';
+  const PRINTER_BRU_CRF_SAMPLE = '10.161.54.248';
+  const PRINTER_BRU_CRF_BAG = '10.161.54.248';
 
   const PRINTER_BRU_TEST_BAG = '10.161.54.248';
 
   const LABEL_BAG_PREDICT = 'PredictBag.zpl';
-  const LABEL_BAG_CARDIOMET = 'CardiometBag.zpl';
+  const LABEL_BAG_CARDIOMET_VISIT1 = 'CardiometBagVisit1.zpl';
+  const LABEL_BAG_CARDIOMET_VISIT2 = 'CardiometBagVisit2.zpl';
   const LABEL_BAG_LENTEN_EDTA = 'LentenEdtaBag.zpl';
   const LABEL_BAG_LENTEN_UHL = 'LentenUhlBag.zpl';
   const LABEL_BAG_URINE = 'UrineLabel.zpl';

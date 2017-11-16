@@ -23,10 +23,20 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 4,
+          'id_count' => 5,
           'labels_per_id' => 1,
           'fields' => array(
             '{MESSAGE_PLACEHOLDER}' => '4.9ml Serum'
+            )
+          ),
+        'Heparin Samples' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 5,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '4.9ml Heparin'
             )
           ),
         'Participant Label' => array(
@@ -36,11 +46,19 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 3
           ),
-        'Bag' => array(
+        'Visit 1 Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET,
-          'study_name' => 'CARDIOMET',
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT1,
+          'study_name' => 'CARDIOMET VISIT 1',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 2 Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT2,
+          'study_name' => 'CARDIOMET VISIT 2',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
