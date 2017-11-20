@@ -65,7 +65,9 @@ class PmiHelper
     }
 
     function get_pmi_details($sNumber) {
-        Guard::AssertString_NotEmpty('$sNumber', $sNumber);
+        if (empty($sNumber)) {
+            return NULL;
+        }
 
         $result = NULL;
 
