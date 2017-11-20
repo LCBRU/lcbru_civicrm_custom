@@ -153,6 +153,7 @@ define('CIVI_GROUP_SCAD', 'SCAD');
 
 // SCAD Custom Fields
 define('CIVI_FIELD_SET_SCAD', 'SCAD');
+define('CIVI_FIELD_SCAD_REG_ID', 'SCAD Registry ID');
 define('CIVI_FIELD_SCAD_BRICCS_ID', 'BRICCS ID');
 define('CIVI_FIELD_SCAD_SURVEY_REFERENCE', '1st SCAD Survey ID');
 define('CIVI_FIELD_SCAD_SURVEY_REFERENCE_2', '2nd SCAD Survey ID');

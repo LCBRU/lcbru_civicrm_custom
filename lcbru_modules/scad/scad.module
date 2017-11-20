@@ -26,6 +26,11 @@ function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
                     $errors[$key] = ts(CIVI_FIELD_SCAD_ID . " is not valid.  Should be of the format 'ScPtnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
                 }
             }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_REG_ID') . '_')) {
+                if (_scad_isInvalidScadRegId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_REG_ID . " is not valid.  Should be of the format 'ScadRegnnnnn', where 'nnnnn' is a 5 digit number");
+                }
+            }
         }
     }
     return;
@@ -39,9 +44,15 @@ function _scad_isInvalidScadId($value) {
 }
 
 
+function _scad_isInvalidScadRegId($value) {
+  return !preg_match('/^(ScadReg\d{5})?$/', $value);
+}
+
+
 function scad_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_SCAD_ID';
     $studyIds[] = 'CIVI_FIELD_SCAD_BRICCS_ID';
+    $studyIds[] = 'CIVI_FIELD_SCAD_REG_ID';
 }
 
 
@@ -62,6 +73,8 @@ function scad_lcbru_getStudyIdFieldName($studyId) {
         return 'CIVI_FIELD_SCAD_ID';
     } elseif (!briccs_isInvalidBriccsId($studyId)) {
         return 'CIVI_FIELD_SCAD_BRICCS_ID';   
+    } elseif (!_scad_isInvalidScadRegId($studyId)) {
+        return 'CIVI_FIELD_SCAD_REG_ID';   
     }
 }
 
@@ -202,7 +215,7 @@ function scad_participant_importer_populateDefinitions() {
                     CASE WHEN s.record LIKE 'BPt%' THEN s.record END BRICCS_ID,
                     s.record,
                     s.scad_local_id CIVI_FIELD_SCAD_VISIT_ID,
-                    scad_reg_id,
+                    scad_reg_id CIVI_FIELD_SCAD_REG_ID,
                     start_date,
                     CASE gender
                             WHEN 0 THEN 'Female'
