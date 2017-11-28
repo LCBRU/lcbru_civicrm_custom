@@ -265,6 +265,12 @@ define('CIVI_CASETYPE_LENTEN', 'LENTEN');
 define('CIVI_CUSTOMGROUP_LENTEN', 'LENTEN');
 define('CIVI_FIELD_LENTEN_ID', 'LENTEN ID');
 
+// PREDICT
+define('CIVI_CASETYPE_PREDICT', 'PREDICT');
+
+define('CIVI_CUSTOMGROUP_PREDICT', 'PREDICT');
+define('CIVI_FIELD_PREDICT_ID', 'PREDICT ID');
+
 // Activities
 define('CIVI_ACTIVITY_CHANGE_STATUS', 'Change Enrolment Status');
 define('CIVI_ACTIVITY_RECRUIT', 'Recruit to study');

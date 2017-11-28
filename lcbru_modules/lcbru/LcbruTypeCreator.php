@@ -117,6 +117,9 @@ class LcbruTypeCreator
         if (module_exists('omics_register')) {
             $this->recreateCaseOmicsRegister();
         }
+        if (module_exists('predict')) {
+            $this->recreateCasePredict();
+        }
         if (module_exists('scad')) {
             $this->recreateCaseScad();
         }
@@ -966,6 +969,21 @@ class LcbruTypeCreator
             );
         $this->recreateCustomBooleanField($customDataGroupId, 'CIVI_FIELD_OMICS_REGISTER_FAILED_QC', CIVI_FIELD_OMICS_REGISTER_FAILED_QC);
         $this->recreateCustomDateField($customDataGroupId, 'CIVI_FIELD_OMICS_REGISTER_DATE_DATA_RECEIVED', CIVI_FIELD_OMICS_REGISTER_DATE_DATA_RECEIVED);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the PREDICT module
+     *
+     * @return void
+     */
+    private function recreateCasePredict() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_PREDICT);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_PREDICT);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_PREDICT_ID', CIVI_FIELD_PREDICT_ID);
 
         watchdog(__METHOD__, 'completed');
     }

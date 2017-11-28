@@ -54,7 +54,7 @@ function predict_label_printer_populateDefinitions(array &$definitions) {
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
-          'labels_per_id' => 3
+          'labels_per_id' => 10
           ),
         'Bag' => array(
           'participant_id' => 'study_id',
@@ -67,3 +67,106 @@ function predict_label_printer_populateDefinitions(array &$definitions) {
         ),
     );
 }
+
+function predict_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_PREDICT_ID) . '_')) {
+                if (_predict_isInvalidPredictId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_PREDICT_ID . " is not valid.  Should be a 8 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function _predict_isInvalidPredictId($value) {
+  $idGenerator = new IdGenerator('PrePt');
+  return !$idGenerator->validate($value);
+}
+
+
+function predict_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_PREDICT_ID';
+}
+
+
+function predict_lcbru_getStudyIdFieldName($studyId) {
+    if (!_predict_isInvalidPredictId($studyId)) {
+        return 'CIVI_FIELD_PREDICT_ID';   
+    }
+}
+
+
+function predict_participant_importer_populateDefinitions() {
+    return array(
+        'Predict REDCap' => array(
+            'query' => "
+                SELECT *
+                FROM (
+                    SELECT
+                        MAX(COALESCE(es.ts, 0)) AS last_update,
+                        s.record CIVI_FIELD_PREDICT_ID,
+                        s.record,
+                        s.project_id,
+                        s.start_date,
+                        CASE s.gender
+                                WHEN 0 THEN 'Female'
+                                WHEN 1 THEN 'male'
+                             END AS gender,
+                        s.birth_date,
+                        s.UHL_S_number,
+                        s.NHS_number,
+                        s.first_name,
+                        s.last_name,
+                        s.supplemental_address_1,
+                        s.street_address,
+                        s.supplemental_address_2,
+                        s.city,
+                        s.postal_code,
+                        s.phone,
+                        s.email
+                     FROM (
+                        SELECT
+                            rd.record,
+                            rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 's_no' THEN VALUE ELSE NULL END) AS uhl_s_number,
+                            GROUP_CONCAT(CASE WHEN field_name = 'research_appt_date' THEN VALUE ELSE NULL END) AS start_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
+                            GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                            GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                            GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+                            GROUP_CONCAT(CASE WHEN field_name = 'add_2' THEN VALUE ELSE NULL END) AS street_address,
+                            GROUP_CONCAT(CASE WHEN field_name = 'add_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                            GROUP_CONCAT(CASE WHEN field_name = 'add_4' THEN VALUE ELSE NULL END) AS city,
+                            GROUP_CONCAT(CASE WHEN field_name = 'postcode' THEN VALUE ELSE NULL END) AS postal_code,
+                            GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
+                            GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email
+                        FROM    redcap_data rd
+                        WHERE rd.project_id = 63
+                        GROUP BY rd.record, rd.project_id
+                    ) s
+                    LEFT JOIN redcap_log_event es
+                        ON es.project_id = s.project_id
+                        AND es.pk = s.record
+                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                        # Ignore events caused by the data import from
+                        # the mobile app
+                        AND es.page NOT IN ('DataImportController:index')
+                    GROUP BY s.record
+                ) x
+                WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PREDICT_ID, ''))) > 0
+                ",
+             'case_type_name' => CIVI_CASETYPE_PREDICT,
+             'add_pmi' => 0
+        )
+    );
+}
+
