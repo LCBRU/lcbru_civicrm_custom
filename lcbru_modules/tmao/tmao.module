@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * A module to support recruitment into the EMMACE-4 study
- */
 
 function tmao_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
 
@@ -21,10 +17,19 @@ function tmao_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
     return;
 }
 
+
 function _tmao_isInvalidTmaoId($value) {
   return !preg_match('/^(TMAO\d{4}|)$/', $value);
 }
 
+
 function tmao_labels_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_TMAO_ID';
+}
+
+
+function tmao_lcbru_getStudyIdFieldName($studyId) {
+    if (!_tmao_isInvalidTmaoId($studyId)) {
+        return 'CIVI_FIELD_TMAO_ID';
+    }
 }
