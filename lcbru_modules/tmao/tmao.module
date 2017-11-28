@@ -23,7 +23,7 @@ function _tmao_isInvalidTmaoId($value) {
 }
 
 
-function tmao_labels_lcbru_populateStudyIds(array &$studyIds) {
+function tmao_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_TMAO_ID';
 }
 
