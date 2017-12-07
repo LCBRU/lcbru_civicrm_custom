@@ -201,6 +201,14 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
         'Angiogram' => 'xScAng',
         )
       );
+    $definitions['SCAD MRA & CTA'] = array(
+      'blinding_permission' => SCAD_PREMISSION_BLIND,
+      'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
+      'blind_id_types' => array (
+        'MRA' => 'xScMRA',
+        'CTA' => 'xScCTA',
+        )
+      );
 }
 
 
