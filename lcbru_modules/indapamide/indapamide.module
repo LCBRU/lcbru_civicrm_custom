@@ -1,11 +1,8 @@
 <?php
 
-/**
- * @file
- * A module to support recruitment into the Indapamide study
- */
 
 const INDAPAMIDE_PREMISSION_PRINT_LABELS = 'Indapamide print labels';
+
 
 function indapamide_permission() {
   return array(
@@ -15,6 +12,7 @@ function indapamide_permission() {
     ),
   );
 }
+
 
 function indapamide_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
 
@@ -32,15 +30,18 @@ function indapamide_civicrm_validateForm( $formName, &$fields, &$files, &$form, 
     return;
 }
 
+
 function _indapamide_isInvalidIntervalId($value) {
   $idGenerator = new IdGenerator('IndPt');
 
   return !$idGenerator->validate($value);
 }
 
+
 function indapamide_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_INDAPAMIDE_ID';
 }
+
 
 function indapamide_lcbru_getAutoCustomFieldValue($fieldName) {
     Guard::AssertString_NotEmpty('$fieldName', $fieldName);
@@ -52,6 +53,7 @@ function indapamide_lcbru_getAutoCustomFieldValue($fieldName) {
             break;
     }
 }
+
 
 function indapamide_label_printer_populateDefinitions(array &$definitions) {
   $definitions['Indapamide Pack'] = array(
@@ -135,6 +137,3 @@ function indapamide_label_printer_populateDefinitions(array &$definitions) {
         ),
     );
 }
-
-
-

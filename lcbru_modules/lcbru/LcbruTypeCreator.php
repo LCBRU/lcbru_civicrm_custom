@@ -920,7 +920,8 @@ class LcbruTypeCreator
             , 'CIVI_FIELD_BIORESOURCE_SUB_STUDY_NAME'
             , CIVI_FIELD_BIORESOURCE_SUB_STUDY_NAME
             , array(
-                  'NBR005' => 'NBR005: Oxford - Neural and Genetic Associations in Cognitive Decline'
+                  'NBR005' => 'NBR005: Oxford - Neural and Genetic Associations in Cognitive Decline',
+                  'National Bioresource' => 'National Bioresource',
                 )
             , true
             );
