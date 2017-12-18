@@ -556,6 +556,7 @@ class LcbruTypeCreator
                 , 'DK' => 'Don\'t Know'
                 , 'GeneFast AS study' => 'GeneFast AS study'
                 , 'BRAVE' => 'BRAVE'
+                , 'BRICCS CT' => 'BRICCS CT'
                 )
             );
         $this->recreateCustomCheckBoxesField(
@@ -563,7 +564,7 @@ class LcbruTypeCreator
             , 'CIVI_FIELD_BRICCS_INVITATION_FOR'
             , CIVI_FIELD_BRICCS_INVITATION_FOR
             , array(
-                  'RACP' => 'RACP',
+                  'BRICCS CT' => 'BRICCS CT',
                 )
             );
 
