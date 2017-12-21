@@ -30,6 +30,17 @@
       <name>Response received</name>
     </ActivityType>
     <ActivityType>
+      <name>Screening</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Invitation letter</name>
+      <max_instances>1</max_instances>
+    </ActivityType>
+    <ActivityType>
+      <name>Reminder letter</name>
+    </ActivityType>
+    <ActivityType>
       <name>Archiving</name>
       <max_instances>1</max_instances>
     </ActivityType>
