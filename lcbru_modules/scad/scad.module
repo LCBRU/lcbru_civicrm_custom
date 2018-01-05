@@ -152,6 +152,22 @@ function scad_label_printer_populateDefinitions(array &$definitions) {
           ),
         ),
     );
+  $definitions['SCAD Family Labels'] = array(
+      'name' => 'SCAD Family Labels',
+      'permission' => SCAD_PREMISSION_PRINT_LABELS,
+      'labels' => array(
+        'Family' => array(
+          'id_generator' => new IdGenerator('ScFm'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 7,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => ''
+            )
+          ),
+        ),
+    );
 }
 
 
