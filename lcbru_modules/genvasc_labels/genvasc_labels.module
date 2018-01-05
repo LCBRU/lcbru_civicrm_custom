@@ -66,7 +66,10 @@ function genvasc_labels_formname_submit($form, &$form_state) {
   $ids = [];
 
   for ($i = 0; $i < $form_state['values']['participants']; $i++) {
-    $ids[] = genvasc_generate_id();
+    $id = genvasc_generate_id();
+    if ($id) {
+        $ids[] = $id;
+    }
   }
 
   $lp = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
