@@ -29,7 +29,7 @@ class ParticipantImporter
      * @throws Exception if $caseTypeId is empty.
      */
      public function __construct($caseTypeId, $createNewParticipants, $createNewCases, $ignoredCaseStatuses=array()) {
-        Guard::AssertInteger('$caseTypeId', $caseTypeId);
+        #Guard::AssertInteger('$caseTypeId', $caseTypeId);
         Guard::AssertBoolean('$createNewParticipants', $createNewParticipants);
         Guard::AssertBoolean('$createNewCases', $createNewCases);
         Guard::AssertArrayOfIntegers('$ignoredCaseStatuses', $ignoredCaseStatuses);
@@ -317,7 +317,7 @@ class ParticipantImporter
      * @return id of the contact created
      * @throws Exception if $subjectData is empty.
      */
-    private function createSubject(array $subjectData) {
+    public function createSubject(array $subjectData) {
         Guard::AssertArray('$subjectData', $subjectData);
 
         $request = array_merge(

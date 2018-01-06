@@ -213,7 +213,12 @@ function create_some_bioresource_participants() {
 }
 
 function _test_data_get_participant($i) {
-    $participants = array(
+    $participants = _test_data_get_all_participant();
+    return $participants[$i];
+}
+
+function _test_data_get_all_participant() {
+    return array(
         1 => array(
             'NHS_number' => '1111111111',
             'first_name' => 'Wilbur',
@@ -269,6 +274,4 @@ function _test_data_get_participant($i) {
             'birth_date' => '19910530',
         ),
     );
-
-    return $participants[$i];
 }

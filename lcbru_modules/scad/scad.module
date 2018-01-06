@@ -31,6 +31,11 @@ function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
                     $errors[$key] = ts(CIVI_FIELD_SCAD_REG_ID . " is not valid.  Should be of the format 'ScadRegnnnnn', where 'nnnnn' is a 5 digit number");
                 }
             }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_FAMILY_ID') . '_')) {
+                if (_scad_isInvalidScadFamilyId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_FAMILY_ID . " is not valid.  Should be of the format 'ScFmnnnnnnnX', where 'nnnnn' is a 5 digit number");
+                }
+            }
         }
     }
     return;
@@ -39,6 +44,13 @@ function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$erro
 
 function _scad_isInvalidScadId($value) {
   $idGenerator = new IdGenerator('ScPt');
+
+  return !$idGenerator->validate($value);
+}
+
+
+function _scad_isInvalidScadFamilyId($value) {
+  $idGenerator = new IdGenerator('ScFm');
 
   return !$idGenerator->validate($value);
 }
@@ -72,9 +84,11 @@ function scad_lcbru_getStudyIdFieldName($studyId) {
     if (!_scad_isInvalidScadId($studyId)) {
         return 'CIVI_FIELD_SCAD_ID';
     } elseif (!briccs_isInvalidBriccsId($studyId)) {
-        return 'CIVI_FIELD_SCAD_BRICCS_ID';   
+        return 'CIVI_FIELD_SCAD_BRICCS_ID';
     } elseif (!_scad_isInvalidScadRegId($studyId)) {
-        return 'CIVI_FIELD_SCAD_REG_ID';   
+        return 'CIVI_FIELD_SCAD_REG_ID';
+    } elseif (!_scad_isInvalidScadRegId($studyId)) {
+        return 'CIVI_FIELD_SCAD_FAMILY_ID';
     }
 }
 
@@ -240,6 +254,7 @@ function scad_participant_importer_populateDefinitions() {
                     s.record,
                     s.scad_local_id CIVI_FIELD_SCAD_VISIT_ID,
                     scad_reg_id CIVI_FIELD_SCAD_REG_ID,
+                    scad_family_id CIVI_FIELD_SCAD_FAMILY_ID,
                     start_date,
                     CASE gender
                             WHEN 0 THEN 'Female'
@@ -273,6 +288,7 @@ function scad_participant_importer_populateDefinitions() {
                         rd.project_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'scad_family_id' THEN VALUE ELSE NULL END) AS scad_family_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
                         GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,

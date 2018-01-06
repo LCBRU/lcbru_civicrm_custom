@@ -1003,6 +1003,7 @@ class LcbruTypeCreator
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_ID', CIVI_FIELD_SCAD_ID);
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_BRICCS_ID', CIVI_FIELD_SCAD_BRICCS_ID);
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_REG_ID', CIVI_FIELD_SCAD_REG_ID);
+        $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_FAMILY_ID', CIVI_FIELD_SCAD_FAMILY_ID);
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_SURVEY_REFERENCE', CIVI_FIELD_SCAD_SURVEY_REFERENCE);
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_SURVEY_REFERENCE_2', CIVI_FIELD_SCAD_SURVEY_REFERENCE_2);
         $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_VISIT_ID', CIVI_FIELD_SCAD_VISIT_ID);
