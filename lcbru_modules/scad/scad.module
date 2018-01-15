@@ -10,6 +10,40 @@ const SCAD_PREMISSION_BLIND = 'blind SCAD';
 const SCAD_PREMISSION_UNBLIND = 'Unblind SCAD';
 
 
+function scad_menu() {
+  $items['content/scad/print_reg_labels'] = array(
+    'title' => 'Print SCAD Reg Labels',
+    'description' => 'Print SCAD Reg Labels.',
+    'page callback' => '_scad_print_register_labels',
+    'access arguments' => array(SCAD_PREMISSION_PRINT_LABELS),
+    'type' => MENU_CALLBACK,
+    'expanded' => TRUE,
+  );
+
+  return $items;
+}
+
+function _scad_print_register_labels() {
+
+    if (empty($_GET['start']) || empty($_GET['end'])) {
+        drupal_set_message("No start and end parameters provided.", 'error');
+
+        drupal_goto('');
+    }
+    $start = urldecode($_GET['start']);
+    $end = urldecode($_GET['end']);
+
+    $lps = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
+
+    for ($i=$start; $i < $end; $i++){
+        $sampleId = "ScadReg" . str_pad($i, 5, "0", STR_PAD_LEFT);;
+        $lps->printStudySample($sampleId, 1);
+        usleep ( 500000 );
+    }
+
+    drupal_goto('');
+}
+
 function scad_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
 
     $contactFormBeginning = 'CRM_Case_Form_';
@@ -200,15 +234,6 @@ function scad_permission() {
       'description' => t('Lookup unblind IDs from blind IDs for SCAD'),
     ),
   );
-}
-
-
-function scad_block_info() {
-  $blocks['scad'] = array(
-    'info' => t('SCAD label printing'), //The name that will appear in the block list.
-    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
-  );
-  return $blocks;
 }
 
 
