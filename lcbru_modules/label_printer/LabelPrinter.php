@@ -22,6 +22,8 @@ class LabelPrinter
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
   const PRINTER_BRU_CRF_SAMPLE = '125.200.4.45';
   const PRINTER_BRU_CRF_BAG = '125.200.4.46';
+
+#  const PRINTER_CVRC_LAB_SAMPLE = '10.161.54.248';
 #  const PRINTER_BRU_CRF_SAMPLE = '10.161.54.248';
 #  const PRINTER_BRU_CRF_BAG = '10.161.54.248';
 
@@ -79,6 +81,7 @@ class LabelPrinter
 
       } catch(exception $e) {
 
+        pp($e);
         if (isset($socket)) {
           socket_close($socket);
         }

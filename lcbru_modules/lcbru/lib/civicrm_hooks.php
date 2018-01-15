@@ -107,6 +107,10 @@ function lcbru_civicrm_searchTasks($objectType, &$tasks ) {
       'title'  => ts( 'Submit to DAPS'),
       'class'  => 'CRM_Contact_Form_Task_SubmitToDaps',
       'result' => false );
+    $tasks[] = array(
+      'title'  => ts('Print Labels for each Subject'),
+      'class'  => 'CRM_Contact_Form_Task_PrintLabels',
+      'result' => false );
   }
   if ($objectType=='activity') {
     if ((array_search('CRM_Activity_Form_Task_AddToGroup', $taskClasses) === false)) {

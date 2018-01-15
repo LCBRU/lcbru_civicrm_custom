@@ -25,6 +25,8 @@ class ContactHelper
     const UHL_SYSTEM_NUMBER_FIELD_NAME = 'UHL_S_number';
     const CIVI_FIELD_PRACTICE_CODE_FIELD_NAME = 'Practice_code';
     const CIVI_FIELD_ICE_LOCATION_FIELD_NAME = 'Practice_ICE_code';
+    const DISPLAY_DATE_OF_BIRTH = 'display_date_of_birth';
+    const LAST_NAME_UPPER = 'last_name_upper';
 
     /**
      * Constructor.
@@ -183,7 +185,7 @@ class ContactHelper
     }
 
     public function getSubjects(array $parameters) {
-      $parameters['return'] = $this->uhlSystemNumberFieldIdName . ',' . $this->nhsNumberFieldIdName . ',first_name,last_name,birth_date,gender_id,gender,street_address,supplemental_address_1,supplemental_address_2,city,postal_code,state_province,country';
+      $parameters['return'] = $this->uhlSystemNumberFieldIdName . ',' . $this->nhsNumberFieldIdName . ',first_name,last_name,birth_date,gender_id,gender,street_address,supplemental_address_1,supplemental_address_2,city,postal_code,state_province,country,display_name';
 
       $cons = CiviCrmApiHelper::getObjectsAll('contact', $parameters);
       $result = array();
@@ -199,6 +201,16 @@ class ContactHelper
           $c[CIVI_FIELD_NHS_NUMBER] = getFormattedNhsNumber($c[$this->nhsNumberFieldIdName]);
         } else {
           $c[CIVI_FIELD_NHS_NUMBER] = '';
+        }
+        if (array_key_exists('last_name', $c)) {
+          $c[ContactHelper::LAST_NAME_UPPER] = strtoupper($c['last_name']);
+        } else {
+          $c[ContactHelper::LAST_NAME_UPPER] = '';
+        }
+        if (array_key_exists('birth_date', $c)) {
+          $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = DateTime::createFromFormat('Y-m-d', $c['birth_date'])->format('d M Y');
+        } else {
+          $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = '';
         }
 
         $result[$c['id']] = $c;
