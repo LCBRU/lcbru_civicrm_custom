@@ -19,24 +19,104 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
         'study_id' => new IdGenerator('CarPt'),
         ),
       'labels' => array(
-        'Serun Samples' => array(
+        'Brown Aortic Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 5,
+          'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => '4.9ml Serum'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (Serum - BROWN)'
             )
           ),
-        'Heparin Samples' => array(
+        'Orange Aortic Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 5,
+          'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => '4.9ml Heparin'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (Heparin - ORANGE)'
+            )
+          ),
+        'Brown CS Rest' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (Serum - BROWN)'
+            )
+          ),
+        'Orange CS Rest' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (Heparin - ORANGE)'
+            )
+          ),
+        'Brown Aortic Stress' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (Serum - BROWN)'
+            )
+          ),
+        'Orange Aortic Stress' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (Heparin - ORANGE)'
+            )
+          ),
+        'Brown CS Stress' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (Serum - BROWN)'
+            )
+          ),
+        'Orange CS Stress' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (Heparin - ORANGE)'
+            )
+          ),
+        'Brown Visit 2' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (Serum - BROWN)'
+            )
+          ),
+        'Orange Visit 2' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (Heparin - ORANGE)'
             )
           ),
         'Participant Label' => array(
@@ -46,19 +126,43 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 3
           ),
-        'Visit 1 Bag' => array(
+        'Visit 1 Aortic Rest Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT1,
-          'study_name' => 'CARDIOMET VISIT 1',
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'study_name' => 'CARDIOMET V1 Aortic Rest',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 1 CS Rest Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'study_name' => 'CARDIOMET V1 CS Rest',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 1 Aortic Stress Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'study_name' => 'CARDIOMET V1 Aortic Stress',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 1 CS Stress Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'study_name' => 'CARDIOMET V1 CS Stress',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
         'Visit 2 Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT2,
-          'study_name' => 'CARDIOMET VISIT 2',
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'study_name' => 'CARDIOMET V2',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
