@@ -21,7 +21,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
       'labels' => array(
         'Brown Aortic Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -31,7 +31,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Orange Aortic Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -41,7 +41,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Brown CS Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -51,7 +51,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Orange CS Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -61,7 +61,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Brown Aortic Stress' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -71,7 +71,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Orange Aortic Stress' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -81,7 +81,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Brown CS Stress' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -91,7 +91,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Orange CS Stress' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -101,7 +101,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Brown Visit 2' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -111,7 +111,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Orange Visit 2' => array(
           'id_generator' => new IdGenerator('CarSa'),
-          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
