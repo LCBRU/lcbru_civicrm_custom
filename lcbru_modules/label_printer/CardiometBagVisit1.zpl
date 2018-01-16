@@ -3,9 +3,8 @@
 ^FO240,120^A0,82,82^FDCARDIOMET SAMPLES^FS
 ^FO090,250^AU^FD- 9.8ml Serum Gel [BROWN]^FS
 ^FO150,310^AT^FDCVS Labs biobanking - process and freeze^FS
-^FO090,440^AU^FD- 9.8ml Heparin (Insulin,Adiponectin,Leptin)^FS
-^FO150,500^AU^FD[ORANGE]^FS
-^FO150,560^AT^FDGently invert. Place on ice. 5x centrifuge within 20 mins^FS
+^FO090,440^AU^FD- 9.8ml EDTA [ORANGE/RED]^FS
+^FO150,500^AT^FDGently invert. Place on ice. 5x centrifuge within 20 mins^FS
 ^FO150,850^AT^FDDate^FS
 ^FO650,850^AT^FDTime sample^FS
 ^FO650,900^AT^FDtaken^FS

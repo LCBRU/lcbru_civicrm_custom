@@ -36,7 +36,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (Heparin - ORANGE)'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown CS Rest' => array(
@@ -56,7 +56,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (Heparin - ORANGE)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown Aortic Stress' => array(
@@ -76,7 +76,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (Heparin - ORANGE)'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown CS Stress' => array(
@@ -96,7 +96,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (Heparin - ORANGE)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown Visit 2' => array(
@@ -116,7 +116,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (Heparin - ORANGE)'
+            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (EDTA - ORANGE/RED)'
             )
           ),
         'Participant Label' => array(
