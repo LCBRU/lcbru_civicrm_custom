@@ -74,9 +74,9 @@ function predict_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$e
 
     if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
         foreach ($fields as $key => $field) {
-            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_PREDICT_ID) . '_')) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_PREDICT_ID') . '_')) {
                 if (_predict_isInvalidPredictId($field)) {
-                    $errors[$key] = ts(CIVI_FIELD_PREDICT_ID . " is not valid.  Should be a 8 digit number");
+                    $errors[$key] = ts(CIVI_FIELD_PREDICT_ID . " is not valid.  Should be 'PrePtnnnnnnnnX' where nnnnnnnn is an 8 digit number and X is a check character");
                 }
             }
         }
@@ -169,4 +169,3 @@ function predict_participant_importer_populateDefinitions() {
         )
     );
 }
-

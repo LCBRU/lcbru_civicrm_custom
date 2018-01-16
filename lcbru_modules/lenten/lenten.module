@@ -89,9 +89,9 @@ function lenten_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$er
 
     if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
         foreach ($fields as $key => $field) {
-            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name(CIVI_FIELD_LENTEN_ID) . '_')) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_LENTEN_ID') . '_')) {
                 if (_lenten_isInvalidLentenId($field)) {
-                    $errors[$key] = ts(CIVI_FIELD_LENTEN_ID . " is not valid.  Should be a 8 digit number");
+                    $errors[$key] = ts(CIVI_FIELD_LENTEN_ID . " is not valid.  Should be 'LenPtnnnnnnnnX' where nnnnnnnn is an 8 digit number and X is a check character");
                 }
             }
         }
@@ -101,7 +101,7 @@ function lenten_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$er
 
 
 function _lenten_isInvalidLentenId($value) {
-  $idGenerator = new IdGenerator('Len');
+  $idGenerator = new IdGenerator('LenPt');
   return !$idGenerator->validate($value);
 }
 

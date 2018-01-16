@@ -69,6 +69,9 @@ class LcbruTypeCreator
         if (module_exists('briccs')) {
             $this->recreateCaseBriccs();
         }
+        if (module_exists('cardiomet')) {
+            $this->recreateCaseCardiomet();
+        }
         if (module_exists('dream_id_generator')) {
             $this->recreateCaseDream();
         }
@@ -579,6 +582,21 @@ class LcbruTypeCreator
         watchdog(__METHOD__, 'completed');
     }
 
+
+    /**
+     * Create the case and custom data types for the CARDIOMET module
+     *
+     * @return void
+     */
+    private function recreateCaseCardiomet() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_CARDIOMET);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_CARDIOMET);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_CARDIOMET_ID', CIVI_FIELD_CARDIOMET_ID);
+
+        watchdog(__METHOD__, 'completed');
+    }
 
     /**
      * Create the case and custom data types for the DREAM study
