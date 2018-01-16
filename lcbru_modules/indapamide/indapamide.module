@@ -43,6 +43,13 @@ function indapamide_lcbru_populateStudyIds(array &$studyIds) {
 }
 
 
+function indapamide_lcbru_getStudyIdFieldName($studyId) {
+    if (!_indapamide_isInvalidIntervalId($studyId)) {
+        return 'CIVI_FIELD_INDAPAMIDE_ID';   
+    }
+}
+
+
 function indapamide_lcbru_getAutoCustomFieldValue($fieldName) {
     Guard::AssertString_NotEmpty('$fieldName', $fieldName);
 
@@ -135,5 +142,53 @@ function indapamide_label_printer_populateDefinitions(array &$definitions) {
           'labels_per_id' => 1
           ),
         ),
+    );
+}
+
+
+function indapamide_participant_importer_populateDefinitions() {
+    return array(
+        'Indapamide REDCap' => array(
+            'query' => "
+                SELECT *
+                FROM (
+                    SELECT
+                        MAX(COALESCE(es.ts, 0)) AS last_update,
+                        s.record CIVI_FIELD_INDAPAMIDE_ID,
+                        s.record,
+                        s.project_id,
+                        s.start_date,
+                        CASE s.gender
+                                WHEN 0 THEN 'Female'
+                                WHEN 1 THEN 'male'
+                             END AS gender,
+                        s.birth_date,
+                        s.UHL_S_number
+                     FROM (
+                        SELECT
+                            rd.record,
+                            rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
+                            GROUP_CONCAT(CASE WHEN field_name = 'screening_date' THEN VALUE ELSE NULL END) AS start_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date
+                        FROM    redcap_data rd
+                        WHERE rd.project_id = 50
+                        GROUP BY rd.record, rd.project_id
+                    ) s
+                    LEFT JOIN redcap_log_event es
+                        ON es.project_id = s.project_id
+                        AND es.pk = s.record
+                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                        # Ignore events caused by the data import from
+                        # the mobile app
+                        AND es.page NOT IN ('DataImportController:index')
+                    GROUP BY s.record
+                ) x
+                WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_INDAPAMIDE_ID, ''))) > 0
+                ",
+             'case_type_name' => CIVI_CASE_TYPE_INDAPAMIDE,
+             'add_pmi' => 1
+        )
     );
 }

@@ -332,6 +332,7 @@ define('CIVI_ACTIVITY_PARTICIPANT_LETTER', 'Letter to Participant');
 define('CIVI_ACTIVITY_EMAIL_PARTICIPANT', 'Email Participant');
 define('CIVI_ACTIVITY_ARCHIVING', 'Archiving');
 define('CIVI_ACTIVITY_EXPENSE_REIMBURSEMENT_SUBMITTED', 'Expense Reimbursement Submitted');
+define('CIVI_ACTIVITY_COLLECT_CONSENT', 'Collect consent');
 
 define('CIVI_FIELD_SET_ARCHIVING_ACTIVITY', 'Archiving Custom Data');
 define('CIVI_FIELD_ARCHIVING_BOX_BARCODE', 'Archiving Box Barcode');

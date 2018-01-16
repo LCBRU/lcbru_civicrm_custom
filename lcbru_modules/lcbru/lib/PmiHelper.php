@@ -52,9 +52,9 @@ class PmiHelper
         foreach ($contact_details as $p) {
             $pmi_details = $this->get_pmi_details($p[ContactHelper::UHL_SYSTEM_NUMBER_FIELD_NAME]);
             $p['NHS_number'] = getFormattedNhsNumber($pmi_details['nhs_number']);
-            $p['first_name'] = $pmi_details['first_name'];
-            $p['middle_name'] = $pmi_details['middle_name'];
-            $p['last_name'] = $pmi_details['last_name'];
+            $p['first_name'] = $this->name_case($pmi_details['first_name']);
+            $p['middle_name'] = $this->name_case($pmi_details['middle_name']);
+            $p['last_name'] = $this->name_case($pmi_details['last_name']);
             $p['is_deceased'] = $pmi_details['death_indicator'];
             $pmiAddress = $this->get_address_from_pmi($pmi_details);
 
@@ -96,6 +96,7 @@ class PmiHelper
         return $result;
     }
 
+
     function get_address_from_pmi($pmiDetails) {
         if (!is_null($pmiDetails)) {
             return addressSplit(array(
@@ -106,6 +107,12 @@ class PmiHelper
                 $pmiDetails["postcode"]
             ));
             }
+    }
+
+
+    function name_case($name){
+        Guard::AssertString('$name', $name);
+        return ucwords(strtolower($name), "-' \t\r\n\f\v" );
     }
 
 
