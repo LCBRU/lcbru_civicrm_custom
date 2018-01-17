@@ -207,10 +207,12 @@ class ContactHelper
         } else {
           $c[ContactHelper::LAST_NAME_UPPER] = '';
         }
+        $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = '';
         if (array_key_exists('birth_date', $c)) {
-          $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = DateTime::createFromFormat('Y-m-d', $c['birth_date'])->format('d M Y');
-        } else {
-          $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = '';
+          $dob = DateTime::createFromFormat('Y-m-d', $c['birth_date']);
+          if (!empty($dob)) {
+              $c[ContactHelper::DISPLAY_DATE_OF_BIRTH] = $dob->format('d M Y');
+          }
         }
 
         $result[$c['id']] = $c;
