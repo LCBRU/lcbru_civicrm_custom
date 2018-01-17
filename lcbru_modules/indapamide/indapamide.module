@@ -163,11 +163,19 @@ function indapamide_participant_importer_populateDefinitions() {
                                 WHEN 1 THEN 'male'
                              END AS gender,
                         s.birth_date,
-                        s.UHL_S_number
+                        s.UHL_S_number,
+                        CASE
+                            WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                            WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                            ELSE 'excluded'
+                        END AS case_status
+
                      FROM (
                         SELECT
                             rd.record,
                             rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                            GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn,
                             GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
                             GROUP_CONCAT(CASE WHEN field_name = 'screening_date' THEN VALUE ELSE NULL END) AS start_date,
                             GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
