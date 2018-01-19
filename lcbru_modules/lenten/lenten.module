@@ -39,6 +39,16 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
             '{MESSAGE_PLACEHOLDER}' => 'Falcon 20ml On ice'
             )
           ),
+        'Urine Samples' => array(
+          'id_generator' => new IdGenerator('LenSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 4,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'Urine'
+            )
+          ),
         'Participant Label' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
