@@ -273,7 +273,7 @@ class CaseHelper
 
         $p = is_null($params) ? array() : $params;
 
-        $parameters = array_merge($p, array('contact_id' => $contactId));
+        $parameters = array_merge($p, array('contact_id' => $contactId, 'is_deleted' => 0));
 
         $cases = CiviCrmApiHelper::getObjectsAll('case', $parameters);
 
