@@ -107,7 +107,8 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => $this->case_types,
           ),
-          'is_deleted' => array('title' => ts('Is deleted?'),
+          'is_deleted' => array(
+            'title' => ts('Case is deleted?'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => array('0' => 'No','1' => 'Yes'),
             'default' => 0,
@@ -137,10 +138,11 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
               array(
                 'title' => ts('Client Name')
               ),
-          'is_deleted' => array('title' => ts('Is deleted?'),
-                'operatorType' => CRM_Report_Form::OP_MULTISELECT,
-                'options' => array('0' => 'No','1' => 'Yes'),
-                'default' => 0,
+          'is_deleted' => array(
+            'title' => ts('Contact is deleted?'),
+            'operatorType' => CRM_Report_Form::OP_MULTISELECT,
+            'options' => array('0' => 'No','1' => 'Yes'),
+            'default' => 0,
               ),
           ),
       ),
@@ -178,7 +180,13 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
             'title' => ts('Relationship(s)'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => $this->rel_types,
-          ),
+            ),
+          'end_date' => array(
+            'title' => ts('Relationship End Date'),
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'no_display' => true,
+            'default' => date("l"),
+            ),
         ),
       ),
     );
