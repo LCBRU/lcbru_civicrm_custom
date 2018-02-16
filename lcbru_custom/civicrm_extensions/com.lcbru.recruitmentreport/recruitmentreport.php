@@ -181,12 +181,6 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => $this->rel_types,
             ),
-          'end_date' => array(
-            'title' => ts('Relationship End Date'),
-            'operatorType' => CRM_Report_Form::OP_DATE,
-            'no_display' => true,
-            'default' => date("l"),
-            ),
         ),
       ),
     );
@@ -268,7 +262,7 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
 
     if (isset($this->_params['options']['empty_gps'])) {
       $this->_from .= "
-             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id AND {$this->_aliases['civicrm_relationship']}.relationship_type_id = 33
+             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id AND {$this->_aliases['civicrm_relationship']}.relationship_type_id = 33 AND COALESCE({$this->_aliases['civicrm_relationship']}.end_date, '01-Jan-9999') > CURDATE()
       ";
 
     } else {
