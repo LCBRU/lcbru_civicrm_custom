@@ -75,8 +75,6 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
               'no_display' => TRUE,
               'required' => TRUE,
             ),
-//          'subject' => array('title' => ts('Subject'),
-//          ),
           'start_date' => array('title' => ts('Start Date'),
             'type' => CRM_Utils_Type::T_DATE,
           ),
@@ -89,7 +87,6 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
             'required' => TRUE,
           ),
           'is_deleted' => array('title' => ts('Deleted'),
-            'required' => TRUE,
           ),
         ),
         'filters' =>
@@ -113,6 +110,7 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
           'is_deleted' => array('title' => ts('Is deleted?'),
             'operatorType' => CRM_Report_Form::OP_MULTISELECT,
             'options' => array('0' => 'No','1' => 'Yes'),
+            'default' => 0,
           ),
         ),
       ),
@@ -139,6 +137,11 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
               array(
                 'title' => ts('Client Name')
               ),
+          'is_deleted' => array('title' => ts('Is deleted?'),
+                'operatorType' => CRM_Report_Form::OP_MULTISELECT,
+                'options' => array('0' => 'No','1' => 'Yes'),
+                'default' => 0,
+              ),
           ),
       ),
       'civicrm_relation' =>
@@ -150,23 +153,12 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
               array(
                 'name' => 'sort_name',
                 'title' => ts('Relation'),
-//                'required' => TRUE,
                ),
             'id' => 
               array(
                 'no_display' => TRUE,
-//                'required' => TRUE,
           ),
         ),
-/* 
-        'filters' =>
-          array(
-            'sort_name' => 
-              array(
-                'title' => ts('Client Name')
-              ),
-          ),
-          */
       ),
 
       'civicrm_relationship' =>
@@ -274,11 +266,6 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
     } else {
 
     if ($this->_relField) {
-/*    Original select JOIN requires the relationship to match the case id, but GP practice relationships are not case-specific
-      $this->_from .= "
-             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.case_id = {$case}.id
-";
- */
       $this->_from .= "
              LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id AND {$this->_aliases['civicrm_relationship']}.is_active = 1 AND {$this->_aliases['civicrm_relationship']}.case_id = civireport_case_contact.case_id
              LEFT JOIN  civicrm_contact {$this->_aliases['civicrm_relation']} ON {$this->_aliases['civicrm_relation']}.id = {$this->_aliases['civicrm_relationship']}.contact_id_b
