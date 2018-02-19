@@ -12,6 +12,9 @@
       <max_instances>1</max_instances>
     </ActivityType>
     <ActivityType>
+      <name>Issue Parking Permit</name>
+    </ActivityType> 
+    <ActivityType>
       <name>Change Case Status</name>
     </ActivityType> 
     <ActivityType>
