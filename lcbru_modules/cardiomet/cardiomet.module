@@ -233,7 +233,12 @@ function cardiomet_participant_importer_populateDefinitions() {
                         s.city,
                         s.postal_code,
                         s.phone,
-                        s.email
+                        s.email,
+                        CASE
+                            WHEN q.wthdrw_date IS NOT NULL THEN 'withdrawn'
+                            WHEN q.consent_signed = '1' THEN 'recruited'
+                            ELSE NULL
+                        END AS case_status
                      FROM (
                         SELECT
                             rd.record,
@@ -263,6 +268,23 @@ function cardiomet_participant_importer_populateDefinitions() {
                         # Ignore events caused by the data import from
                         # the mobile app
                         AND es.page NOT IN ('DataImportController:index')
+                     LEFT JOIN (
+                        SELECT
+                            rd.record,
+                            rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'consent_signed' THEN VALUE ELSE NULL END) AS consent_signed
+                        FROM    redcap_data rd
+                        WHERE rd.project_id = 67
+                        GROUP BY rd.record, rd.project_id
+                     ) q ON q.record = s.record
+                    LEFT JOIN redcap_log_event eq
+                        ON eq.project_id = q.project_id
+                        AND eq.pk = q.record
+                        AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                        # Ignore events caused by the data import from
+                        # the mobile app
+                        AND eq.page NOT IN ('DataImportController:index')
                     GROUP BY s.record
                 ) x
                 WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_CARDIOMET_ID, ''))) > 0

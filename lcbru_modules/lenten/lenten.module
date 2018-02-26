@@ -183,4 +183,3 @@ function lenten_participant_importer_populateDefinitions() {
         )
     );
 }
-

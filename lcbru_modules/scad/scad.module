@@ -328,19 +328,7 @@ function scad_participant_importer_populateDefinitions() {
                     SELECT
                         rd.record,
                         rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
-                        GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
-                        GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
-                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
-                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
+                        GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date
                     FROM    redcap_data rd
                     WHERE rd.project_id = 31
                     GROUP BY rd.record, rd.project_id
