@@ -111,6 +111,9 @@ class PmiHelper
 
 
     function name_case($name){
+        if (is_null($name)) {
+            return '';
+        }
         Guard::AssertString('$name', $name);
         return ucwords(strtolower($name));
 // Have to remove until PHP is updated

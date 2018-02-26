@@ -126,6 +126,9 @@ class LcbruTypeCreator
         if (module_exists('scad')) {
             $this->recreateCaseScad();
         }
+        if (module_exists('spiral')) {
+            $this->recreateCaseSpiral();
+        }
         if (module_exists('tmao')) {
             $this->recreateCaseTmao();
         }
@@ -1070,6 +1073,21 @@ class LcbruTypeCreator
         $cfh->setFieldInactive('CIVI_FIELD_SCAD_CONSENT_RECEIVE_RESEARCH_SUMMARY');
         $cfh->setFieldInactive('CIVI_FIELD_SCAD_CONSENT_DATE');
         
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the SPIRAL study
+     *
+     * @return void
+     */
+    private function recreateCaseSpiral() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASE_TYPE_SPIRAL);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_FIELD_SET_SPIRAL);
+        $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SPIRAL_ID', CIVI_FIELD_SPIRAL_ID);
+
         watchdog(__METHOD__, 'completed');
     }
 

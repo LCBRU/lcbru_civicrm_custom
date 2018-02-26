@@ -1,0 +1,7 @@
+name = SPIRAL Study
+description = SPIRAL Study Enrollments
+core = 7.x
+configure = admin/config/content/spiral
+dependencies[] = lcbru
+dependencies[] = label_printer
+dependencies[] = participant_importer
