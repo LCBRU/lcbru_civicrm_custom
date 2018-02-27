@@ -17,17 +17,34 @@
     <ActivityType>
       <name>Change Case Start Date</name>
     </ActivityType>
+    <ActivityType>
+      <name>Expense Reimbursement Submitted</name>
+    </ActivityType>
   </ActivityTypes>
   <ActivitySets>
     <ActivitySet>
-      <name>standard_timeline</name>
-      <label>Standard Timeline</label>
+      <name>on_enrolment</name>
+      <label>On Enrolment</label>
       <timeline>true</timeline>
       <ActivityTypes>
         <ActivityType>
           <name>Open Case</name>
           <status>Completed</status>
         </ActivityType>
+        <ActivityType>
+          <name>Telephone Participant</name>
+          <reference_activity>Open Case</reference_activity>
+          <reference_offset>7</reference_offset>
+          <reference_select>newest</reference_select>
+        </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>standard_timeline</name>
+      <label>Standard Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
         <ActivityType>
           <name>Arrange Appointment</name>
           <reference_activity>Open Case</reference_activity>
@@ -70,15 +87,16 @@
           <reference_select>newest</reference_select>
           <subject>Baseline</subject>
         </ActivityType>
+      </ActivityTypes>
+    </ActivitySet>
+
+    <ActivitySet>
+      <name>recruited_timeline</name>
+      <label>Recruited Timeline</label>
+      <timeline>true</timeline>
+      <ActivityTypes>
         <ActivityType>
           <name>Collect consent</name>
-          <reference_activity>Open Case</reference_activity>
-          <reference_offset>0</reference_offset>
-          <reference_select>newest</reference_select>
-          <subject>Baseline</subject>
-        </ActivityType>
-        <ActivityType>
-          <name>Expense Reimbursement Submitted</name>
           <reference_activity>Open Case</reference_activity>
           <reference_offset>0</reference_offset>
           <reference_select>newest</reference_select>
@@ -113,13 +131,6 @@
           <reference_select>newest</reference_select>
           <subject>2nd Visit</subject>
         </ActivityType>
-        <ActivityType>
-          <name>Expense Reimbursement Submitted</name>
-          <reference_activity>Open Case</reference_activity>
-          <reference_offset>14</reference_offset>
-          <reference_select>newest</reference_select>
-          <subject>2nd Visit</subject>
-        </ActivityType>
 
         <ActivityType>
           <name>Arrange Appointment</name>
@@ -142,13 +153,6 @@
           <reference_select>newest</reference_select>
           <subject>3rd Visit</subject>
         </ActivityType>
-        <ActivityType>
-          <name>Expense Reimbursement Submitted</name>
-          <reference_activity>Open Case</reference_activity>
-          <reference_offset>45</reference_offset>
-          <reference_select>newest</reference_select>
-          <subject>3rd Visit</subject>
-        </ActivityType>
 
         <ActivityType>
           <name>Arrange Appointment</name>
@@ -166,13 +170,6 @@
         </ActivityType>
         <ActivityType>
           <name>Issue Parking Permit</name>
-          <reference_activity>Open Case</reference_activity>
-          <reference_offset>76</reference_offset>
-          <reference_select>newest</reference_select>
-          <subject>4th Visit</subject>
-        </ActivityType>
-        <ActivityType>
-          <name>Expense Reimbursement Submitted</name>
           <reference_activity>Open Case</reference_activity>
           <reference_offset>76</reference_offset>
           <reference_select>newest</reference_select>
