@@ -85,13 +85,12 @@ function spiral_lcbru_getAutoCustomFieldValue($fieldName) {
 }
 
 function spiral_participant_importer_populateDefinitions() {
-/*
     return array(
         'Spiral REDCap' => array(
             'query' => "
                 SELECT
                     GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
-                    s.CIVI_FIELD_FAST_ID,
+                    s.record,
                     s.start_date,
                     first_name,
                     last_name,
@@ -109,14 +108,14 @@ function spiral_participant_importer_populateDefinitions() {
                          END AS gender,
                     birth_date,
                     CASE
-                        WHEN wthdrwl_date IS NOT NULL THEN 'withdrawn'
+                        WHEN wthdrw_date IS NOT NULL THEN 'withdrawn'
                         WHEN recruited = 1 THEN 'recruited'
                     END AS case_status
                 FROM    (
                     SELECT
                           rd.record,
                           rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'research_appt_date' THEN VALUE ELSE NULL END) AS start_date,
                         rd.record AS CIVI_FIELD_FAST_ID,
                         GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
                         GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
@@ -128,24 +127,24 @@ function spiral_participant_importer_populateDefinitions() {
                         GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
                         GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
                         GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 's_no' THEN VALUE ELSE NULL END) AS UHL_S_number,
                         GROUP_CONCAT(CASE WHEN field_name = 'gp_practice' THEN VALUE ELSE NULL END) AS gp_practice,
-                        GROUP_CONCAT(CASE WHEN field_name = 'patient_reruited' THEN VALUE ELSE NULL END) AS recruited
+                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                        REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date
                     FROM    redcap_data rd
-                    WHERE rd.project_id = 48
+                    WHERE rd.project_id = 68
                     GROUP BY rd.record, rd.project_id
                 ) s
                 LEFT JOIN (
                      SELECT
                             rd.record,
                             rd.project_id,
-                         GROUP_CONCAT(CASE WHEN field_name = 'study_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
-                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-                         REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
-                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrwl_date' THEN VALUE ELSE NULL END) AS wthdrwl_date
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS recruited,
+                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date
                      FROM    redcap_data rd
-                     WHERE rd.project_id = 43
+                     WHERE rd.project_id = 69
                      GROUP BY rd.record, rd.project_id
-                ) q ON q.CIVI_FIELD_FAST_ID = s.CIVI_FIELD_FAST_ID
+                ) q ON q.record = s.record
                 LEFT JOIN redcap_log_event es
                     ON es.project_id = s.project_id
                     AND es.pk = s.record
@@ -160,14 +159,13 @@ function spiral_participant_importer_populateDefinitions() {
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
-                WHERE s.recruited = 1
-                    AND LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_FAST_ID, '')))) > 0
-                GROUP BY s.CIVI_FIELD_FAST_ID
+                WHERE q.recruited = 1
+                    AND LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
+                GROUP BY s.record
             ",
              'case_type_name' => CIVI_CASE_TYPE_SPIRAL,
              'add_pmi' => 0
         )
     );
-*/
 }
 
