@@ -91,6 +91,7 @@ function spiral_participant_importer_populateDefinitions() {
                 SELECT
                     GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
                     s.record,
+                    CIVI_FIELD_SPIRAL_ID,
                     s.start_date,
                     first_name,
                     last_name,
@@ -116,7 +117,7 @@ function spiral_participant_importer_populateDefinitions() {
                           rd.record,
                           rd.project_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'research_appt_date' THEN VALUE ELSE NULL END) AS start_date,
-                        rd.record AS CIVI_FIELD_FAST_ID,
+                        rd.record AS CIVI_FIELD_SPIRAL_ID,
                         GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
                         GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
                         GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
