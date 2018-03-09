@@ -21,7 +21,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
       'labels' => array(
         'Recruited Patient Notes' => array(
           'id_generator' => new IdGenerator('LenSa'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_RECRUITED_PATIENT_NOTES,
           'id_count' => 1,
           'labels_per_id' => 1,
@@ -31,7 +31,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'EDTA Samples' => array(
           'id_generator' => new IdGenerator('LenSa'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 4,
           'labels_per_id' => 1,
@@ -41,7 +41,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Urine Samples' => array(
           'id_generator' => new IdGenerator('LenSa'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 4,
           'labels_per_id' => 1,
@@ -51,14 +51,14 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Participant Label' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
           'labels_per_id' => 8
           ),
         'Visit 1 EDTA Bag' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'printer' => LabelPrinter::PRINTER_TMF_BAG,
           'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
           'study_name' => 'LENTEN Visit 1',
           'id_count' => 1,
@@ -66,7 +66,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Visit 2 EDTA Bag' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'printer' => LabelPrinter::PRINTER_TMF_BAG,
           'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
           'study_name' => 'LENTEN Visit 2',
           'id_count' => 1,
@@ -74,7 +74,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Visit 3 EDTA Bag' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'printer' => LabelPrinter::PRINTER_TMF_BAG,
           'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
           'study_name' => 'LENTEN Visit 3',
           'id_count' => 1,
@@ -82,7 +82,7 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           ),
         'Visit 4 EDTA Bag' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'printer' => LabelPrinter::PRINTER_TMF_BAG,
           'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
           'study_name' => 'LENTEN Visit 4',
           'id_count' => 1,

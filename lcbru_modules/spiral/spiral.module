@@ -17,7 +17,7 @@ function spiral_label_printer_populateDefinitions(array &$definitions) {
       'labels' => array(
         'samples' => array(
           'id_generator' => new IdGenerator('SpPt'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
           'labels_per_id' => 5
@@ -30,7 +30,7 @@ function spiral_label_printer_populateDefinitions(array &$definitions) {
       'labels' => array(
         'samples' => array(
           'id_generator' => new IdGenerator('SpPt'),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 10,
           'labels_per_id' => 5

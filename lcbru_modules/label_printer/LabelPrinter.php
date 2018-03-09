@@ -22,6 +22,8 @@ class LabelPrinter
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
   const PRINTER_BRU_CRF_SAMPLE = '125.200.4.45';
   const PRINTER_BRU_CRF_BAG = '125.200.4.46';
+  const PRINTER_TMF_SAMPLE = '10.161.60.121';
+  const PRINTER_TMF_BAG = '10.161.60.122';
 
 /*
   const PRINTER_CVRC_LAB_SAMPLE = '10.161.54.248';
@@ -56,7 +58,9 @@ class LabelPrinter
         LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
         LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
         LabelPrinter::PRINTER_BRU_CRF_BAG,
-        LabelPrinter::PRINTER_BRU_TEST_BAG
+        LabelPrinter::PRINTER_BRU_TEST_BAG,
+        LabelPrinter::PRINTER_TMF_SAMPLE,
+        LabelPrinter::PRINTER_TMF_BAG,
       ));
 
     $this->hostnameOrIpAddress = $printername;
