@@ -58,10 +58,10 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 1,
+          'id_count' => 2,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (Serum - BROWN)'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 4.9ml (Serum - BROWN)'
             )
           ),
         'Orange Aortic Rest' => array(
@@ -71,17 +71,17 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9.8ml (EDTA - ORANGE/RED)'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Rest 9ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown CS Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 1,
+          'id_count' => 2,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (Serum - BROWN)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 4.9ml (Serum - BROWN)'
             )
           ),
         'Orange CS Rest' => array(
@@ -91,17 +91,27 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9.8ml (EDTA - ORANGE/RED)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 9ml (EDTA - ORANGE/RED)'
             )
           ),
-        'Brown Aortic Stress' => array(
+        'Purple CS Rest' => array(
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (Serum - BROWN)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Rest 2.7ml (EDTA - PURPLE)'
+            )
+          ),
+        'Brown Aortic Stress' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 2,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 4.9ml (Serum - BROWN)'
             )
           ),
         'Orange Aortic Stress' => array(
@@ -111,17 +121,17 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9.8ml (EDTA - ORANGE/RED)'
+            '{MESSAGE_PLACEHOLDER}' => 'Aortic Stress 9ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown CS Stress' => array(
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 1,
+          'id_count' => 2,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (Serum - BROWN)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 4.9ml (Serum - BROWN)'
             )
           ),
         'Orange CS Stress' => array(
@@ -131,17 +141,17 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9.8ml (EDTA - ORANGE/RED)'
+            '{MESSAGE_PLACEHOLDER}' => 'CS Stress 9ml (EDTA - ORANGE/RED)'
             )
           ),
         'Brown Visit 2' => array(
           'id_generator' => new IdGenerator('CarSa'),
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 1,
+          'id_count' => 2,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (Serum - BROWN)'
+            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 4.9ml (Serum - BROWN)'
             )
           ),
         'Orange Visit 2' => array(
@@ -151,7 +161,17 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9.8ml (EDTA - ORANGE/RED)'
+            '{MESSAGE_PLACEHOLDER}' => '2nd Visit 9ml (EDTA - ORANGE/RED)'
+            )
+          ),
+        'Purple Visit 2' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'Visit 2 2.7ml (EDTA - PURPLE)'
             )
           ),
         'Participant Label' => array(
@@ -159,12 +179,12 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
           'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
-          'labels_per_id' => 3
+          'labels_per_id' => 8
           ),
         'Visit 1 Aortic Rest Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_TMF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET,
           'study_name' => 'CARDIOMET V1 Aortic Rest',
           'id_count' => 1,
           'labels_per_id' => 1
@@ -172,7 +192,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
         'Visit 1 CS Rest Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_TMF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_WITH_PURPLE,
           'study_name' => 'CARDIOMET V1 CS Rest',
           'id_count' => 1,
           'labels_per_id' => 1
@@ -180,7 +200,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
         'Visit 1 Aortic Stress Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_TMF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET,
           'study_name' => 'CARDIOMET V1 Aortic Stress',
           'id_count' => 1,
           'labels_per_id' => 1
@@ -188,7 +208,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
         'Visit 1 CS Stress Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_TMF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET,
           'study_name' => 'CARDIOMET V1 CS Stress',
           'id_count' => 1,
           'labels_per_id' => 1
@@ -196,7 +216,7 @@ function cardiomet_label_printer_populateDefinitions(array &$definitions) {
         'Visit 2 Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_TMF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_VISIT,
+          'template' => LabelPrinter::LABEL_BAG_CARDIOMET_WITH_PURPLE,
           'study_name' => 'CARDIOMET V2',
           'id_count' => 1,
           'labels_per_id' => 1

@@ -18,6 +18,13 @@
 
 class LabelPrinter
 {
+/*
+  const PRINTER_CVRC_LAB_SAMPLE = '10.161.54.248';
+  const PRINTER_BRU_CRF_SAMPLE = '10.161.54.248';
+  const PRINTER_BRU_CRF_BAG = '10.161.54.248';
+  const PRINTER_TMF_SAMPLE = '10.161.54.248';
+  const PRINTER_TMF_BAG = '10.161.54.248';
+*/
 
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
   const PRINTER_BRU_CRF_SAMPLE = '125.200.4.45';
@@ -25,15 +32,9 @@ class LabelPrinter
   const PRINTER_TMF_SAMPLE = '10.161.60.121';
   const PRINTER_TMF_BAG = '10.161.60.122';
 
-/*
-  const PRINTER_CVRC_LAB_SAMPLE = '10.161.54.248';
-  const PRINTER_BRU_CRF_SAMPLE = '10.161.54.248';
-  const PRINTER_BRU_CRF_BAG = '10.161.54.248';
-*/
-  const PRINTER_BRU_TEST_BAG = '10.161.54.248';
-
   const LABEL_BAG_PREDICT = 'PredictBag.zpl';
-  const LABEL_BAG_CARDIOMET_VISIT = 'CardiometBagVisit1.zpl';
+  const LABEL_BAG_CARDIOMET = 'CardiometBag.zpl';
+  const LABEL_BAG_CARDIOMET_WITH_PURPLE = 'CardiometBag_WithPurple.zpl';
   const LABEL_BAG_LENTEN_EDTA = 'LentenEdtaBag.zpl';
   const LABEL_BAG_LENTEN_UHL = 'LentenUhlBag.zpl';
   const LABEL_BAG_URINE = 'UrineLabel.zpl';
@@ -58,7 +59,6 @@ class LabelPrinter
         LabelPrinter::PRINTER_CVRC_LAB_SAMPLE,
         LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
         LabelPrinter::PRINTER_BRU_CRF_BAG,
-        LabelPrinter::PRINTER_BRU_TEST_BAG,
         LabelPrinter::PRINTER_TMF_SAMPLE,
         LabelPrinter::PRINTER_TMF_BAG,
       ));
@@ -139,7 +139,9 @@ class LabelPrinter
         LabelPrinter::LABEL_BAG_CITRATE_POLISH,
         LabelPrinter::LABEL_INDAPAMIDE_BAG,
         LabelPrinter::LABEL_BAG_LENTEN_EDTA,
-        LabelPrinter::LABEL_BAG_LENTEN_UHL
+        LabelPrinter::LABEL_BAG_LENTEN_UHL,
+        LabelPrinter::LABEL_BAG_CARDIOMET,
+        LabelPrinter::LABEL_BAG_CARDIOMET,
       ));
 
 
