@@ -51,3 +51,73 @@ function briccs_archiver_permission_name() {
 function briccs_lcbru_case_type_name() {
     return 'BRICCS';
 }
+
+function briccs_participant_importer_populateDefinitions() {
+    return array(
+        'BRICCS REDCap' => array(
+            'query' => "
+                SELECT
+                    MAX(COALESCE(es.ts, 0)) AS last_update,
+                    s.record,
+                    BRICCS_ID,
+                    s.start_date,
+                    first_name,
+                    last_name,
+                    supplemental_address_1,
+                    street_address,
+                    supplemental_address_2,
+                    city,
+                    state_province,
+                    postal_code,
+                    email,
+                    NHS_number,
+                    CASE gender
+                            WHEN 0 THEN 'Female'
+                            WHEN 1 THEN 'male'
+                         END AS gender,
+                    birth_date,
+                    CASE
+                        WHEN study_status_comp_yn = '0' AND non_complete_rsn = '5' THEN 'withdrawn'
+                        ELSE 'recruited'
+                    END AS case_status
+                FROM    (
+                    SELECT
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+                        rd.record AS BRICCS_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 'title' THEN VALUE ELSE NULL END) AS title,
+                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line2' THEN VALUE ELSE NULL END) AS street_address,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_city' THEN VALUE ELSE NULL END) AS city,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_county' THEN VALUE ELSE NULL END) AS state_province,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_postcode' THEN VALUE ELSE NULL END) AS postal_code,
+                        GROUP_CONCAT(CASE WHEN field_name = 'pat_email1' THEN VALUE ELSE NULL END) AS email,
+                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_number' THEN VALUE ELSE NULL END) AS NHS_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                        REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                        GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 24
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND es.page NOT IN ('DataImportController:index')
+                WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
+                GROUP BY s.record
+                ",
+             'case_type_name' => CIVI_CASE_TYPE_BRICCS,
+             'add_pmi' => 0
+        )
+    );
+}
