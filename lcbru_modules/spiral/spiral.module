@@ -68,7 +68,7 @@ function spiral_lcbru_populateStudyIds(array &$studyIds) {
 }
 
 function spiral_lcbru_getStudyIdFieldName($studyId) {
-    if (!fast_isInvalidSpiralId($studyId)) {
+    if (!spiral_isInvalidSpiralId($studyId)) {
         return 'CIVI_FIELD_SPIRAL_ID';   
     }
 }
