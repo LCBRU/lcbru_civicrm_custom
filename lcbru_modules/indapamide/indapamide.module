@@ -109,34 +109,101 @@ function indapamide_label_printer_populateDefinitions(array &$definitions) {
           'labels_per_id' => 4
           ),
 
-        'Visit 1 Bag' => array(
+        'Visit 1 Serum Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_SERUM_BAG,
           'study_name' => 'Ind Baseline',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
-        'Visit 2 Bag' => array(
+        'Visit 1 EDTA Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_EDTA_BAG,
+          'study_name' => 'Ind Baseline',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 1 URINE Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_URINE_BAG,
+          'study_name' => 'Ind Baseline',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+
+        'Visit 2 Serum Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_SERUM_BAG,
           'study_name' => 'Ind 2 Weeks',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
-        'Visit 3 Bag' => array(
+        'Visit 2 EDTA Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_EDTA_BAG,
+          'study_name' => 'Ind 2 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 2 URINE Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_URINE_BAG,
+          'study_name' => 'Ind 2 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+
+        'Visit 3 Serum Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_SERUM_BAG,
           'study_name' => 'Ind 6 Weeks',
           'id_count' => 1,
           'labels_per_id' => 1
           ),
-        'Visit 4 Bag' => array(
+        'Visit 3 EDTA Bag' => array(
           'participant_id' => 'study_id',
           'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_INDAPAMIDE_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_EDTA_BAG,
+          'study_name' => 'Ind 6 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 3 URINE Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_URINE_BAG,
+          'study_name' => 'Ind 6 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+
+        'Visit 4 Serum Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_SERUM_BAG,
+          'study_name' => 'Ind 10 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 4 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_EDTA_BAG,
+          'study_name' => 'Ind 10 Weeks',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+        'Visit 4 URINE Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_INDAPAMIDE_URINE_BAG,
           'study_name' => 'Ind 10 Weeks',
           'id_count' => 1,
           'labels_per_id' => 1

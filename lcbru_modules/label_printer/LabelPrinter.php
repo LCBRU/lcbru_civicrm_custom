@@ -48,7 +48,9 @@ class LabelPrinter
   const LABEL_BAG_PE = 'PeBagLabels.zpl';
   const LABEL_PARTICIPANT_BAG = 'participant_bag.zpl';
   const LABEL_SERUN_AND_EDTA_BAG = 'SerumAndEdtaBag.zpl';
-  const LABEL_INDAPAMIDE_BAG = 'IndapamideSampleBag.zpl';
+  const LABEL_INDAPAMIDE_SERUM_BAG = 'IndapamideSampleBag_Serum.zpl';
+  const LABEL_INDAPAMIDE_EDTA_BAG = 'IndapamideSampleBag_EDTA.zpl';
+  const LABEL_INDAPAMIDE_URINE_BAG = 'IndapamideSampleBag_Urine.zpl';
   const LABEL_RECRUITED_PATIENT_NOTES = 'RecruitedLabelForPatientNotes.zpl';
 
   const PRINTER_PORT = '9100';
