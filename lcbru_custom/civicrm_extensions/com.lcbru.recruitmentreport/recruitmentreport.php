@@ -252,9 +252,11 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
     $contact = $this->_aliases['civicrm_contact'];
  
     $this->_from = "
-             FROM civicrm_case $case
- LEFT JOIN civicrm_case_contact civireport_case_contact on civireport_case_contact.case_id = {$case}.id
- LEFT JOIN civicrm_contact $contact ON {$contact}.id = civireport_case_contact.contact_id
+        FROM civicrm_case $case
+        LEFT JOIN civicrm_case_contact civireport_case_contact
+            ON civireport_case_contact.case_id = {$case}.id
+        LEFT JOIN civicrm_contact $contact
+            ON {$contact}.id = civireport_case_contact.contact_id
  ";
 
 
@@ -262,15 +264,26 @@ class com_lcbru_recruitmentreport extends CRM_Report_Form {
 
     if (isset($this->_params['options']['empty_gps'])) {
       $this->_from .= "
-             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id AND {$this->_aliases['civicrm_relationship']}.relationship_type_id = 33 AND COALESCE({$this->_aliases['civicrm_relationship']}.end_date, '01-Jan-9999') > CURDATE()
+             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']}
+                ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id
+                AND {$this->_aliases['civicrm_relationship']}.relationship_type_id = 33
+                AND COALESCE({$this->_aliases['civicrm_relationship']}.end_date, '01-Jan-9999') > CURDATE()
       ";
 
     } else {
 
     if ($this->_relField) {
       $this->_from .= "
-             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']} ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id AND {$this->_aliases['civicrm_relationship']}.is_active = 1 AND {$this->_aliases['civicrm_relationship']}.case_id = civireport_case_contact.case_id AND ({$this->_aliases['civicrm_relationship']}.end_date IS NULL OR {$this->_aliases['civicrm_relationship']}.end_date > CURDATE())
-             LEFT JOIN  civicrm_contact {$this->_aliases['civicrm_relation']} ON {$this->_aliases['civicrm_relation']}.id = {$this->_aliases['civicrm_relationship']}.contact_id_b
+             LEFT JOIN  civicrm_relationship {$this->_aliases['civicrm_relationship']}
+                ON {$this->_aliases['civicrm_relationship']}.contact_id_a = {$contact}.id
+                AND {$this->_aliases['civicrm_relationship']}.is_active = 1
+                AND {$this->_aliases['civicrm_relationship']}.case_id = civireport_case_contact.case_id
+                AND (
+                        {$this->_aliases['civicrm_relationship']}.end_date IS NULL
+                    OR {$this->_aliases['civicrm_relationship']}.end_date > CURDATE()
+                )
+             LEFT JOIN  civicrm_contact {$this->_aliases['civicrm_relation']}
+                ON {$this->_aliases['civicrm_relation']}.id = {$this->_aliases['civicrm_relationship']}.contact_id_b
 ";
 
       }
