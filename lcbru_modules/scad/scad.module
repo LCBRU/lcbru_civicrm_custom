@@ -256,12 +256,11 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
         'Angiogram' => 'xScAng',
         )
       );
-    $definitions['SCAD MRA & CTA'] = array(
+    $definitions['SCAD Nalin Codes'] = array(
       'blinding_permission' => SCAD_PREMISSION_BLIND,
       'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
       'blind_id_types' => array (
-        'MRA' => 'xScMRA',
-        'CTA' => 'xScCTA',
+        'Anonymised' => 'xScN'
         )
       );
 }
@@ -291,8 +290,9 @@ function scad_participant_importer_populateDefinitions() {
                           END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
                     birth_date,
                     CASE
-                        WHEN withdrawn_y_n = 1 THEN 'withdrawn'
-                        ELSE 'recruited'
+                         WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
                     END AS case_status,
                     first_name,
                     last_name,
@@ -319,7 +319,7 @@ function scad_participant_importer_populateDefinitions() {
                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
                         GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
                         GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-                        GROUP_CONCAT(CASE WHEN field_name = 'withdrawn_y_n' THEN VALUE ELSE NULL END) AS withdrawn_y_n
+                        GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
                     FROM    redcap_data rd
                     WHERE rd.project_id = 28
                     GROUP BY rd.record, rd.project_id
