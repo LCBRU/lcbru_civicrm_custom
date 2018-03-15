@@ -108,10 +108,11 @@ function spiral_participant_importer_populateDefinitions() {
                             WHEN 1 THEN 'male'
                          END AS gender,
                     birth_date,
-                    CASE
-                        WHEN wthdrw_date IS NOT NULL THEN 'withdrawn'
-                        WHEN recruited = 1 THEN 'recruited'
-                    END AS case_status
+                     CASE
+                         WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
+                     END AS case_status
                 FROM    (
                     SELECT
                           rd.record,
@@ -140,8 +141,8 @@ function spiral_participant_importer_populateDefinitions() {
                      SELECT
                             rd.record,
                             rd.project_id,
-                         GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS recruited,
-                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
                      FROM    redcap_data rd
                      WHERE rd.project_id = 69
                      GROUP BY rd.record, rd.project_id
@@ -160,8 +161,7 @@ function spiral_participant_importer_populateDefinitions() {
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
-                WHERE q.recruited = 1
-                    AND LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
+                WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
                 GROUP BY s.record
             ",
              'case_type_name' => CIVI_CASE_TYPE_SPIRAL,

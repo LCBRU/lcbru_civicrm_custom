@@ -164,11 +164,11 @@ function indapamide_participant_importer_populateDefinitions() {
                              END AS gender,
                         s.birth_date,
                         s.UHL_S_number,
-                        CASE
-                            WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
-                            WHEN non_complete_rsn = '5' THEN 'withdrawn'
-                            ELSE 'excluded'
-                        END AS case_status
+                     CASE
+                         WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
+                     END AS case_status
 
                      FROM (
                         SELECT

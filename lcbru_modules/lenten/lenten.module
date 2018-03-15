@@ -145,11 +145,11 @@ function lenten_participant_importer_populateDefinitions() {
                                 WHEN 1 THEN 'male'
                              END AS gender,
                         s.birth_date,
-                        CASE
-                            WHEN s.wthdrawal_date IS NOT NULL THEN 'withdrawn'
-                            WHEN s.consent_signed = '1' THEN 'recruited'
-                            ELSE NULL
-                        END AS case_status,
+                         CASE
+                             WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                             WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                             ELSE 'excluded'
+                         END AS case_status,
                         s.UHL_S_number
                      FROM (
                         SELECT
@@ -159,8 +159,8 @@ function lenten_participant_importer_populateDefinitions() {
                             GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
                             GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
                             GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-                            GROUP_CONCAT(CASE WHEN field_name = 'consent_signed' THEN VALUE ELSE NULL END) AS consent_signed,
-                            GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrawal_date
+                            GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                            GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
                         FROM    redcap_data rd
                         WHERE rd.project_id = 56
                         GROUP BY rd.record, rd.project_id

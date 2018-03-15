@@ -108,10 +108,11 @@ function fast_participant_importer_populateDefinitions() {
                             WHEN 1 THEN 'male'
                          END AS gender,
                     birth_date,
-                    CASE
-                        WHEN wthdrwl_date IS NOT NULL THEN 'withdrawn'
-                        WHEN recruited = 1 THEN 'recruited'
-                    END AS case_status
+                     CASE
+                         WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
+                     END AS case_status
                 FROM    (
                     SELECT
                           rd.record,
@@ -141,7 +142,8 @@ function fast_participant_importer_populateDefinitions() {
                          GROUP_CONCAT(CASE WHEN field_name = 'study_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
                          GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
                          REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
-                         GROUP_CONCAT(CASE WHEN field_name = 'wthdrwl_date' THEN VALUE ELSE NULL END) AS wthdrwl_date
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
                      FROM    redcap_data rd
                      WHERE rd.project_id = 43
                      GROUP BY rd.record, rd.project_id
