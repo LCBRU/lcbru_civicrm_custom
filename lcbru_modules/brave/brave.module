@@ -2,6 +2,7 @@
 
 const BRAVE_PREMISSION_PRINT_LABELS = 'print brave labels';
 
+
 function brave_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
 
     $contactFormBeginning = 'CRM_Case_Form_';
@@ -28,12 +29,14 @@ function brave_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$err
     return;
 }
 
+
 function brave_isInvalidBraveId($value) {
   $idGenerator = new IdGenerator('BavPt');
 
   return !$idGenerator->validate($value);
 
 }
+
 
 function brave_isInvalidBraveFamilyId($value) {
   $idGenerator = new IdGenerator('BavFm');
@@ -42,10 +45,12 @@ function brave_isInvalidBraveFamilyId($value) {
 
 }
 
+
 function brave_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_BRAVE_ID';
     $studyIds[] = 'CIVI_FIELD_BRAVE_FAMILY_ID';   
 }
+
 
 function brave_label_printer_populateDefinitions(array &$definitions) {
   $definitions['BRAVE Pack'] = array(
@@ -145,7 +150,7 @@ function brave_label_printer_populateDefinitions(array &$definitions) {
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
-          'labels_per_id' => 4
+          'labels_per_id' => 1
           ),
         'edta bag' => array(
           'participant_id' => 'study_id',
@@ -158,6 +163,7 @@ function brave_label_printer_populateDefinitions(array &$definitions) {
         ),
     );
 }
+
 
 function brave_lcbru_getAutoCustomFieldValue($fieldName) {
     Guard::AssertString_NotEmpty('$fieldName', $fieldName);
@@ -174,9 +180,7 @@ function brave_lcbru_getAutoCustomFieldValue($fieldName) {
     }
 }
 
-/**
- * Implements hook_permission()
- */
+
 function brave_permission() {
   return array(
     BRAVE_PREMISSION_PRINT_LABELS => array(
@@ -186,6 +190,7 @@ function brave_permission() {
   );
 }
 
+
 function brave_lcbru_getStudyIdFieldName($studyId) {
     if (!brave_isInvalidBraveId($studyId)) {
         return 'CIVI_FIELD_BRAVE_ID';
@@ -193,3 +198,92 @@ function brave_lcbru_getStudyIdFieldName($studyId) {
         return 'CIVI_FIELD_BRAVE_FAMILY_ID';   
     }
 }
+
+
+/*
+ * Waiting for Sue to transfer recruitment status to REDCap
+ *
+ *
+function brave_participant_importer_populateDefinitions() {
+    return array(
+        'Brave REDCap' => array(
+            'query' => "
+                SELECT
+                            MAX(COALESCE(es.ts, 0)) AS last_update,
+                            s.record,
+                            CIVI_FIELD_BRAVE_ID,
+                            s.start_date,
+                            CIVI_FIELD_BRAVE_BRICCS_ID,
+                            CIVI_FIELD_BRAVE_FAMILY_ID,
+                            UHL_S_number,
+                            NHS_number,
+                            title,
+                            first_name,
+                            last_name,
+                            birth_date,
+                            CASE gender
+                                   WHEN 0 THEN 'Female'
+                                   WHEN 1 THEN 'male'
+                                END AS gender,
+                            
+                            supplemental_address_1,
+                            street_address,
+                            supplemental_address_2,
+                            city,
+                            state_province,
+                            postal_code,
+                            
+                            email,
+MAYBE                       CASE
+MAYBE                           WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
+MAYBE                           WHEN non_complete_rsn = '5' THEN 'withdrawn'
+MAYBE                           ELSE 'excluded'
+MAYBE                       END AS case_status
+                FROM    (
+                    SELECT
+                                rd.record,
+                                rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+                        rd.record AS CIVI_FIELD_BRAVE_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 'briccs_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_BRICCS_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 'bav_family_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_FAMILY_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_number' THEN VALUE ELSE NULL END) AS NHS_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'title' THEN VALUE ELSE NULL END) AS title,
+                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                        
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line2' THEN VALUE ELSE NULL END) AS street_address,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_line3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_city' THEN VALUE ELSE NULL END) AS city,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_county' THEN VALUE ELSE NULL END) AS state_province,
+                        GROUP_CONCAT(CASE WHEN field_name = 'address_postcode' THEN VALUE ELSE NULL END) AS postal_code,
+
+                        REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                        
+                        GROUP_CONCAT(CASE WHEN field_name = 'pat_email1' THEN VALUE ELSE NULL END) AS email,
+
+MAYBE                   GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+MAYBE                   GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 26
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND es.page NOT IN ('DataImportController:index')
+                WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
+                GROUP BY s.record
+            ",
+             'case_type_name' => CIVI_CASE_TYPE_BRAVE,
+             'add_pmi' => 0
+        )
+    );
+}
+*/
