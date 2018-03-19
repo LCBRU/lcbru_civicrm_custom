@@ -123,6 +123,9 @@ class LcbruTypeCreator
         if (module_exists('predict')) {
             $this->recreateCasePredict();
         }
+        if (module_exists('preeclampsia')) {
+            $this->recreateCasePreeclampsia();
+        }
         if (module_exists('scad')) {
             $this->recreateCaseScad();
         }
@@ -1008,6 +1011,21 @@ class LcbruTypeCreator
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_PREDICT);
         $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_PREDICT);
         $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_PREDICT_ID', CIVI_FIELD_PREDICT_ID);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the PRE-ECLAMPSIA module
+     *
+     * @return void
+     */
+    private function recreateCasePreeclampsia() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_PRE_ECLAMPSIA);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_PRE_ECLAMPSIA);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_PRE_ECLAMPSIA_ID', CIVI_FIELD_PRE_ECLAMPSIA_ID);
 
         watchdog(__METHOD__, 'completed');
     }

@@ -4,6 +4,7 @@ const PREECLAMPSIA_PREMISSION_BLIND = 'blind pre-eclampsia';
 const PREECLAMPSIA_PREMISSION_UNBLIND = 'Unblind pre-eclampsia';
 const PREECLAMPSIA_PREMISSION_PRINT_LABELS = 'Pre-eclampsia print labels';
 
+
 function preeclampsia_blind_unblind_populateDefinitions(array &$definitions) {
     $definitions['Pre-Eclampsia'] = array(
     	'blinding_permission' => PREECLAMPSIA_PREMISSION_BLIND,
@@ -14,9 +15,7 @@ function preeclampsia_blind_unblind_populateDefinitions(array &$definitions) {
     	);
 }
 
-/**
- * Register study specific permissions
- */
+
 function preeclampsia_permission() {
   return array(
     PREECLAMPSIA_PREMISSION_BLIND => array (
@@ -33,6 +32,7 @@ function preeclampsia_permission() {
     ),
   );
 }
+
 
 function preeclampsia_label_printer_populateDefinitions(array &$definitions) {
   $definitions['Pre-Eclampsia Pack'] = array(
@@ -56,5 +56,91 @@ function preeclampsia_label_printer_populateDefinitions(array &$definitions) {
           )
         ),
 
+    );
+}
+
+
+function preeclampsia_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_PRE_ECLAMPSIA_ID') . '_')) {
+                if (_preeclampsia_isInvalidPreeclampsiaId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_PRE_ECLAMPSIA_ID . " is not valid.  Should be 'PePtnnnnnnnnX' where nnnnnnnn is an 8 digit number and X is a check character");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function _preeclampsia_isInvalidPreeclampsiaId($value) {
+  $idGenerator = new IdGenerator('PePt');
+  return !$idGenerator->validate($value);
+}
+
+
+function preeclampsia_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_PRE_ECLAMPSIA_ID';
+}
+
+
+function preeclampsia_lcbru_getStudyIdFieldName($studyId) {
+    if (!_preeclampsia_isInvalidPreeclampsiaId($studyId)) {
+        return 'CIVI_FIELD_PRE_ECLAMPSIA_ID';   
+    }
+}
+
+
+function preeclampsia_participant_importer_populateDefinitions() {
+    return array(
+        'Pre-eclampsia REDCap' => array(
+            'query' => "
+                SELECT *
+                FROM (
+                    SELECT
+                        MAX(COALESCE(es.ts, 0)) AS last_update,
+                        s.record CIVI_FIELD_PRE_ECLAMPSIA_ID,
+                        s.record,
+                        s.project_id,
+                        s.start_date,
+                        'Female' AS gender,
+                        s.UHL_S_number,
+                     CASE
+                         WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
+                     END AS case_status
+                        
+                     FROM (
+                        SELECT
+                            rd.record,
+                            rd.project_id,
+                            GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+                            GROUP_CONCAT(CASE WHEN field_name = 'visit_date' THEN VALUE ELSE NULL END) AS start_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                            GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                            GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                        FROM    redcap_data rd
+                        WHERE rd.project_id = 39
+                        GROUP BY rd.record, rd.project_id
+                    ) s
+                    LEFT JOIN redcap_log_event es
+                        ON es.project_id = s.project_id
+                        AND es.pk = s.record
+                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                        # Ignore events caused by the data import from
+                        # the mobile app
+                        AND es.page NOT IN ('DataImportController:index')
+                    GROUP BY s.record
+                ) x
+                WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PRE_ECLAMPSIA_ID, ''))) > 0
+                ",
+             'case_type_name' => CIVI_CASETYPE_PRE_ECLAMPSIA,
+             'add_pmi' => 1
+        )
     );
 }
