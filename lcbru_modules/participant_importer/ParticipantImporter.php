@@ -120,6 +120,11 @@ class ParticipantImporter
                 $result[] = "Contact does not exist for: " . print_r($details, true);
             }
         } catch (Exception  $e) {
+            MailHelper::send(
+                'richard.a.bramley@uhl-tr.nhs.uk',
+                'Patient Import Error',
+                print_r($details, True)
+            );
             $result[] = $e->getMessage();
         }
 
