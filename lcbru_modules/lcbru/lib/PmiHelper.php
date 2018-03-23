@@ -58,7 +58,14 @@ class PmiHelper
             $p['is_deceased'] = $pmi_details['death_indicator'];
             $pmiAddress = $this->get_address_from_pmi($pmi_details);
 
-            $result[] = array_merge($p, $pmiAddress);
+            // Array merge does a big poo on your data if
+            // one of the arrays is null.
+            $php_hell = $p;
+
+            if (!empty($pmiAddress)) {
+                $php_hell = array_merge($p, $pmiAddress);
+            }
+            $result[] = $php_hell;
         }
 
         return $result;

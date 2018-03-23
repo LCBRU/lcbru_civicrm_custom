@@ -120,11 +120,6 @@ class ParticipantImporter
                 $result[] = "Contact does not exist for: " . print_r($details, true);
             }
         } catch (Exception  $e) {
-            MailHelper::send(
-                'richard.a.bramley@uhl-tr.nhs.uk',
-                'Patient Import Error',
-                print_r($details, True)
-            );
             $result[] = $e->getMessage();
         }
 
@@ -244,7 +239,6 @@ class ParticipantImporter
         Guard::AssertInteger('$contactId', $contactId);
         Guard::AssertArray('$subjectData', $subjectData);
 
-/*
         if ($contactId == 48913) {
             MailHelper::send(
                 'richard.a.bramley@uhl-tr.nhs.uk',
@@ -252,7 +246,6 @@ class ParticipantImporter
                 print_r($subjectData, True)
             );
         }
-*/
 
         $existingCase = $this->caseHelper->getContactSingleCaseOfTypeFromPotentialStudyIds($contactId, $this->caseTypeId, $subjectData, $this->ignoredCaseStatuses);
         $defaults = array();
