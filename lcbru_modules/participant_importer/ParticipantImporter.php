@@ -239,15 +239,14 @@ class ParticipantImporter
         Guard::AssertInteger('$contactId', $contactId);
         Guard::AssertArray('$subjectData', $subjectData);
 
-/*
         if ($contactId == 48913) {
             MailHelper::send(
                 'richard.a.bramley@uhl-tr.nhs.uk',
                 'FAST Duplicate',
                 print_r($subjectData, True)
-            )
+            );
         }
-*/
+
         $existingCase = $this->caseHelper->getContactSingleCaseOfTypeFromPotentialStudyIds($contactId, $this->caseTypeId, $subjectData, $this->ignoredCaseStatuses);
         $defaults = array();
 
