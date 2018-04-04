@@ -239,6 +239,8 @@ class ParticipantImporter
         Guard::AssertInteger('$contactId', $contactId);
         Guard::AssertArray('$subjectData', $subjectData);
 
+        watchdog('FAST Duplicate', print_r($subjectData, True));
+        
         if ($contactId == 48913) {
             MailHelper::send(
                 'richard.a.bramley@uhl-tr.nhs.uk',
