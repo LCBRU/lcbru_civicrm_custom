@@ -24,6 +24,7 @@ class LabelPrinter
   const PRINTER_BRU_CRF_BAG = '10.161.54.248';
   const PRINTER_TMF_SAMPLE = '10.161.54.248';
   const PRINTER_TMF_BAG = '10.161.54.248';
+  const PRINTER_ADDRESS = '10.161.54.248';
 */
 
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
@@ -31,6 +32,7 @@ class LabelPrinter
   const PRINTER_BRU_CRF_BAG = '125.200.4.46';
   const PRINTER_TMF_SAMPLE = '10.161.60.121';
   const PRINTER_TMF_BAG = '10.161.60.122';
+  const PRINTER_ADDRESS = '10.161.54.248';
 
   const LABEL_BAG_PREDICT = 'PredictBag.zpl';
   const LABEL_BAG_CARDIOMET = 'CardiometBag.zpl';
@@ -63,6 +65,7 @@ class LabelPrinter
         LabelPrinter::PRINTER_BRU_CRF_BAG,
         LabelPrinter::PRINTER_TMF_SAMPLE,
         LabelPrinter::PRINTER_TMF_BAG,
+        LabelPrinter::PRINTER_ADDRESS,
       ));
 
     $this->hostnameOrIpAddress = $printername;

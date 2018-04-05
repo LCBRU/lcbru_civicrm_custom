@@ -47,6 +47,24 @@ class CRM_Contact_Form_Task_PrintLabels extends CRM_Contact_Form_Task {
         $contacts = $ch->getSubjectsFromContactIds($sensibleContactIdsArray);
 
         foreach ($contacts as $contact) {
+            $address = AddressHelper::extract_combined_address($contact, True);
+
+            $address = array_combine(
+                array(
+                    'ADDRESS_1',
+                    'ADDRESS_2',
+                    'ADDRESS_3',
+                    'ADDRESS_4',
+                    'ADDRESS_5',
+                    'ADDRESS_6',
+                )
+                ,array_pad($address, 6, '')
+            );
+
+            if (!empty($address)) {
+                $contact = array_merge($contact, $address);
+            }
+
             $fields = array_map(function ($x) use ($contact) { return $contact[$x]; }, $label['place_holders']);
 
             $content = str_replace(array_keys($fields), array_values($fields), $label['template']);
@@ -108,6 +126,31 @@ class CRM_Contact_Form_Task_PrintLabels extends CRM_Contact_Form_Task {
 ^FO40,120^AU^FD{LAST_NAME}^FS
 ^FO40,190^AS^FDNHS Number: {NHS}^FS
 ^PW600
+^PQ{LABEL_QUANTITY},0,1,Y^XZ
+',
+            ),
+            'Address' => array(
+                'name' => 'Address',
+                'printer' => LabelPrinter::PRINTER_ADDRESS,
+                'place_holders' => array(
+                    '{FIRST_NAME}' => 'first_name',
+                    '{LAST_NAME}' => ContactHelper::LAST_NAME_UPPER,
+                    '{ADDRESS_1}' => 'ADDRESS_1',
+                    '{ADDRESS_2}' => 'ADDRESS_2',
+                    '{ADDRESS_3}' => 'ADDRESS_3',
+                    '{ADDRESS_4}' => 'ADDRESS_4',
+                    '{ADDRESS_5}' => 'ADDRESS_5',
+                    '{ADDRESS_6}' => 'ADDRESS_6',
+                ),
+                'template' => '
+^XA
+^FO250,60^AU^FD{FIRST_NAME} {LAST_NAME}^FS
+^FO250,120^AU^FD{ADDRESS_1}^FS
+^FO250,180^AU^FD{ADDRESS_2}^FS
+^FO250,240^AU^FD{ADDRESS_3}^FS
+^FO250,300^AU^FD{ADDRESS_4}^FS
+^FO250,360^AU^FD{ADDRESS_5}^FS
+^FO250,420^AU^FD{ADDRESS_6}^FS
 ^PQ{LABEL_QUANTITY},0,1,Y^XZ
 ',
             ),

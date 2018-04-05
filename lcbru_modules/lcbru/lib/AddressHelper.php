@@ -25,15 +25,7 @@ class AddressHelper
 
     public static function getDapsAddress(array $contact_address) {
 
-        $address = array_values(array_filter(ArrayHelper::selectColumns(
-                $contact_address, 
-                array(
-                        'supplemental_address_1',
-                        'street_address',
-                        'supplemental_address_2',
-                        'city',
-                        'state_province_name'
-                    ))));
+        $address = AddressHelper::extract_combined_address($contact_address);
 
         if (!AddressHelper::valid_address_format($address, AddressHelper::DAPS_ADDRESS_MAX_ELEMENTS, AddressHelper::DAPS_ADDRESS_MAX_ELEMENT_SIZE)) {
             $address = AddressHelper::repack_address($address, AddressHelper::DAPS_ADDRESS_MAX_ELEMENTS, AddressHelper::DAPS_ADDRESS_MAX_ELEMENT_SIZE);
@@ -128,5 +120,25 @@ class AddressHelper
 
         return CiviCrmApiHelper::createObject('Address', $params);
 
+    }
+
+    public static function extract_combined_address(array $contact_address, $include_postcode = False) {
+
+        $required_fields = array(
+                        'supplemental_address_1',
+                        'street_address',
+                        'supplemental_address_2',
+                        'city',
+                        'state_province_name',
+                    );
+
+        if ($include_postcode) {
+            $required_fields[] = 'postal_code';
+        }
+
+        return array_values(array_filter(ArrayHelper::selectColumns(
+                $contact_address,
+                $required_fields
+            )));
     }
 }
