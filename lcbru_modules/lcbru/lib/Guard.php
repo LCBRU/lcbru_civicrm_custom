@@ -20,6 +20,22 @@
 
 class Guard
 {
+    public static function AssertTrue($name, $value) {
+        Guard::AssertString_NotEmpty('$name', $name);
+
+        if (!$value) {
+            throw new InvalidArgumentException("$name is not true " . Guard::getStackTrace());
+        }
+    }
+
+    public static function AssertFalse($name, $value) {
+        Guard::AssertString_NotEmpty('$name', $name);
+
+        if ($value) {
+            throw new InvalidArgumentException("$name is not false " . Guard::getStackTrace());
+        }
+    }
+
     public static function AssertString_NotEmpty($name, $value) {
         if (!is_string($name)) {
             throw new InvalidArgumentException("name is not a string " . Guard::getStackTrace());

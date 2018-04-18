@@ -28,11 +28,19 @@ class ParticipantImporter
      *
      * @throws Exception if $caseTypeId is empty.
      */
-     public function __construct($caseTypeId, $createNewParticipants, $createNewCases, $ignoredCaseStatuses=array()) {
+     public function __construct(
+        $caseTypeId,
+        $createNewParticipants,
+        $createNewCases,
+        $ignoredCaseStatuses=array(),
+        $ignoreIfParticipantMissing=False
+    ) {
         #Guard::AssertInteger('$caseTypeId', $caseTypeId);
         Guard::AssertBoolean('$createNewParticipants', $createNewParticipants);
         Guard::AssertBoolean('$createNewCases', $createNewCases);
         Guard::AssertArrayOfIntegers('$ignoredCaseStatuses', $ignoredCaseStatuses);
+        Guard::AssertBoolean('$ignoreIfParticipantMissing', $ignoreIfParticipantMissing);
+        Guard::AssertFalse('$ignoreIfParticipantMissing && $createNewParticipants', $ignoreIfParticipantMissing && $createNewParticipants);
 
         $this->caseHelper = new CaseHelper();
         $this->customFieldHelper = new CustomFieldHelper();
@@ -55,6 +63,7 @@ class ParticipantImporter
         $this->createNewParticipants = $createNewParticipants;
         $this->createNewCases = $createNewCases;
         $this->ignoredCaseStatuses = $ignoredCaseStatuses;
+        $this->ignoreIfParticipantMissing = $ignoreIfParticipantMissing;
 
     }
 
@@ -116,8 +125,12 @@ class ParticipantImporter
         try {
             $existingContact = $this->contactHelper->getSubjectFromIds($uhlSystemNumber, $nhsNumber, $this->caseHelper->extractParticipantStudyIds($details));
 
-            if (is_null($existingContact) && !$this->createNewParticipants) {
-                $result[] = "Contact does not exist for: " . print_r($details, true);
+            if (is_null($existingContact)) {
+                if ($this->ignoreIfParticipantMissing) {
+                    watchdog('Contact does not exist, but ignoring: ', print_r($details, True));    
+                } else if (!$this->createNewParticipants) {
+                    $result[] = "Contact does not exist for: " . print_r($details, true);
+                }
             }
         } catch (Exception  $e) {
             $result[] = $e->getMessage();
@@ -191,6 +204,11 @@ class ParticipantImporter
      */
     public function importSingle(array $details) {
       $contactId = $this->createSubject($details);
+
+      if (empty($contactId) && $this->ignoreIfParticipantMissing) {
+        return;
+      }
+
       $caseId = $this->createCase($contactId, $details);
       $this->createCaseCustomValues($caseId, $details);
 
@@ -364,6 +382,10 @@ class ParticipantImporter
         }
 
         $existingContact = $this->contactHelper->getSubjectFromIds($uhlSystemNumber, $nhsNumber, $this->caseHelper->extractParticipantStudyIds($subjectData));
+
+        if (empty($existingContact) && $this->ignoreIfParticipantMissing) {
+            return NULL;
+        }
 
         if (!empty($existingContact)) {
             $request['id'] = $existingContact['contact_id'];

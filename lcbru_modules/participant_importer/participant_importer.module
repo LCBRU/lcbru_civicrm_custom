@@ -11,6 +11,7 @@ const PARTICIPANT_IMPORTER_FORM_ERRORS_ONLY = 'errors_only';
 const PARTICIPANT_IMPORTER_FORM_CREATE_NEW_PARTICIPANTS = 'create_new_participants';
 const PARTICIPANT_IMPORTER_FORM_CREATE_NEW_CASES = 'create_new_cases';
 const PARTICIPANT_IMPORTER_FORM_IGNORE_CASE_STATUSES = 'ignore_case_statuses';
+const PARTICIPANT_IMPORTER_FORM_IGNORE_MISSING_PARTICIPANTS = 'ignore_missing_participants';
 const PARTICIPANT_IMPORTER_FORM_HELP = 'help_text';
 const PARTICIPANT_IMPORTER_IMPORT_CRON_JOB = 'Participant Importer Import';
 
@@ -103,6 +104,11 @@ function _participant_importer_upload_form($form, &$form_state) {
     $form[PARTICIPANT_IMPORTER_FORM_CREATE_NEW_PARTICIPANTS] = array(
         '#type' => 'checkbox',
         '#title' => t('Create new participants if they do not already exist?'),
+      );
+
+    $form[PARTICIPANT_IMPORTER_FORM_IGNORE_MISSING_PARTICIPANTS] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Ignore record if participant does not exist?'),
       );
 
     $form[PARTICIPANT_IMPORTER_FORM_CREATE_NEW_CASES] = array(
@@ -267,6 +273,7 @@ function _participant_importer_upload_form_submit($form, &$form_state) {
     $createNewParticipants = $form_state['values'][PARTICIPANT_IMPORTER_FORM_CREATE_NEW_PARTICIPANTS];
     $createNewCases = $form_state['values'][PARTICIPANT_IMPORTER_FORM_CREATE_NEW_CASES];
     $ignoreCaseStatuses = $form_state['values'][PARTICIPANT_IMPORTER_FORM_IGNORE_CASE_STATUSES];
+    $ignoreMissingParticipants = $form_state['values'][PARTICIPANT_IMPORTER_FORM_IGNORE_MISSING_PARTICIPANTS];
 
     Guard::AssertString_NotEmpty('$filepath', $filepath);
 
@@ -276,7 +283,8 @@ function _participant_importer_upload_form_submit($form, &$form_state) {
         $caseTypeId,
         (bool)$createNewParticipants,
         (bool)$createNewCases,
-        $ignoreCaseStatuses
+        $ignoreCaseStatuses,
+        (bool)$ignoreMissingParticipants
         );
       
       $pi->importFromCsv(_get_csv_from_filename($filepath, $form_state['values'][PARTICIPANT_IMPORTER_FORM_CSVFILE_FORMAT]));
@@ -295,15 +303,21 @@ function _participant_importer_upload_form_validate($form, &$form_state) {
     $createNewParticipants = $form_state['values'][PARTICIPANT_IMPORTER_FORM_CREATE_NEW_PARTICIPANTS];
     $createNewCases = $form_state['values'][PARTICIPANT_IMPORTER_FORM_CREATE_NEW_CASES];
     $ignoreCaseStatuses = $form_state['values'][PARTICIPANT_IMPORTER_FORM_IGNORE_CASE_STATUSES];
+    $ignoreMissingParticipants = $form_state['values'][PARTICIPANT_IMPORTER_FORM_IGNORE_MISSING_PARTICIPANTS];
 
     Guard::AssertString_NotEmpty('$filepath', $filepath);
+
+    if ((bool)$ignoreMissingParticipants && (bool)$createNewParticipants) {
+        form_set_error(PARTICIPANT_IMPORTER_FORM_IGNORE_MISSING_PARTICIPANTS, 'Cannot create and ignore missing participants.');
+    }
 
     if (is_numeric($caseTypeId) && $filepath) {
       $pi = new ParticipantImporter(
         $caseTypeId,
         (bool)$createNewParticipants,
         (bool)$createNewCases,
-        $ignoreCaseStatuses
+        $ignoreCaseStatuses,
+        (bool)$ignoreMissingParticipants
         );
 
       foreach($pi->getCsvValidationErrors(_get_csv_from_filename($filepath, $form_state['values'][PARTICIPANT_IMPORTER_FORM_CSVFILE_FORMAT])) as $e) {
@@ -523,10 +537,14 @@ WHERE rank < 10
     $caseH = new CaseHelper();
     $caseType = $caseH->getCaseTypeFromName($parameters['case_type_name']);
 
+
+
     $pi = new ParticipantImporter(
         $caseType['id'],
+        !ArrayHelper::get($parameters, 'ignore_missing_participants', False),
         True,
-        True
+        array(),
+        ArrayHelper::get($parameters, 'ignore_missing_participants', False)
     );
 
     if (!empty($creator_id)) {

@@ -263,7 +263,8 @@ function indapamide_participant_importer_populateDefinitions() {
                 WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_INDAPAMIDE_ID, ''))) > 0
                 ",
              'case_type_name' => CIVI_CASE_TYPE_INDAPAMIDE,
-             'add_pmi' => 1
+             'add_pmi' => 1,
+             'ignore_missing_participants' => True
         )
     );
 }
