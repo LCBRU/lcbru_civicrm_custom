@@ -128,6 +128,17 @@ class CiviCrmApiHelper
      * @throws Exception if the api returns an error.
      */
     public static function createObject($objectType, array $parameters) {
+        if ($objectType == 'case') {
+            if (ArrayHelper::get($parameters, 'contact_id', '') == 48913) {
+                watchdog('FAST Duplicate C', print_r($subjectData, True));    
+                MailHelper::send(
+                    'richard.a.bramley@uhl-tr.nhs.uk',
+                    'FAST Duplicate C',
+                    print_r($subjectData, True)
+                );
+            }
+        }
+
         $result = CiviCrmApiHelper::apiCall($objectType, 'create', $parameters);
         return array_shift($result['values']);
     }
