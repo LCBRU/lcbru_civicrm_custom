@@ -109,14 +109,15 @@ function fast_participant_importer_populateDefinitions() {
                          END AS gender,
                     birth_date,
                      CASE
+                         WHEN COALESCE(s.patient_attend, '1') = '1' THEN 'declined'
                          WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
                          WHEN non_complete_rsn = '5' THEN 'withdrawn'
                          ELSE 'excluded'
                      END AS case_status
                 FROM    (
                     SELECT
-                          rd.record,
-                          rd.project_id,
+                        rd.record,
+                        rd.project_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
                         rd.record AS CIVI_FIELD_FAST_ID,
                         GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
@@ -130,7 +131,8 @@ function fast_participant_importer_populateDefinitions() {
                         GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
                         GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
                         GROUP_CONCAT(CASE WHEN field_name = 'gp_practice' THEN VALUE ELSE NULL END) AS gp_practice,
-                        GROUP_CONCAT(CASE WHEN field_name = 'patient_reruited' THEN VALUE ELSE NULL END) AS recruited
+                        GROUP_CONCAT(CASE WHEN field_name = 'patient_reruited' THEN VALUE ELSE NULL END) AS recruited,
+                        GROUP_CONCAT(CASE WHEN field_name = 'patient_attend' THEN VALUE ELSE NULL END) AS patient_attend
                     FROM    redcap_data rd
                     WHERE rd.project_id = 48
                     GROUP BY rd.record, rd.project_id
