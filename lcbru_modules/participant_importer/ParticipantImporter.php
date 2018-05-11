@@ -266,7 +266,8 @@ class ParticipantImporter
             );
         }
 
-        $existingCase = $this->caseHelper->getContactSingleCaseOfTypeFromPotentialStudyIds($contactId, $this->caseTypeId, $subjectData, $this->ignoredCaseStatuses);
+        $existingCase = $this->getExistingCase($contactId, $subjectData);
+
         $defaults = array();
 
         if (!empty($existingCase)) {
@@ -306,6 +307,71 @@ class ParticipantImporter
         }
 
         return CiviCrmApiHelper::createObject('case', $request)['id'];
+    }
+
+    /**
+     * Gets an existing case
+     *
+     * @param string $contactId the contact ID
+     * @param array subjectData array of subject data
+     *
+     * @return details of the existing case
+     * @throws Exception if $contactId is empty.
+     * @throws Exception if $subjectData is empty.
+     */
+    private function getExistingCase($contactId, array $subjectData) {
+        Guard::AssertInteger('$contactId', $contactId);
+        Guard::AssertArray('$subjectData', $subjectData);
+
+        # Get the Case that has the correct participant ID
+        $existingCase = $this->caseHelper->getContactSingleCaseOfTypeFromPotentialStudyIds(
+            $contactId,
+            $this->caseTypeId,
+            $subjectData,
+            $this->ignoredCaseStatuses
+        );
+
+        if (!empty($existingCase)) {
+            return $existingCase;
+        }
+
+        # No case with the correct participant ID exists, but
+        # there might be a case of the correct type with all
+        # blank IDs
+        $cases = $this->caseHelper->getCasesForContactId(
+            $contactId,
+            array('case_type_id' => $this->caseTypeId)
+        );
+
+        $cases = $this->caseHelper->filterCasesExcludeStatuses(
+            $cases,
+            $this->ignoredCaseStatuses
+        );
+
+        $casesWithBlankIds = array_filter(
+            $cases,
+            function($case) {
+                $pids = $this->caseHelper->extractParticipantStudyIds(
+                    $case,
+                    $this->caseTypeId
+                );
+
+                $non_blank_pids = array_filter(
+                    $pids,
+                    function($pid) {
+                        return !empty($pid['participantStudyId']);
+                    }
+                );
+
+                return count($non_blank_pids) == 0;
+            }
+        );
+
+        if (!empty($casesWithBlankIds)) {
+            return reset($casesWithBlankIds);
+        }
+
+        return null;
     }
 
     /**
