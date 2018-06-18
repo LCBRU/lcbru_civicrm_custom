@@ -203,19 +203,26 @@ class ParticipantImporter
      * @return null
      */
     public function importSingle(array $details) {
-      $contactId = $this->createSubject($details);
+        try {
 
-      if (empty($contactId) && $this->ignoreIfParticipantMissing) {
-        return;
-      }
+            $contactId = $this->createSubject($details);
 
-      $caseId = $this->createCase($contactId, $details);
-      $this->createCaseCustomValues($caseId, $details);
+            if (empty($contactId) && $this->ignoreIfParticipantMissing) {
+            return;
+            }
 
-      return array(
-        'contact_id' => $contactId,
-        'case_id' => $caseId
-        );
+            $caseId = $this->createCase($contactId, $details);
+            $this->createCaseCustomValues($caseId, $details);
+
+            return array(
+            'contact_id' => $contactId,
+            'case_id' => $caseId
+            );
+
+        } catch (Exception $ex) {
+            watchdog($this->jobTitle, $ex->getMessage(), null, 'error');
+            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, 'Error: importing ' . $this->caseTypeName, $ex->__toString());
+        }
     }
 
     /**
