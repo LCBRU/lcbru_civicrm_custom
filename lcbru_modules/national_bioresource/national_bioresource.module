@@ -1,0 +1,73 @@
+<?php
+
+
+function national_bioresource_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_LEGACY_BIORESOURCE_ID') . '_')) {
+                if (empty($field)) {
+                  $brLegacyIdEmpty = true;
+                } else if (_nihr_br_labels_isInvalidBioresourceLegacyId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_LEGACY_BIORESOURCE_ID . " is not valid.  Should be a 'BRnnnnnnnn', where 'nnnnnnnn' is a 8 digit number");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_LEICESTER_BIORESOURCE_ID') . '_')) {
+                if (empty($field)) {
+                  $brIdEmpty = true;
+                } else if (_nihr_br_labels_isInvalidBioresourceId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_LEICESTER_BIORESOURCE_ID . " is not valid.  Should be a 'BRnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check character");
+                }
+            }
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_NATIONAL_BIORESOURCE_ID') . '_')) {
+                if (empty($field)) {
+                  $brIdEmpty = true;
+                } else if (_national_bioresource_isInvalidNationalBioresourceId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_NATIONAL_BIORESOURCE_ID . " is not valid.  Should be a 'NBLEnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check character");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function _national_bioresource_isInvalidNationalBioresourceId($value) {
+    // The national ID is slightly different to normal IDs.
+    // It is actually the Bioresource ID with the 'Br' prefix
+    // replaces by 'NBLE'.  This means that the 'Br' prefix
+    // has to be replaced before validation.
+
+    $parts = str_split($value, 4);
+
+    if (strtoupper($parts[0]) <> 'NBLE') {
+        return true;
+    }
+
+    $brid = 'Br' . $parts[1];
+
+    $idGenerator = new IdGenerator('Br');
+    return !$idGenerator->validate($brid);
+}
+
+
+function national_bioresource_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_NATIONAL_BIORESOURCE_ID';
+    $studyIds[] = 'CIVI_FIELD_LEICESTER_BIORESOURCE_ID';
+    $studyIds[] = 'CIVI_FIELD_LEGACY_BIORESOURCE_ID';
+}
+
+
+function national_bioresource_lcbru_getStudyIdFieldName($studyId) {
+    if (!_national_bioresource_isInvalidNationalBioresourceId($studyId)) {
+        return 'CIVI_FIELD_NATIONAL_BIORESOURCE_ID';   
+    }
+    if (!_nihr_br_labels_isInvalidBioresourceLegacyId($studyId)) {
+        return 'CIVI_FIELD_LEGACY_BIORESOURCE_ID';   
+    }
+    if (!_nihr_br_labels_isInvalidBioresourceId($studyId)) {
+        return 'CIVI_FIELD_NATIONAL_BIORESOURCE_ID';   
+    }
+}

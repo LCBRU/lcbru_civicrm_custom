@@ -288,6 +288,14 @@ define('CIVI_CASETYPE_CARDIOMET', 'CARDIOMET');
 define('CIVI_CUSTOMGROUP_CARDIOMET', 'CARDIOMET');
 define('CIVI_FIELD_CARDIOMET_ID', 'CARDIOMET ID');
 
+// National Bioresource
+define('CIVI_CASETYPE_NATIONAL_BIORESOURCE', 'National_Bioresource');
+
+define('CIVI_CUSTOMGROUP_NATIONAL_BIORESOURCE', 'National Bioresource');
+define('CIVI_FIELD_NATIONAL_BIORESOURCE_ID', 'National Bioresource ID');
+define('CIVI_FIELD_LEICESTER_BIORESOURCE_ID', 'Leicester Bioresource ID');
+define('CIVI_FIELD_LEGACY_BIORESOURCE_ID', 'Legacy Bioresource ID');
+
 // Activities
 define('CIVI_ACTIVITY_CHANGE_STATUS', 'Change Enrolment Status');
 define('CIVI_ACTIVITY_RECRUIT', 'Recruit to study');

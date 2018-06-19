@@ -3,5 +3,6 @@ description = Set up data elements for LCBRU use of civicrm
 core = 7.x
 configure = admin/config/content/lcbru
 dependencies[] = civicrm
+dependencies[] = label_printer
 files[] = ext_libs/Parsedown.php
 

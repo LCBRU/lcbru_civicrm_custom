@@ -111,6 +111,9 @@ class LcbruTypeCreator
         if (module_exists('mermaid')) {
             $this->recreateCaseMermaid();
         }
+        if (module_exists('national_bioresource')) {
+            $this->recreateCaseNationalBioresource();
+        }
         if (module_exists('nihr_br_labels')) {
             $this->recreateCaseNihrBrLabels();
         }
@@ -888,6 +891,23 @@ class LcbruTypeCreator
         watchdog(__METHOD__, 'started');
 
         $caseTypeId = recreateCaseType(CIVI_CASE_TYPE_MERMAID);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the National Bioresource study
+     *
+     * @return void
+     */
+    private function recreateCaseNationalBioresource() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_NATIONAL_BIORESOURCE);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_NATIONAL_BIORESOURCE);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_NATIONAL_BIORESOURCE_ID', CIVI_FIELD_NATIONAL_BIORESOURCE_ID);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LEICESTER_BIORESOURCE_ID', CIVI_FIELD_LEICESTER_BIORESOURCE_ID);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LEGACY_BIORESOURCE_ID', CIVI_FIELD_LEGACY_BIORESOURCE_ID);
 
         watchdog(__METHOD__, 'completed');
     }

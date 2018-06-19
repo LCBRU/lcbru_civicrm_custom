@@ -1,0 +1,6 @@
+name = National Bioresource
+description = National Bioresource Enrollments
+core = 7.x
+configure = admin/config/content/national_bioresource
+dependencies[] = lcbru
+dependencies[] = nihr_br_labels

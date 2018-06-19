@@ -1,0 +1,8 @@
+<?php
+function national_bioresource_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+function national_bioresource_disable() {
+}
