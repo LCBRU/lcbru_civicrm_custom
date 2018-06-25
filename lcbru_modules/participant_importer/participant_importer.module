@@ -495,16 +495,14 @@ function _participant_importer_run_import($creator_id, $job_name) {
 
 function _participant_importer_run_import_for($name, $parameters, $creator_id) {
     $last_processed_name = "Participant Importer $name last processed date";
-    pp($last_processed_name);
 
     $last_processed_date = variable_get('Participant Importer BioResource REDCap last processed date', '0');
-    pp($last_processed_date);
 
     if ($last_processed_date < '20170614132612') {
-        pp('Hello');
+        pp($last_processed_date, 'Before');
         variable_set('Participant Importer BioResource REDCap last processed date', '20170614132612');
         $last_processed_date = variable_get('Participant Importer BioResource REDCap last processed date', '0');
-        pp($last_processed_date);
+        pp($last_processed_date, 'After');
     }
 
     $query = "
@@ -577,6 +575,8 @@ WHERE rank < 10
         $errors = $pi->batchValidateAndImport($participant_details);
 
         $last_update = end($participant_details)['last_update'];
+
+        pp($last_update, 'New');
 
         if ($last_update > $last_processed_date) {
             $last_processed_date = $last_update;
