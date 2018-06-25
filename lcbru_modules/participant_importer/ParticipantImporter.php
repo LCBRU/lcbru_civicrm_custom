@@ -220,7 +220,7 @@ class ParticipantImporter
             );
 
         } catch (Exception $ex) {
-            watchdog($this->jobTitle, $ex->getMessage(), null, 'error');
+            watchdog('ParticipantImporter Error', $ex->getMessage(), null, 'error');
             MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, 'Error: importing ' . $this->caseTypeName, $ex->__toString());
         }
     }
