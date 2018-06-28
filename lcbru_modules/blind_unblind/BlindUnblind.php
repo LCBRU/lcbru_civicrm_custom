@@ -64,11 +64,11 @@ class BlindUnblind
     Guard::AssertString_NotEmpty('$blindId', $blindId);
 
   	return db_select('blind_unblind_xref', 'b')
-		->fields('b', array('unblind_id'))
+		->fields('b', array('blind_id_type', 'unblind_id'))
 		->condition('blind_id', $blindId, '=')
 		->condition('study', $this->studyName, '=')
 		->execute()
-		->fetchField();
+		->fetchAssoc();
   }
 
   public function getBlindIds($unblindId) {

@@ -156,12 +156,12 @@ function _blind_unblind_unblind_form_submit($form, &$form_state) {
 
   $blinder = new BlindUnblind($form_state['values']['study'], $def);
 
-  $unblindId = $blinder->unblind($form_state['values']['blind_id']);
+  $unblindId = $blinder->unblind(trim($form_state['values']['blind_id']));
 
   if (empty($unblindId)) {
   	drupal_set_message("ID '{$form_state['values']['blind_id']}' does not exist for {$form_state['values']['study']} study", 'warning');
   } else {
-	  drupal_set_message("Unblinded ID for '{$form_state['values']['blind_id']}' is '$unblindId'");
+	  drupal_set_message("Unblinded ID for '{$form_state['values']['blind_id']}' for {$unblindId['blind_id_type']} is '{$unblindId['unblind_id']}'");
   }
 
 }
