@@ -371,12 +371,6 @@ function nihr_br_labels_lcbru_getStudyIdFieldName($studyId) {
 }
 
 function nihr_br_labels_participant_importer_populateDefinitions() {
-    $last_processed_date = variable_get('Participant Importer BIORESOURCE last processed date', '0');
-
-    if ($last_processed_date < '20170614132612') {
-        variable_set('Participant Importer BIORESOURCE last processed date', '20170614132612');
-    }
-
     return array(
         'BioResource REDCap' => array(
             'query' => "
