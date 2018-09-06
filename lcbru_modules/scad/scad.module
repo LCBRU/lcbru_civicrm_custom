@@ -284,7 +284,14 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
         '24h Tape' => 'xSc24h'
         )
       );
-}
+      $definitions['SCAD CPEX'] = array(
+        'blinding_permission' => SCAD_PREMISSION_BLIND,
+        'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
+        'blind_id_types' => array (
+          'CPEX' => 'xScCpex'
+          )
+        );
+  }
 
 
 function scad_participant_importer_populateDefinitions() {
