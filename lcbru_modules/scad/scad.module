@@ -270,13 +270,15 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
         'Stress MRI' => 'xScMriS'
         )
       );
-    $definitions['SCAD Exercise Test'] = array(
+/*
+      $definitions['SCAD Exercise Test'] = array(
       'blinding_permission' => SCAD_PREMISSION_BLIND,
       'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
       'blind_id_types' => array (
         'Exercise Test' => 'xScEx'
         )
       );
+*/
     $definitions['SCAD 24h Tape'] = array(
       'blinding_permission' => SCAD_PREMISSION_BLIND,
       'unblinding_permission' => SCAD_PREMISSION_UNBLIND,
