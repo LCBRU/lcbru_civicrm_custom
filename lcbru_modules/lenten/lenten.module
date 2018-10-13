@@ -33,13 +33,13 @@ function lenten_label_printer_populateDefinitions(array &$definitions) {
           'id_generator' => new IdGenerator('LenSa'),
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-          'id_count' => 4,
+          'id_count' => 8,
           'labels_per_id' => 1,
           'fields' => array(
-            '{MESSAGE_PLACEHOLDER}' => 'Falcon 20ml On ice'
+            '{MESSAGE_PLACEHOLDER}' => 'Falcon 7.5ml On ice'
             )
           ),
-        'Urine Samples' => array(
+          'Urine Samples' => array(
           'id_generator' => new IdGenerator('LenSa'),
           'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
           'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
