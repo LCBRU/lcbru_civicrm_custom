@@ -3,7 +3,7 @@
 /**
  * Implements hook_enable().
  */
-function lenten_enable() {
+function limb_enable() {
     $typeCreator = new LcbruTypeCreator();
     $typeCreator->recreate();
 }
@@ -11,6 +11,6 @@ function lenten_enable() {
 /**
  * Implements hook_disable().
  */
-function lenten_disable() {
+function limb_disable() {
 }
 
