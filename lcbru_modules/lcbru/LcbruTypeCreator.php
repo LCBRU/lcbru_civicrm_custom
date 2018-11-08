@@ -108,6 +108,9 @@ class LcbruTypeCreator
         if (module_exists('lenten')) {
             $this->recreateCaseLenten();
         }
+        if (module_exists('limb')) {
+            $this->recreateCaseLimb();
+        }
         if (module_exists('mermaid')) {
             $this->recreateCaseMermaid();
         }
@@ -876,6 +879,21 @@ class LcbruTypeCreator
         watchdog(__METHOD__, 'started');
 
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_LENTEN);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LIMB);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LIMB_ID', CIVI_FIELD_LIMB_ID);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the LimB module
+     *
+     * @return void
+     */
+    private function recreateCaseLimb() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_LIMB);
         $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LENTEN);
         $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LENTEN_ID', CIVI_FIELD_LENTEN_ID);
 

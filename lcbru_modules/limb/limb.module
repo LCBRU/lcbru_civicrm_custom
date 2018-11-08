@@ -1,0 +1,159 @@
+<?php
+
+const LIMB_PREMISSION_PRINT_LABELS = 'LIMB print labels';
+const CIVI_CASETYPE_LIMB =  'LIMB';
+const CIVI_GROUP_LIMB = 'LIMB';
+const CIVI_CUSTOMGROUP_LIMB = 'LIMB';
+const CIVI_FIELD_LIMB_ID = 'LIMB ID';
+const CIVI_FIELD_LIMB_ID_PREFIX = 'LimPt';
+const CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX = 'LimSa';
+
+
+function limb_permission() {
+  return array(
+    LIMB_PREMISSION_PRINT_LABELS => array (
+      'title' => t(LIMB_PREMISSION_PRINT_LABELS), 
+      'description' => t(LIMB_PREMISSION_PRINT_LABELS),
+    ),
+  );
+}
+
+
+function limb_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['LIMB Pack'] = array(
+      'name' => 'LIMB Pack',
+      'permission' => LIMB_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator(CIVI_FIELD_LIMB_ID_PREFIX),
+        ),
+      'labels' => array(
+        'Recruited Patient Notes' => array(
+          'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_RECRUITED_PATIENT_NOTES,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{STUDY_PLACEHOLDER}' => 'LimB'
+            )
+          ),
+        'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 8
+          ),
+        'Visit 1 EDTA Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
+          'study_name' => 'LimB Visit',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+          'EDTA Samples' => array(
+            'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 8,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => 'Falcon 7.5ml On ice'
+              )
+            ),
+          ),
+    );
+}
+
+
+function limb_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_LIMB_ID') . '_')) {
+                if (_lenten_isInvalidLentenId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_LIMB_ID . " is not valid.  Should be 'LimPtnnnnnnnnX' where nnnnnnnn is an 8 digit number and X is a check character");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function _limb_isInvalidId($value) {
+  $idGenerator = new IdGenerator(CIVI_FIELD_LIMB_ID_PREFIX);
+  return !$idGenerator->validate($value);
+}
+
+
+function limb_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_LIMB_ID';
+}
+
+
+function limb_lcbru_getStudyIdFieldName($studyId) {
+    if (!_limb_isInvalidId($studyId)) {
+        return 'CIVI_FIELD_LIMB_ID';   
+    }
+}
+
+
+function limb_participant_importer_populateDefinitions() {
+    // return array(
+    //     'Limb REDCap' => array(
+    //         'query' => "
+    //             SELECT *
+    //             FROM (
+    //                 SELECT
+    //                     MAX(COALESCE(es.ts, 0)) AS last_update,
+    //                     s.record CIVI_FIELD_LENTEN_ID,
+    //                     s.record,
+    //                     s.project_id,
+    //                     s.start_date,
+    //                     CASE s.gender
+    //                             WHEN 0 THEN 'Female'
+    //                             WHEN 1 THEN 'male'
+    //                          END AS gender,
+    //                     s.birth_date,
+    //                      CASE
+    //                          WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+    //                          WHEN non_complete_rsn = '5' THEN 'withdrawn'
+    //                          ELSE 'excluded'
+    //                      END AS case_status,
+    //                     s.UHL_S_number
+    //                  FROM (
+    //                     SELECT
+    //                         rd.record,
+    //                         rd.project_id,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+    //                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+    //                     FROM    redcap_data rd
+    //                     WHERE rd.project_id = 56
+    //                     GROUP BY rd.record, rd.project_id
+    //                 ) s
+    //                 LEFT JOIN redcap_log_event es
+    //                     ON es.project_id = s.project_id
+    //                     AND es.pk = s.record
+    //                     AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+    //                     # Ignore events caused by the data import from
+    //                     # the mobile app
+    //                     AND es.page NOT IN ('DataImportController:index')
+    //                 GROUP BY s.record
+    //             ) x
+    //             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_LENTEN_ID, ''))) > 0
+    //                     AND LENGTH(TRIM(COALESCE(UHL_S_Number, ''))) > 0
+    //                     AND case_status IS NOT NULL
+    //             ",
+    //          'case_type_name' => CIVI_CASETYPE_LENTEN,
+    //          'add_pmi' => 1
+    //     )
+    // );
+}

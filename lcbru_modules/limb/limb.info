@@ -1,0 +1,6 @@
+name = LIMB Study
+description = LIMB Study Enrollments
+core = 7.x
+configure = admin/config/content/limb
+dependencies[] = lcbru
+dependencies[] = label_printer
