@@ -879,9 +879,9 @@ class LcbruTypeCreator
         watchdog(__METHOD__, 'started');
 
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_LENTEN);
-        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LIMB);
-        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LIMB_ID', CIVI_FIELD_LIMB_ID);
-
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LENTEN);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LENTEN_ID', CIVI_FIELD_LENTEN_ID);
+        
         watchdog(__METHOD__, 'completed');
     }
 
@@ -894,8 +894,8 @@ class LcbruTypeCreator
         watchdog(__METHOD__, 'started');
 
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_LIMB);
-        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_LENTEN);
-        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LENTEN_ID', CIVI_FIELD_LENTEN_ID);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_FIELD_SET_LIMB);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_LIMB_ID', CIVI_FIELD_LIMB_ID);
 
         watchdog(__METHOD__, 'completed');
     }
