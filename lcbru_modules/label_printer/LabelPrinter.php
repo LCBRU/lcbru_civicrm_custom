@@ -62,6 +62,8 @@ class LabelPrinter
   const LABEL_INDAPAMIDE_EDTA_BAG = 'IndapamideSampleBag_EDTA.zpl';
   const LABEL_INDAPAMIDE_URINE_BAG = 'IndapamideSampleBag_Urine.zpl';
   const LABEL_RECRUITED_PATIENT_NOTES = 'RecruitedLabelForPatientNotes.zpl';
+  const LABEL_CAE_BLOOD_BAG = 'CaeExternalBloodBag.zpl';
+  const LABEL_CAE_URINE_BAG = 'CaeExternalUrineBag.zpl';
 
   const PRINTER_PORT = '9100';
 
@@ -154,7 +156,8 @@ class LabelPrinter
         LabelPrinter::LABEL_BAG_LENTEN_EDTA,
         LabelPrinter::LABEL_BAG_LENTEN_UHL,
         LabelPrinter::LABEL_BAG_CARDIOMET,
-        LabelPrinter::LABEL_BAG_CARDIOMET,
+        LabelPrinter::LABEL_CAE_URINE_BAG,
+        LabelPrinter::LABEL_CAE_BLOOD_BAG,
       ));
 
 

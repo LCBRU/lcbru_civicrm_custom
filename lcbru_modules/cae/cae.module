@@ -76,5 +76,87 @@ function cae_label_printer_populateDefinitions(array &$definitions) {
           ),
         ),
     );
+    $definitions['CAE External Pack'] = array(
+      'name' => 'CAE External Pack',
+      'permission' => CAE_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('CaePt'),
+        ),
+      'labels' => array(
+        'EDTA Small Samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 4.3ml'
+            )
+          ),
+          'Serum Samples' => array(
+            'id_generator' => new IdGenerator('CaeSa'),
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => 'SERUM 7.5ml'
+              )
+            ),
+          'EDTA Large Samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 2,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'EDTA 7.5ml'
+            )
+          ),
+        'Citrate samples' => array(
+          'id_generator' => new IdGenerator('CaeSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => 'CITRATE 4.3ml'
+            )
+          ),
+          'Urine samples' => array(
+            'id_generator' => new IdGenerator('CaeSa'),
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => 'URINE 25ml'
+              )
+            ),
+          'Participant Label' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 1,
+          'labels_per_id' => 4
+          ),
+        'Urine Bag' => array(
+          'participant_id' => 'study_id',
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+          'template' => LabelPrinter::LABEL_CAE_URINE_BAG,
+          'study_name' => 'CAE',
+          'id_count' => 1,
+          'labels_per_id' => 1
+          ),
+          'Blood Bag' => array(
+            'participant_id' => 'study_id',
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+            'template' => LabelPrinter::LABEL_CAE_BLOOD_BAG,
+            'study_name' => 'CAE',
+            'id_count' => 1,
+            'labels_per_id' => 1
+            ),
+          ),
+    );
 }
 

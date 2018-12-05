@@ -32,6 +32,7 @@ function _scad_print_register_labels() {
     }
     $start = urldecode($_GET['start']);
     $end = urldecode($_GET['end']);
+    $printed = 0;
 
     $lps = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
 
@@ -39,7 +40,10 @@ function _scad_print_register_labels() {
         $sampleId = "ScadReg" . str_pad($i, 5, "0", STR_PAD_LEFT);;
         $lps->printStudySample($sampleId, 1);
         usleep ( 500000 );
-    }
+        $printed++;
+      }
+
+    drupal_set_message("Labels sent to printer: Start = $start; End = $end - $printed printed.", 'error');
 
     drupal_goto('');
 }
