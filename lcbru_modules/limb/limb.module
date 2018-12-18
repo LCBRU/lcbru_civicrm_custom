@@ -102,58 +102,58 @@ function limb_lcbru_getStudyIdFieldName($studyId) {
 }
 
 
-function limb_participant_importer_populateDefinitions() {
-    // return array(
-    //     'Limb REDCap' => array(
-    //         'query' => "
-    //             SELECT *
-    //             FROM (
-    //                 SELECT
-    //                     MAX(COALESCE(es.ts, 0)) AS last_update,
-    //                     s.record CIVI_FIELD_LENTEN_ID,
-    //                     s.record,
-    //                     s.project_id,
-    //                     s.start_date,
-    //                     CASE s.gender
-    //                             WHEN 0 THEN 'Female'
-    //                             WHEN 1 THEN 'male'
-    //                          END AS gender,
-    //                     s.birth_date,
-    //                      CASE
-    //                          WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
-    //                          WHEN non_complete_rsn = '5' THEN 'withdrawn'
-    //                          ELSE 'excluded'
-    //                      END AS case_status,
-    //                     s.UHL_S_number
-    //                  FROM (
-    //                     SELECT
-    //                         rd.record,
-    //                         rd.project_id,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-    //                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
-    //                     FROM    redcap_data rd
-    //                     WHERE rd.project_id = 56
-    //                     GROUP BY rd.record, rd.project_id
-    //                 ) s
-    //                 LEFT JOIN redcap_log_event es
-    //                     ON es.project_id = s.project_id
-    //                     AND es.pk = s.record
-    //                     AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-    //                     # Ignore events caused by the data import from
-    //                     # the mobile app
-    //                     AND es.page NOT IN ('DataImportController:index')
-    //                 GROUP BY s.record
-    //             ) x
-    //             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_LENTEN_ID, ''))) > 0
-    //                     AND LENGTH(TRIM(COALESCE(UHL_S_Number, ''))) > 0
-    //                     AND case_status IS NOT NULL
-    //             ",
-    //          'case_type_name' => CIVI_CASETYPE_LENTEN,
-    //          'add_pmi' => 1
-    //     )
-    // );
-}
+// function limb_participant_importer_populateDefinitions() {
+//     return array(
+//         'Limb REDCap' => array(
+//             'query' => "
+//                 SELECT *
+//                 FROM (
+//                     SELECT
+//                         MAX(COALESCE(es.ts, 0)) AS last_update,
+//                         s.record CIVI_FIELD_LENTEN_ID,
+//                         s.record,
+//                         s.project_id,
+//                         s.start_date,
+//                         CASE s.gender
+//                                 WHEN 0 THEN 'Female'
+//                                 WHEN 1 THEN 'male'
+//                              END AS gender,
+//                         s.birth_date,
+//                          CASE
+//                              WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+//                              WHEN non_complete_rsn = '5' THEN 'withdrawn'
+//                              ELSE 'excluded'
+//                          END AS case_status,
+//                         s.UHL_S_number
+//                      FROM (
+//                         SELECT
+//                             rd.record,
+//                             rd.project_id,
+//                             GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
+//                             GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
+//                             GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+//                             GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+//                             GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+//                             GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+//                         FROM    redcap_data rd
+//                         WHERE rd.project_id = 56
+//                         GROUP BY rd.record, rd.project_id
+//                     ) s
+//                     LEFT JOIN redcap_log_event es
+//                         ON es.project_id = s.project_id
+//                         AND es.pk = s.record
+//                         AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+//                         # Ignore events caused by the data import from
+//                         # the mobile app
+//                         AND es.page NOT IN ('DataImportController:index')
+//                     GROUP BY s.record
+//                 ) x
+//                 WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_LENTEN_ID, ''))) > 0
+//                         AND LENGTH(TRIM(COALESCE(UHL_S_Number, ''))) > 0
+//                         AND case_status IS NOT NULL
+//                 ",
+//              'case_type_name' => CIVI_CASETYPE_LENTEN,
+//              'add_pmi' => 1
+//         )
+//     );
+// }

@@ -40,6 +40,8 @@ class LcbruTypeCreator
     public function recreate() {
         watchdog(__METHOD__, 'started');
 
+        set_time_limit(500);
+
         $this->recreateActivityTypes();
         $this->recreateCaseStatuses();
         $this->recreateActivityStatuses();

@@ -1,15 +1,1 @@
 <?php
-
-/**
- * Implements hook_enable().
- */
-function test_data_enable() {
-//	create_some_genvasc_participants();
-
-    $pi = new ParticipantImporter(NULL, True, True);
-
-    $participants = _test_data_get_all_participant();
-    foreach ($participants as $p) {
-        $pi->createSubject($p);
-    }
-}

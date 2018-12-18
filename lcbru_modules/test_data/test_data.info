@@ -5,3 +5,4 @@ configure = admin/config/content/test_data
 dependencies[] = civicrm
 dependencies[] = lcbru
 dependencies[] = participant_importer
+dependencies[] = genvasc_labels
