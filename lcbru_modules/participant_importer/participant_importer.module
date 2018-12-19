@@ -578,6 +578,8 @@ WHERE rank < 10
 
         pp($last_update, 'New');
 
+        pp($errors);
+
         if ($last_update > $last_processed_date) {
             $last_processed_date = $last_update;
             variable_set($last_processed_name, $last_processed_date);
