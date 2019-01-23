@@ -62,38 +62,43 @@ function _label_printer_form_submit($form, &$form_state) {
 }
 
 function _label_printer_print_labels_from_definition(array $definition) {
-	$participant_ids = array_map(function($v){ return $v->next(); }, ArrayHelper::get($definition, 'participant_id_generators', array()));
+	$batch_size = ArrayHelper::get($definition, 'batch_size', 1);
 
-	foreach ($definition['labels'] as $l) {
+	foreach (range(1, $batch_size) as $n) {
 
-		$printer = new LabelPrinter($l['printer']);
-		$labels = '';
+		$participant_ids = array_map(function($v){ return $v->next(); }, ArrayHelper::get($definition, 'participant_id_generators', array()));
 
-		for ($i=0; $i < $l['id_count']; $i++) { 
-			$fields = array();
+		foreach ($definition['labels'] as $l) {
 
-			if (!empty($l['id_generator'])) {
-				$fields['{ID_PLACEHOLDER}'] = $l['id_generator']->next();
-			} elseif (!empty($l['participant_id'])) {
-				$fields['{ID_PLACEHOLDER}'] = $participant_ids[$l['participant_id']];
+			$printer = new LabelPrinter($l['printer']);
+			$labels = '';
+
+			for ($i=0; $i < $l['id_count']; $i++) { 
+				$fields = array();
+
+				if (!empty($l['id_generator'])) {
+					$fields['{ID_PLACEHOLDER}'] = $l['id_generator']->next();
+				} elseif (!empty($l['participant_id'])) {
+					$fields['{ID_PLACEHOLDER}'] = $participant_ids[$l['participant_id']];
+				}
+
+				if (array_key_exists('study_name', $l)) {
+					$fields['{STUDY_PLACEHOLDER}'] = $l['study_name'];
+				}
+
+				if (array_key_exists('fields', $l)) {
+					$fields = array_merge($fields, $l['fields']);
+				}
+
+					$labels .= $printer->getLabelFromTemplateFile(
+						$l['template'],
+						$fields
+						);
+
 			}
 
-			if (array_key_exists('study_name', $l)) {
-				$fields['{STUDY_PLACEHOLDER}'] = $l['study_name'];
-			}
-
-			if (array_key_exists('fields', $l)) {
-				$fields = array_merge($fields, $l['fields']);
-			}
-
-		    $labels .= $printer->getLabelFromTemplateFile(
-		    	$l['template'],
-		    	$fields
-		    	);
-
+			$printer->printLabel($labels, $l['labels_per_id']);
 		}
-
-		$printer->printLabel($labels, $l['labels_per_id']);
 	}
 }
 

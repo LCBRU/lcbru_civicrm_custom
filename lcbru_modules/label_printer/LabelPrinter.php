@@ -64,6 +64,7 @@ class LabelPrinter
   const LABEL_RECRUITED_PATIENT_NOTES = 'RecruitedLabelForPatientNotes.zpl';
   const LABEL_CAE_BLOOD_BAG = 'CaeExternalBloodBag.zpl';
   const LABEL_CAE_URINE_BAG = 'CaeExternalUrineBag.zpl';
+  const LABEL_EDTA_BAG_SMALL = 'SmallEDTABag.zpl';
 
   const PRINTER_PORT = '9100';
 

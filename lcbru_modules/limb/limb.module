@@ -20,8 +20,10 @@ function limb_permission() {
 
 
 function limb_label_printer_populateDefinitions(array &$definitions) {
-  $definitions['LIMB Pack'] = array(
-      'name' => 'LIMB Pack',
+  $printer = LabelPrinter::PRINTER_CVRC_LAB_SAMPLE;
+
+  $definitions['LIMb Participant'] = array(
+      'name' => 'LIMb Participant',
       'permission' => LIMB_PREMISSION_PRINT_LABELS,
       'participant_id_generators' => array(
         'study_id' => new IdGenerator(CIVI_FIELD_LIMB_ID_PREFIX),
@@ -29,41 +31,66 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
       'labels' => array(
         'Recruited Patient Notes' => array(
           'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => $printer,
           'template' => LabelPrinter::LABEL_RECRUITED_PATIENT_NOTES,
           'id_count' => 1,
           'labels_per_id' => 1,
           'fields' => array(
-            '{STUDY_PLACEHOLDER}' => 'LimB'
+            '{STUDY_PLACEHOLDER}' => 'LIMb'
             )
           ),
         'Participant Label' => array(
           'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'printer' => $printer,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
           'labels_per_id' => 8
           ),
-        'Visit 1 EDTA Bag' => array(
-          'participant_id' => 'study_id',
-          'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
-          'template' => LabelPrinter::LABEL_BAG_LENTEN_EDTA,
-          'study_name' => 'LimB Visit',
-          'id_count' => 1,
-          'labels_per_id' => 1
+        )
+      );
+
+      $definitions['LIMb Sample Bag'] = array(
+        'name' => 'LIMb Sample Bag x50',
+        'permission' => LIMB_PREMISSION_PRINT_LABELS,
+        'batch_size' => 50,
+        'participant_id_generators' => array(
+          'study_id' => new IdGenerator(CIVI_FIELD_LIMB_ID_PREFIX),
           ),
-          'EDTA Samples' => array(
+        'labels' => array(
+          'EDTA Sample2 Lg' => array(
             'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
-            'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+            'printer' => $printer,
             'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
-            'id_count' => 8,
+            'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
-              '{MESSAGE_PLACEHOLDER}' => 'Falcon 7.5ml On ice'
+              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA On ice'
               )
-            ),
           ),
-    );
+          'EDTA Samples Sm' => array(
+            'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+            'printer' => $printer,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => '2.7ml EDTA On ice'
+              )
+          ),
+        'EDTA Bag' => array(
+            'participant_id' => 'study_id',
+            'printer' => $printer,
+            'template' => LabelPrinter::LABEL_EDTA_BAG_SMALL,
+            'study_name' => 'LIMb',
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{BAG_LINE_1}' => 'Date:',
+              '{BAG_LINE_2}' => 'Time:',
+            )
+          ),
+        )
+      );
 }
 
 
