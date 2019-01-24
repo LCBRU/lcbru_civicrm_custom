@@ -49,36 +49,57 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
         )
       );
 
-      $definitions['LIMb Sample Bag'] = array(
+      $definitions['LIMb Sample Bag x50'] = array(
         'name' => 'LIMb Sample Bag x50',
         'permission' => LIMB_PREMISSION_PRINT_LABELS,
         'batch_size' => 50,
         'participant_id_generators' => array(
-          'study_id' => new IdGenerator(CIVI_FIELD_LIMB_ID_PREFIX),
+          'edta_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+          'serum_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
           ),
         'labels' => array(
-          'EDTA Sample2 Lg' => array(
-            'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+          'EDTA Sample Bottle' => array(
+            'participant_id' => 'edta_id',
             'printer' => $printer,
             'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
             'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
-              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA On ice'
+              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA On Ice (Sample)'
               )
           ),
-          'EDTA Samples Sm' => array(
-            'id_generator' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
+          'Serum Sample Bottle' => array(
+            'participant_id' => 'serum_id',
             'printer' => $printer,
             'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
             'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
-              '{MESSAGE_PLACEHOLDER}' => '2.7ml EDTA On ice'
+              '{MESSAGE_PLACEHOLDER}' => '7.5ml Serum Room Temp (Sample)'
+              )
+          ),
+          'EDTA Sample Docs' => array(
+            'participant_id' => 'edta_id',
+            'printer' => $printer,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA (Study Pack)'
+              )
+          ),
+          'Serum Sample Docs' => array(
+            'participant_id' => 'serum_id',
+            'printer' => $printer,
+            'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{MESSAGE_PLACEHOLDER}' => '7.5ml Serum (Study Pack)'
               )
           ),
         'EDTA Bag' => array(
-            'participant_id' => 'study_id',
+            'participant_id' => 'serum_id',
             'printer' => $printer,
             'template' => LabelPrinter::LABEL_EDTA_BAG_SMALL,
             'study_name' => 'LIMb',
