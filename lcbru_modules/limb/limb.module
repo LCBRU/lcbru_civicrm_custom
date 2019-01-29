@@ -52,7 +52,7 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
       $definitions['LIMb Sample Bag x50'] = array(
         'name' => 'LIMb Sample Bag x50',
         'permission' => LIMB_PREMISSION_PRINT_LABELS,
-        'batch_size' => 50,
+        'batch_size' => 1,
         'participant_id_generators' => array(
           'edta_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
           'serum_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
@@ -101,11 +101,23 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
         'EDTA Bag' => array(
             'participant_id' => 'serum_id',
             'printer' => $printer,
-            'template' => LabelPrinter::LABEL_EDTA_BAG_SMALL,
-            'study_name' => 'LIMb',
+            'template' => LabelPrinter::LABEL_BAG_SMALL,
             'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
+              '{TITLE}' => 'LIMb EDTA Bag',
+              '{BAG_LINE_1}' => 'Date:',
+              '{BAG_LINE_2}' => 'Time:',
+            )
+          ),
+          'Serum Bag' => array(
+            'participant_id' => 'serum_id',
+            'printer' => $printer,
+            'template' => LabelPrinter::LABEL_BAG_SMALL,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{TITLE}' => 'LIMb Serum Bag',
               '{BAG_LINE_1}' => 'Date:',
               '{BAG_LINE_2}' => 'Time:',
             )
