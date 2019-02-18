@@ -81,6 +81,7 @@ class ContactHelper
       }
 
       if (count($potentialContacts) > 1) {
+         pp(count($potentialContacts));
           throw new Exception("More than one contact found for participant with UHL System Number = '$uhlSystemNumber', NHS Number = '$nhsNumber' and participant study IDs of '" . print_r($participantStudyIds, true) . "'".PHP_EOL.'Specifically:'.PHP_EOL.print_r($potentialContacts, true));
       }
 
