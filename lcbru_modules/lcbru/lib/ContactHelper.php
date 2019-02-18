@@ -62,26 +62,21 @@ class ContactHelper
         $cons = $this->getSubjects(array($this->uhlSystemNumberFieldIdName => $uhlSystemNumber));
 
         $potentialContacts = $potentialContacts + $cons;
-        pp($potentialContacts, "UHL");
       }
 
       if (!empty($nhsNumber)) {
         $con = $this->getSubjects(array($this->nhsNumberFieldIdName => $nhsNumber));
 
         $potentialContacts = $potentialContacts + $con;
-        pp($potentialContacts, "NHS");
       }
 
       $potentialContacts = $potentialContacts + $this->getSubjectFromParticipantStudyIds($participantStudyIds);
-
-      pp($potentialContacts, "Last");
 
       if (count($potentialContacts) == 0) {
         return null;
       }
 
       if (count($potentialContacts) > 1) {
-         pp(count($potentialContacts));
           throw new Exception("More than one contact found for participant with UHL System Number = '$uhlSystemNumber', NHS Number = '$nhsNumber' and participant study IDs of '" . print_r($participantStudyIds, true) . "'".PHP_EOL.'Specifically:'.PHP_EOL.print_r($potentialContacts, true));
       }
 
