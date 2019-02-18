@@ -62,19 +62,19 @@ class ContactHelper
         $cons = $this->getSubjects(array($this->uhlSystemNumberFieldIdName => $uhlSystemNumber));
 
         $potentialContacts = $potentialContacts + $cons;
-        pp(potentialContacts, "UHL");
+        pp($potentialContacts, "UHL");
       }
 
       if (!empty($nhsNumber)) {
         $con = $this->getSubjects(array($this->nhsNumberFieldIdName => $nhsNumber));
 
         $potentialContacts = $potentialContacts + $con;
-        pp(potentialContacts, "NHS");
+        pp($potentialContacts, "NHS");
       }
 
       $potentialContacts = $potentialContacts + $this->getSubjectFromParticipantStudyIds($participantStudyIds);
 
-      pp(potentialContacts, "Last");
+      pp($potentialContacts, "Last");
 
       if (count($potentialContacts) == 0) {
         return null;
