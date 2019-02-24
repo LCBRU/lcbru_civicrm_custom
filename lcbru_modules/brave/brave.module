@@ -200,10 +200,6 @@ function brave_lcbru_getStudyIdFieldName($studyId) {
 }
 
 
-/*
- * Waiting for Sue to transfer recruitment status to REDCap
- *
- *
 function brave_participant_importer_populateDefinitions() {
     return array(
         'Brave REDCap' => array(
@@ -234,11 +230,33 @@ function brave_participant_importer_populateDefinitions() {
                             postal_code,
                             
                             email,
-MAYBE                       CASE
-MAYBE                           WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
-MAYBE                           WHEN non_complete_rsn = '5' THEN 'withdrawn'
-MAYBE                           ELSE 'excluded'
-MAYBE                       END AS case_status
+	                       CASE
+	                           WHEN COALESCE(criteria_met, '1') = '0' THEN 'excluded'
+	                           WHEN COALESCE(withd_recd, '0') <> '0' THEN 'withdrawn'
+	                           WHEN
+												COALESCE(exc_inf_consent, '0') = '1'
+											OR COALESCE(exc_inf_risk, '0') = '1'
+											OR COALESCE(exc_cyto_abnorm, '0') = '1'
+											OR COALESCE(exc_marfans_etc, '0') = '1'
+											THEN 'excluded'
+	                           WHEN
+												COALESCE(consent_q1, '0') = '0'
+											OR COALESCE(consent_q2, '0') = '0'
+											OR COALESCE(consent_q3, '0') = '0'
+											OR COALESCE(consent_q4, '0') = '0'
+											OR COALESCE(consent_q5, '0') = '0'
+											OR COALESCE(consent_q6, '0') = '0'
+											OR COALESCE(consent_q7, '0') = '0'
+											OR COALESCE(consent_q8, '0') = '0'
+											OR COALESCE(consent_q9, '0') = '0'
+											THEN 'excluded'
+	                           WHEN
+												COALESCE(inc_diag_bav, '1') = '1'
+											OR COALESCE(inc_aff_1st_deg_rel, '1') = '1'
+											OR COALESCE(inc_unaff_1st_deg_rel, '1') = '1'
+											THEN 'recruited'
+	                           ELSE 'excluded'
+	                       END AS case_status
                 FROM    (
                     SELECT
                                 rd.record,
@@ -265,8 +283,24 @@ MAYBE                       END AS case_status
                         
                         GROUP_CONCAT(CASE WHEN field_name = 'pat_email1' THEN VALUE ELSE NULL END) AS email,
 
-MAYBE                   GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
-MAYBE                   GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+	   	                GROUP_CONCAT(CASE WHEN field_name = 'consent_q1' THEN VALUE ELSE NULL END) AS consent_q1,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q2' THEN VALUE ELSE NULL END) AS consent_q2,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q3' THEN VALUE ELSE NULL END) AS consent_q3,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q4' THEN VALUE ELSE NULL END) AS consent_q4,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q5' THEN VALUE ELSE NULL END) AS consent_q5,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q6' THEN VALUE ELSE NULL END) AS consent_q6,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q7' THEN VALUE ELSE NULL END) AS consent_q7,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q8' THEN VALUE ELSE NULL END) AS consent_q8,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q9' THEN VALUE ELSE NULL END) AS consent_q9,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_diag_bav' THEN VALUE ELSE NULL END) AS inc_diag_bav,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_aff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_aff_1st_deg_rel,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_unaff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_unaff_1st_deg_rel,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_consent' THEN VALUE ELSE NULL END) AS exc_inf_consent,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_risk' THEN VALUE ELSE NULL END) AS exc_inf_risk,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_cyto_abnorm' THEN VALUE ELSE NULL END) AS exc_cyto_abnorm,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_marfans_etc' THEN VALUE ELSE NULL END) AS exc_marfans_etc,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'withd_recd' THEN VALUE ELSE NULL END) AS withd_recd,
+		                   GROUP_CONCAT(CASE WHEN field_name = 'criteria_met' THEN VALUE ELSE NULL END) AS criteria_met
                     FROM    redcap_data rd
                     WHERE rd.project_id = 26
                     GROUP BY rd.record, rd.project_id
@@ -286,4 +320,3 @@ MAYBE                   GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' T
         )
     );
 }
-*/
