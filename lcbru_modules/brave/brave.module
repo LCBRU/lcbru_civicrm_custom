@@ -194,8 +194,6 @@ function brave_permission() {
 function brave_lcbru_getStudyIdFieldName($studyId) {
     if (!brave_isInvalidBraveId($studyId)) {
         return 'CIVI_FIELD_BRAVE_ID';
-    } elseif (!brave_isInvalidBraveFamilyId($studyId)) {
-        return 'CIVI_FIELD_BRAVE_FAMILY_ID';   
     }
 }
 
