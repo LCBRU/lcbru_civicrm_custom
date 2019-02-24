@@ -48,7 +48,6 @@ function brave_isInvalidBraveFamilyId($value) {
 
 function brave_lcbru_populateStudyIds(array &$studyIds) {
     $studyIds[] = 'CIVI_FIELD_BRAVE_ID';
-    $studyIds[] = 'CIVI_FIELD_BRAVE_FAMILY_ID';   
 }
 
 
