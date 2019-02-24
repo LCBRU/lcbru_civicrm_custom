@@ -522,7 +522,7 @@ FROM (
     WHERE last_update > :last_processed_date
     ORDER BY last_update
 ) z
-WHERE rank < 10
+WHERE rank < 100
 
     ";
 
