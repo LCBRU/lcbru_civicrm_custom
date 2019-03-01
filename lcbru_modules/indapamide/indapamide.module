@@ -233,7 +233,7 @@ function indapamide_participant_importer_populateDefinitions() {
                     s.UHL_S_number,
                  CASE
                     WHEN COALESCE(STATUS, '0') = '0' THEN 'excluded'
-                     WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                     WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
                      WHEN non_complete_rsn = '5' THEN 'withdrawn'
                      ELSE 'excluded'
                  END AS case_status
@@ -243,7 +243,7 @@ function indapamide_participant_importer_populateDefinitions() {
                         rd.record,
                         rd.project_id,
                         GROUP_CONCAT(CASE WHEN field_name = 'status' THEN VALUE ELSE NULL END) AS status,
-                        GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                        GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn,
                         GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
                         GROUP_CONCAT(CASE WHEN field_name = 'screening_date' THEN VALUE ELSE NULL END) AS start_date,
@@ -263,6 +263,7 @@ function indapamide_participant_importer_populateDefinitions() {
                 GROUP BY s.record
             ) x
             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_INDAPAMIDE_ID, ''))) > 0
+            ;
             ",
              'case_type_name' => CIVI_CASE_TYPE_INDAPAMIDE,
              'add_pmi' => 1,
