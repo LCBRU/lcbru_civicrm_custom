@@ -20,7 +20,7 @@ function limb_permission() {
 
 
 function limb_label_printer_populateDefinitions(array &$definitions) {
-  $printer = LabelPrinter::PRINTER_CVRC_LAB_SAMPLE;
+  $printer = LabelPrinter::PRINTER_LIMB;
 
   $definitions['LIMb Participant'] = array(
       'name' => 'LIMb Participant',

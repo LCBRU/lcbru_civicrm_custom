@@ -33,6 +33,7 @@ class LabelPrinter
 
   const PRINTER_BRU_CRF_SAMPLE = '10.161.39.251';
   const PRINTER_BRU_CRF_BAG = '125.200.4.46';
+  const PRINTER_LIMB = '10.161.32.254';
 
 /*
   const PRINTER_BRU_CRF_SAMPLE = '10.161.60.121';

@@ -77,7 +77,10 @@ function briccs_participant_importer_populateDefinitions() {
                          END AS gender,
                     birth_date,
                     CASE
-                        WHEN study_status_comp_yn = '0' AND non_complete_rsn = '5' THEN 'withdrawn'
+                        WHEN study_status_comp_yn = '0'
+                            AND non_complete_rsn = '5' THEN 'withdrawn'
+                        WHEN study_status_comp_yn = '0'
+                            AND non_complete_rsn <> '5' THEN 'excluded'
                         ELSE 'recruited'
                     END AS case_status
                 FROM    (
