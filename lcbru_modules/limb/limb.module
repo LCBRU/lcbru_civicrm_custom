@@ -52,7 +52,7 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
       $definitions['LIMb Sample Bag x50'] = array(
         'name' => 'LIMb Sample Bag x50',
         'permission' => LIMB_PREMISSION_PRINT_LABELS,
-        'batch_size' => 1,
+        'batch_size' => 50,
         'participant_id_generators' => array(
           'edta_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
           'serum_id' => new IdGenerator(CIVI_FIELD_LIMB_SAMPLE_ID_PREFIX),
