@@ -78,6 +78,7 @@ class LabelPrinter
         LabelPrinter::PRINTER_TMF_SAMPLE,
         LabelPrinter::PRINTER_TMF_BAG,
         LabelPrinter::PRINTER_ADDRESS,
+        LabelPrinter::PRINTER_LIMB,
       ));
 
     $this->hostnameOrIpAddress = $printername;
