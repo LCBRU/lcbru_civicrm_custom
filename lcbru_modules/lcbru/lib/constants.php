@@ -288,6 +288,12 @@ define('CIVI_CASETYPE_CARDIOMET', 'CARDIOMET');
 define('CIVI_CUSTOMGROUP_CARDIOMET', 'CARDIOMET');
 define('CIVI_FIELD_CARDIOMET_ID', 'CARDIOMET ID');
 
+// CIA
+define('CIVI_CASETYPE_CIA', 'CIA');
+
+define('CIVI_CUSTOMGROUP_CIA', 'CIA');
+define('CIVI_FIELD_CIA_ID', 'CIA ID');
+
 // National Bioresource
 define('CIVI_CASETYPE_NATIONAL_BIORESOURCE', 'National_Bioresource');
 

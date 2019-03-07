@@ -1,0 +1,6 @@
+name = CIA Study
+description = CIA Study Enrollments
+core = 7.x
+configure = admin/config/content/cia
+dependencies[] = lcbru
+dependencies[] = label_printer

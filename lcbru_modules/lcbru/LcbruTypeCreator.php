@@ -74,6 +74,9 @@ class LcbruTypeCreator
         if (module_exists('cardiomet')) {
             $this->recreateCaseCardiomet();
         }
+        if (module_exists('cia')) {
+            $this->recreateCaseCia();
+        }
         if (module_exists('dream_id_generator')) {
             $this->recreateCaseDream();
         }
@@ -609,6 +612,21 @@ class LcbruTypeCreator
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_CARDIOMET);
         $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_CARDIOMET);
         $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_CARDIOMET_ID', CIVI_FIELD_CARDIOMET_ID);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the CIA module
+     *
+     * @return void
+     */
+    private function recreateCaseCia() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_CIA);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_CIA);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_CIA_ID', CIVI_FIELD_CIA_ID);
 
         watchdog(__METHOD__, 'completed');
     }

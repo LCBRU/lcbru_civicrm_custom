@@ -40,7 +40,7 @@ function cardiomet_lcbru_populateStudyIds(array &$studyIds) {
 
 
 function cardiomet_lcbru_getStudyIdFieldName($studyId) {
-    if (!_predict_isInvalidPredictId($studyId)) {
+    if (!_cardiomet_isInvalidCardiometId($studyId)) {
         return 'CIVI_FIELD_CARDIOMET_ID';   
     }
 }

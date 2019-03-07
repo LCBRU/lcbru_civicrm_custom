@@ -66,6 +66,7 @@ class LabelPrinter
   const LABEL_CAE_BLOOD_BAG = 'CaeExternalBloodBag.zpl';
   const LABEL_CAE_URINE_BAG = 'CaeExternalUrineBag.zpl';
   const LABEL_BAG_SMALL = 'SmallBag.zpl';
+  const LABEL_BAG_LARGE = 'LargeBag.zpl';
 
   const PRINTER_PORT = '9100';
 
@@ -127,6 +128,18 @@ class LabelPrinter
     $template = file_get_contents(drupal_get_path('module','label_printer') . '/' . $templateFilePath);
 
     Guard::AssertString_NotEmpty('$template', $template);
+
+    $fieldDefaults = array(
+      "{BAG_LINE_1}" => "",
+      "{BAG_LINE_2}" => "",
+      "{BAG_LINE_3}" => "",
+      "{BAG_LINE_4}" => "",
+      "{BAG_LINE_5}" => "",
+      "{BAG_LINE_6}" => "",
+      "{STUDY_PLACEHOLDER}" => "",
+    );
+
+    $fields = array_merge($fieldDefaults, $fields);
 
     return str_replace(array_keys($fields), array_values($fields), $template);
 

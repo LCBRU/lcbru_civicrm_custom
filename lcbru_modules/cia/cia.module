@@ -1,0 +1,109 @@
+<?php
+
+const CIA_PREMISSION_PRINT_LABELS = 'CIA print labels';
+
+function cia_permission() {
+  return array(
+    CIA_PREMISSION_PRINT_LABELS => array (
+      'title' => t(CIA_PREMISSION_PRINT_LABELS), 
+      'description' => t(CIA_PREMISSION_PRINT_LABELS),
+    ),
+  );
+}
+
+function cia_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_CIA_ID') . '_')) {
+                if (_cia_isInvalidCardiometId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_CIA_ID . " is not valid.  Should be 'CiaPtnnnnnnnnX' where nnnnnnnn is an 8 digit number and X is a check character");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function _cia_isInvalidCardiometId($value) {
+  $idGenerator = new IdGenerator('CiaPt');
+  return !$idGenerator->validate($value);
+}
+
+
+function cia_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_CIA_ID';
+}
+
+
+function cia_lcbru_getStudyIdFieldName($studyId) {
+    if (!_cia_isInvalidCardiometId($studyId)) {
+        return 'CIVI_FIELD_CIA_ID';   
+    }
+}
+
+
+function cia_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['CIA Pack'] = array(
+      'name' => 'CIA Pack',
+      'permission' => CIA_PREMISSION_PRINT_LABELS,
+      'participant_id_generators' => array(
+        'study_id' => new IdGenerator('CiaPt'),
+        ),
+      'labels' => array(
+        'Serum' => array(
+          'id_generator' => new IdGenerator('CiaSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '9.8ml Serum'
+            )
+          ),
+        'EDTA' => array(
+          'id_generator' => new IdGenerator('CarSa'),
+          'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE_AND_MESSAGE,
+          'id_count' => 1,
+          'labels_per_id' => 1,
+          'fields' => array(
+            '{MESSAGE_PLACEHOLDER}' => '9.8ml EDTA'
+            )
+          ),
+          'Participant Label' => array(
+            'participant_id' => 'study_id',
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_SAMPLE,
+            'template' => LabelPrinter::LABEL_SAMPLE,
+            'id_count' => 1,
+            'labels_per_id' => 5
+            ),
+  
+          'EDTA Bag' => array(
+            'participant_id' => 'study_id',
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+            'template' => LabelPrinter::LABEL_BAG_LARGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{TITLE}' => 'CIA EDTA Bag',
+              '{BAG_LINE_1}' => '1 x 9.8ml EDTA tube',
+            )
+          ),
+          'Serum Bag' => array(
+            'participant_id' => 'study_id',
+            'printer' => LabelPrinter::PRINTER_BRU_CRF_BAG,
+            'template' => LabelPrinter::LABEL_BAG_LARGE,
+            'id_count' => 1,
+            'labels_per_id' => 1,
+            'fields' => array(
+              '{TITLE}' => 'CIA Serum Bag',
+              '{BAG_LINE_1}' => '1 x 9.8ml Serum tube',
+              )
+          ),
+      )
+    );
+}
