@@ -103,6 +103,7 @@ function spiral_participant_importer_populateDefinitions() {
                     phone,
                     email,
                     NHS_number,
+                    UHL_S_number,
                     CASE gender
                             WHEN 0 THEN 'Female'
                             WHEN 1 THEN 'male'
