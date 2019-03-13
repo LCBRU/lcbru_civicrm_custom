@@ -44,7 +44,7 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
           'printer' => $printer,
           'template' => LabelPrinter::LABEL_SAMPLE,
           'id_count' => 1,
-          'labels_per_id' => 8
+          'labels_per_id' => 30
           ),
         )
       );
@@ -65,7 +65,7 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
             'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
-              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA On Ice (Sample)'
+              '{MESSAGE_PLACEHOLDER}' => '9ml EDTA On Ice (Sample)'
               )
           ),
           'Serum Sample Bottle' => array(
@@ -85,7 +85,7 @@ function limb_label_printer_populateDefinitions(array &$definitions) {
             'id_count' => 1,
             'labels_per_id' => 1,
             'fields' => array(
-              '{MESSAGE_PLACEHOLDER}' => '7.5ml EDTA (Study Pack)'
+              '{MESSAGE_PLACEHOLDER}' => '9ml EDTA (Study Pack)'
               )
           ),
           'Serum Sample Docs' => array(
