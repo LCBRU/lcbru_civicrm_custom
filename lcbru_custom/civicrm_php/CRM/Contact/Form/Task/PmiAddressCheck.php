@@ -39,10 +39,14 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    			$counts["contacts"]++;
    			$sNumber = lcbru_get_contact_s_number($cId);
    			$pmiDetails = $ph->get_pmi_details($sNumber);
-   			$contact = get_civi_contact($cId);
+			$contact = get_civi_contact($cId);
+			
+			pp($contact);
+
    			$pmiDeceased = FALSE;
    			$civiDeceased = $contact['is_deceased'] == 1;
    			$pmiName = "";
+   			$pmiNhsNumber = "";
 
    			$pmiAddress = array();
    			$civiAddress = array();
@@ -68,6 +72,7 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 
 				$pmiDeceased = $pmiDetails['death_indicator'] == '1';
 				$pmiName = ucwords(strtolower($pmiDetails['first_name'] . " " . $pmiDetails['last_name']));
+				$pmiNhsNumber = $pmiDetails['NHS_number']
 
    			}
 
@@ -87,7 +92,7 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    			if (is_null($pmiDetails)) {
 		    	$this->add('static', "NoPmi_contactId_" . $counts["not_in_pmi"], NULL, $cId);
 		    	$this->add('static', "NoPmi_sNumber_" . $counts["not_in_pmi"], NULL, $sNumber);
-          $this->add('static', "NoPmi_name_" . $counts["not_in_pmi"], NULL, $contact['display_name']);
+          		$this->add('static', "NoPmi_name_" . $counts["not_in_pmi"], NULL, $contact['display_name']);
 		    	$this->add('static', "NoPmi_dateOfBirth_" . $counts["not_in_pmi"], NULL, $contact['birth_date']);
 		    	$this->add('static', "NoPmi_civiAddress_" . $counts["not_in_pmi"], NULL, implode(', ', $civiAddress));
    				$counts["not_in_pmi"]++;
