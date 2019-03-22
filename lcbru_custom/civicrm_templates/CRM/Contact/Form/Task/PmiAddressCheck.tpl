@@ -33,6 +33,14 @@
 			<td>NHS Number Mismatch</td>
 			<td>{$form.nhs_number_mismatch.html}</td>
 		</tr>
+		<tr>
+			<td>Missing Date of Birth</td>
+			<td>{$form.missing_dob.html}</td>
+		</tr>
+		<tr>
+			<td>Date of Birth Mismatch</td>
+			<td>{$form.dob_mismatch.html}</td>
+		</tr>
 	</tbody>
 </table>
 <INPUT TYPE="button" onClick="location.reload();" VALUE="Refresh">
@@ -287,6 +295,75 @@
 <div>
 	{$form.import_missing_nhs_number.html}
 	{$form.import_missing_nhs_number.label}
+</div>
+{/if}
+
+
+{if $form.dob_mismatch.html != '0'}
+<h2>Date of Birth Mismatch</h2>
+<p>Date of Birth in CiviCRM and PMI do not match</p>
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>UHL S Number</th>
+			<th>CiviCRM date of Birth</th>
+			<th>PMI Date of Birth</th>
+		</tr>
+	</thead>
+	<tbody>
+		{section name=loopDeceasedMismatch start=0 loop=$form.dob_mismatch.html}
+			{assign var=idx value=$smarty.section.loopDeceasedMismatch.index}
+			{assign var=contactIdIdx value="DobMismatch_contactId_$idx"}
+			{assign var=sNumberIdx value="DobMismatch_sNumber_$idx"}
+			{assign var=nameIdx value="DobMismatch_name_$idx"}
+			{assign var=civiDOBIdx value="DobMismatch_cv_dob_$idx"}
+			{assign var=pmiNhsNumberIdx value="DobMismatch_pmi_dob_$idx"}
+
+			<tr>
+				<td><a href="/index.php?q=civicrm/contact/view&reset=1&cid={$form.$contactIdIdx.html}" target="_blank">{$form.$nameIdx.html}</a></td>
+				<td>{$form.$sNumberIdx.html}</td>
+				<td>{$form.$civiDOBIdx.html}</td>
+				<td>{$form.$pmiNhsNumberIdx.html}</td>
+			</tr>
+			
+		{/section}
+	</tbody>
+</table>
+{/if}
+
+
+{if $form.missing_dob.html != '0'}
+<h2>Date of Birth Missing</h2>
+<p>Dates of Birth found in PMI that are missing from CiviCRM</p>
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>UHL S Number</th>
+			<th>PMI Date of Birth</th>
+		</tr>
+	</thead>
+	<tbody>
+		{section name=loopDeceasedMismatch start=0 loop=$form.missing_dob.html}
+			{assign var=idx value=$smarty.section.loopDeceasedMismatch.index}
+			{assign var=contactIdIdx value="DobMissing_contactId_$idx"}
+			{assign var=sNumberIdx value="DobMissing_sNumber_$idx"}
+			{assign var=nameIdx value="DobMissing_name_$idx"}
+			{assign var=pmiDOBIdx value="DobMissing_pmi_dob_$idx"}
+
+			<tr>
+				<td><a href="/index.php?q=civicrm/contact/view&reset=1&cid={$form.$contactIdIdx.html}" target="_blank">{$form.$nameIdx.html}</a></td>
+				<td>{$form.$sNumberIdx.html}</td>
+				<td>{$form.$pmiDOBIdx.html}</td>
+			</tr>
+			
+		{/section}
+	</tbody>
+</table>
+<div>
+	{$form.import_missing_dob.html}
+	{$form.import_missing_dob.label}
 </div>
 {/if}
 
