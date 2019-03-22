@@ -185,7 +185,7 @@ class ContactHelper
     }
 
     public function getSubjects(array $parameters) {
-      $parameters['return'] = $this->uhlSystemNumberFieldIdName . ',' . $this->nhsNumberFieldIdName . ',first_name,last_name,birth_date,gender_id,gender,street_address,supplemental_address_1,supplemental_address_2,city,postal_code,state_province,country,display_name';
+      $parameters['return'] = $this->uhlSystemNumberFieldIdName . ',' . $this->nhsNumberFieldIdName . ',first_name,last_name,birth_date,gender_id,gender,street_address,supplemental_address_1,supplemental_address_2,city,postal_code,state_province,country,display_name,is_deceased';
 
       $cons = CiviCrmApiHelper::getObjectsAll('contact', $parameters);
       $result = array();

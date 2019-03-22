@@ -25,6 +25,14 @@
 			<td>Disceased Mismatch - Deceased in CiviCRM, but not in the PMI</td>
 			<td>{$form.deceased_mismatch.html}</td>
 		</tr>
+		<tr>
+			<td>Missing NHS Number</td>
+			<td>{$form.missing_nhs_number.html}</td>
+		</tr>
+		<tr>
+			<td>NHS Number Mismatch</td>
+			<td>{$form.nhs_number_mismatch.html}</td>
+		</tr>
 	</tbody>
 </table>
 <INPUT TYPE="button" onClick="location.reload();" VALUE="Refresh">
@@ -212,5 +220,75 @@
 	</tbody>
 </table>
 {/if}
+
+
+{if $form.nhs_number_mismatch.html != '0'}
+<h2>NHS Number Mismatch</h2>
+<p>NHS Numbers in CiviCRM and PMI do not match</p>
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>UHL S Number</th>
+			<th>CiviCRM NHS Number</th>
+			<th>PMI NHS Number</th>
+		</tr>
+	</thead>
+	<tbody>
+		{section name=loopDeceasedMismatch start=0 loop=$form.nhs_number_mismatch.html}
+			{assign var=idx value=$smarty.section.loopDeceasedMismatch.index}
+			{assign var=contactIdIdx value="NhsMismatch_contactId_$idx"}
+			{assign var=sNumberIdx value="NhsMismatch_sNumber_$idx"}
+			{assign var=nameIdx value="NhsMismatch_name_$idx"}
+			{assign var=civiNhsNumberIdx value="NhsMismatch_cv_nhsnumber_$idx"}
+			{assign var=pmiNhsNumberIdx value="NhsMismatch_pmi_nhsnumber_$idx"}
+
+			<tr>
+				<td><a href="/index.php?q=civicrm/contact/view&reset=1&cid={$form.$contactIdIdx.html}" target="_blank">{$form.$nameIdx.html}</a></td>
+				<td>{$form.$sNumberIdx.html}</td>
+				<td>{$form.$civiNhsNumberIdx.html}</td>
+				<td>{$form.$pmiNhsNumberIdx.html}</td>
+			</tr>
+			
+		{/section}
+	</tbody>
+</table>
+{/if}
+
+
+{if $form.missing_nhs_number.html != '0'}
+<h2>NHS Number Missing</h2>
+<p>NHS Numbers found in PMI that are missing from CiviCRM</p>
+<table>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>UHL S Number</th>
+			<th>PMI NHS Number</th>
+		</tr>
+	</thead>
+	<tbody>
+		{section name=loopDeceasedMismatch start=0 loop=$form.missing_nhs_number.html}
+			{assign var=idx value=$smarty.section.loopDeceasedMismatch.index}
+			{assign var=contactIdIdx value="NhsMissing_contactId_$idx"}
+			{assign var=sNumberIdx value="NhsMissing_sNumber_$idx"}
+			{assign var=nameIdx value="NhsMissing_name_$idx"}
+			{assign var=pmiNhsNumberIdx value="NhsMissing_pmi_nhsnumber_$idx"}
+
+			<tr>
+				<td><a href="/index.php?q=civicrm/contact/view&reset=1&cid={$form.$contactIdIdx.html}" target="_blank">{$form.$nameIdx.html}</a></td>
+				<td>{$form.$sNumberIdx.html}</td>
+				<td>{$form.$pmiNhsNumberIdx.html}</td>
+			</tr>
+			
+		{/section}
+	</tbody>
+</table>
+<div>
+	{$form.import_missing_nhs_number.html}
+	{$form.import_missing_nhs_number.label}
+</div>
+{/if}
+
 
 {$form.buttons.html}

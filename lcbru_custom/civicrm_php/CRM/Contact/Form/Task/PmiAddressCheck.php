@@ -4,6 +4,7 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 
 	private $contactIdsForAddressImport;
 	private $contactIdsForDeceasedFlagImport;
+	private $missingNhsNumberDetails;
 
 	function preProcess() {
 		parent::preProcess();
@@ -16,6 +17,7 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
         
     	$this->contactIdsForAddressImport = array();
     	$this->contactIdsForDeceasedFlagImport = array();
+    	$this->missingNhsNumberDetails = array();
 
    		$counts = array(
 			"contacts" => 0,
@@ -25,6 +27,8 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 			"address_different" => 0,
 			"newly_deceased" => 0,
 			"deceased_mismatch" => 0,
+			"missing_nhs_number" => 0,
+			"nhs_number_mismatch" => 0,
    			);
 
    		$sensibleContactIdsArray = array();
@@ -35,13 +39,12 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 			$sensibleContactIdsArray[] = $this->_contactIds;
 		}
 
-   		foreach ($this->_contactIds as $cId) {
+		$ch = new ContactHelper();
+
+		foreach ($this->_contactIds as $cId) {
    			$counts["contacts"]++;
-   			$sNumber = lcbru_get_contact_s_number($cId);
-   			$pmiDetails = $ph->get_pmi_details($sNumber);
-			$contact = get_civi_contact($cId);
-			
-			pp($contact);
+			$contact = $ch->getSubjectFromId($cId);
+			$pmiDetails = $ph->get_pmi_details($contact['UHL S number']);
 
    			$pmiDeceased = FALSE;
    			$civiDeceased = $contact['is_deceased'] == 1;
@@ -72,35 +75,54 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 
 				$pmiDeceased = $pmiDetails['death_indicator'] == '1';
 				$pmiName = ucwords(strtolower($pmiDetails['first_name'] . " " . $pmiDetails['last_name']));
-				$pmiNhsNumber = $pmiDetails['NHS_number']
+				$pmiNhsNumber = getFormattedNhsNumber($pmiDetails['nhs_number']);
 
    			}
 
    			if (empty($contact["address_id"])) {
 		    	$this->add('static', "AM_contactId_" . $counts["address_missing"], NULL, $cId);
-		    	$this->add('static', "AM_sNumber_" . $counts["address_missing"], NULL, $sNumber);
+		    	$this->add('static', "AM_sNumber_" . $counts["address_missing"], NULL, $contact['UHL S number']);
 		    	$this->add('static', "AM_name_" . $counts["address_missing"], NULL, $contact['display_name']);
 		    	$this->add('static', "AM_pmiAddress_" . $counts["address_missing"], NULL, implode(', ', $pmiAddress));
 		    	$this->add('static', "AM_pmiName_" . $counts["address_missing"], NULL, $pmiName);
    				$counts["address_missing"]++;
 
    				if (!empty($pmiAddress)) {
-   					$this->contactIdsForAddressImport[$cId] = $sNumber;
+   					$this->contactIdsForAddressImport[$cId] = $contact['UHL S number'];
    				}
    			}
 
    			if (is_null($pmiDetails)) {
 		    	$this->add('static', "NoPmi_contactId_" . $counts["not_in_pmi"], NULL, $cId);
-		    	$this->add('static', "NoPmi_sNumber_" . $counts["not_in_pmi"], NULL, $sNumber);
+		    	$this->add('static', "NoPmi_sNumber_" . $counts["not_in_pmi"], NULL, $contact['UHL S number']);
           		$this->add('static', "NoPmi_name_" . $counts["not_in_pmi"], NULL, $contact['display_name']);
 		    	$this->add('static', "NoPmi_dateOfBirth_" . $counts["not_in_pmi"], NULL, $contact['birth_date']);
 		    	$this->add('static', "NoPmi_civiAddress_" . $counts["not_in_pmi"], NULL, implode(', ', $civiAddress));
    				$counts["not_in_pmi"]++;
    			}
 
+		   if ($pmiNhsNumber != $contact["NHS number"] && $contact["NHS number"]) {
+				$this->add('static', "NhsMismatch_contactId_" . $counts["nhs_number_mismatch"], NULL, $cId);
+				$this->add('static', "NhsMismatch_sNumber_" . $counts["nhs_number_mismatch"], NULL, $contact['UHL S number']);
+				$this->add('static', "NhsMismatch_name_" . $counts["nhs_number_mismatch"], NULL, $contact['display_name']);
+				$this->add('static', "NhsMismatch_cv_nhsnumber_" . $counts["nhs_number_mismatch"], NULL, $contact['NHS number']);
+				$this->add('static', "NhsMismatch_pmi_nhsnumber_" . $counts["nhs_number_mismatch"], NULL, $pmiNhsNumber);
+				$counts["nhs_number_mismatch"]++;
+			}
+
+			if ($pmiNhsNumber && !$contact["NHS number"]) {
+				$this->add('static', "NhsMissing_contactId_" . $counts["nhs_number_mismatch"], NULL, $cId);
+				$this->add('static', "NhsMissing_sNumber_" . $counts["nhs_number_mismatch"], NULL, $contact['UHL S number']);
+				$this->add('static', "NhsMissing_name_" . $counts["nhs_number_mismatch"], NULL, $contact['display_name']);
+				$this->add('static', "NhsMissing_pmi_nhsnumber_" . $counts["nhs_number_mismatch"], NULL, $pmiNhsNumber);
+				$counts["missing_nhs_number"]++;
+
+				$this->missingNhsNumberDetails[$cId] = $pmiNhsNumber;
+			}
+
 			if ($civiDeceased && !$pmiDeceased) {
 		    	$this->add('static', "DM_contactId_" . $counts["deceased_mismatch"], NULL, $cId);
-		    	$this->add('static', "DM_sNumber_" . $counts["deceased_mismatch"], NULL, $sNumber);
+		    	$this->add('static', "DM_sNumber_" . $counts["deceased_mismatch"], NULL, $contact['UHL S number']);
 		    	$this->add('static', "DM_name_" . $counts["deceased_mismatch"], NULL, $contact['display_name']);
 		    	$this->add('static', "DM_civiDeceasedFlag_" . $counts["deceased_mismatch"], NULL, $contact['is_deceased'] == '1' ? 'Y' : 'N');
 		    	$this->add('static', "DM_civiDeceasedDate_" . $counts["deceased_mismatch"], NULL, $contact['deceased_date']);
@@ -112,18 +134,18 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 
 			if (!$civiDeceased && $pmiDeceased) {
 		    	$this->add('static', "ND_contactId_" . $counts["newly_deceased"], NULL, $cId);
-		    	$this->add('static', "ND_sNumber_" . $counts["newly_deceased"], NULL, $sNumber);
+		    	$this->add('static', "ND_sNumber_" . $counts["newly_deceased"], NULL, $contact['UHL S number']);
 		    	$this->add('static', "ND_name_" . $counts["newly_deceased"], NULL, $contact['display_name']);
 		    	$this->add('static', "ND_pmiName_" . $counts["newly_deceased"], NULL, $pmiName);
 		    	$this->add('static', "ND_pmiDeceasedDate_" . $counts["newly_deceased"], NULL, $pmiDetails['date_of_death']);
 				$counts["newly_deceased"]++;
 
-				$this->contactIdsForDeceasedFlagImport[$cId] = $sNumber;
+				$this->contactIdsForDeceasedFlagImport[$cId] = $contact['UHL S number'];
 			}
 
 			if (!empty($contact["address_id"]) && !is_null($pmiDetails) && !areAddressesSimilar($civiAddress, $pmiAddress)) {
 		    	$this->add('static', "AD_contactId_" . $counts["address_different"], NULL, $cId);
-		    	$this->add('static', "AD_sNumber_" . $counts["address_different"], NULL, $sNumber);
+		    	$this->add('static', "AD_sNumber_" . $counts["address_different"], NULL, $contact['UHL S number']);
 		    	$this->add('static', "AD_name_" . $counts["address_different"], NULL, $contact['display_name']);
 		    	$this->add('static', "AD_civiAddress_" . $counts["address_different"], NULL, implode(', ', $civiAddress));
 		    	$this->add('static', "AD_pmiAddress_" . $counts["address_different"], NULL, implode(', ', $pmiAddress));
@@ -139,9 +161,12 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
     	$this->add('static', 'address_missing_and_in_pmi', NULL, $counts["address_missing_and_in_pmi"]);
     	$this->add('static', 'newly_deceased', NULL, $counts["newly_deceased"]);
     	$this->add('static', 'deceased_mismatch', NULL, $counts["deceased_mismatch"]);
+    	$this->add('static', 'missing_nhs_number', NULL, $counts["missing_nhs_number"]);
+    	$this->add('static', 'nhs_number_mismatch', NULL, $counts["nhs_number_mismatch"]);
 		
 	    $this->add('checkbox', 'import_addresses', ts('Import missing addresses from UHL PMI where available'));
 	    $this->add('checkbox', 'flag_deceased', ts('Import deceased flag and date into CiviCRM from UHL PMI for these participants'));
+	    $this->add('checkbox', 'import_missing_nhs_number', ts('Import missing NHS Numbers from PMI'));
 
 		$this->addDefaultButtons(ts('Import'));
     }
@@ -160,7 +185,12 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    			self::importDeceasedFlag();
 			drupal_set_message(t('Imported Deceased Flag'));
    		}
-   	}
+
+   		if (!empty($params['import_missing_nhs_number'])) {
+			self::importMissingNhsNumbers();
+		 drupal_set_message(t('Imported Missing NHS Numbers'));
+		}
+	}
 
    	private function importAddresses() {
         $ph = new PmiHelper();
@@ -184,6 +214,17 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
    				);
 
    			civicrm_api('contact', 'create', $params);
+   		}
+   	}
+
+   	private function importMissingNhsNumbers() {
+        $nhsNumberFieldName = lcbru_get_custom_field_id_name(CIVI_FIELD_NHS_NUMBER);
+        
+   		foreach ($this->missingNhsNumberDetails as $cId => $nhsNumber) {
+			CiviCrmApiHelper::createObject('contact', array(
+				"contact_id" => $cId,
+				$nhsNumberFieldName => $nhsNumber,
+		 ));
    		}
    	}
 }
