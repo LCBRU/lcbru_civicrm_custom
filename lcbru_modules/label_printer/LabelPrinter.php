@@ -27,7 +27,7 @@ class LabelPrinter
   const PRINTER_TMF_BAG = 'ZBR3713388';
   const PRINTER_ADDRESS = 'ZBR3713388';
 */
-/* -- DEV
+#/* -- DEV
   const PRINTER_CVRC_LAB_SAMPLE = '10.161.54.254';
   const PRINTER_BRU_CRF_SAMPLE = '10.161.54.254';
   const PRINTER_BRU_CRF_BAG = '10.161.54.254';
@@ -35,8 +35,8 @@ class LabelPrinter
   const PRINTER_TMF_SAMPLE = '10.161.54.254';
   const PRINTER_TMF_BAG = '10.161.54.254';
   const PRINTER_ADDRESS = '10.161.54.254';
-*/
-#/* -- LIVE
+#*/
+/* -- LIVE
   const PRINTER_CVRC_LAB_SAMPLE = 'ZBR3713388';
   const PRINTER_BRU_CRF_SAMPLE = '10.161.39.251';
   const PRINTER_BRU_CRF_BAG = '125.200.4.46';
@@ -44,7 +44,7 @@ class LabelPrinter
   const PRINTER_TMF_SAMPLE = '10.161.60.121';
   const PRINTER_TMF_BAG = '10.161.60.122';
   const PRINTER_ADDRESS = '10.161.54.248';
-#*/
+*/
   const LABEL_BAG_PREDICT = 'PredictBag.zpl';
   const LABEL_BAG_CARDIOMET = 'CardiometBag.zpl';
   const LABEL_BAG_CARDIOMET_WITH_PURPLE = 'CardiometBag_WithPurple.zpl';
