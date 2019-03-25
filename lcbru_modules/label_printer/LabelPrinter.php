@@ -91,7 +91,7 @@ class LabelPrinter
     Guard::AssertString_NotEmpty('$labelContent', $labelContent);
     Guard::AssertInteger('$labelCount', $labelCount);
 
-    usleep ( 500000 );
+    usleep ( 2000000 );
 
     $labelContentWithQuantity = str_replace('{LABEL_QUANTITY}', $labelCount, $labelContent);
     try {
