@@ -1,0 +1,6 @@
+<?php
+
+function discordance_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}

@@ -1,0 +1,6 @@
+name = DISCORDANCE Study
+description = DISCORDANCE Study Enrollments
+core = 7.x
+configure = admin/config/content/discordance
+dependencies[] = lcbru
+dependencies[] = label_printer

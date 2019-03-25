@@ -1,0 +1,163 @@
+<?php
+
+const DISCORDANCE_PERMISSION_PRINT_LABELS = 'DISCORDANCE print labels';
+
+function discordance_permission() {
+  return array(
+    DISCORDANCE_PERMISSION_PRINT_LABELS => array (
+      'title' => t('Print DISCORDANCE Labels'), 
+      'description' => t('Print labels packs for the DISCORDANCE study'),
+    ),
+  );
+}
+
+function discordance_label_printer_populateDefinitions(array &$definitions) {
+  $definitions['DISCORDANCE Pack x10'] = array(
+      'name' => 'DISCORDANCE Pack x10',
+      'permission' => DISCORDANCE_PERMISSION_PRINT_LABELS,
+      'labels' => array(
+        'samples' => array(
+          'id_generator' => new IdGenerator('DisPt'),
+          'printer' => LabelPrinter::PRINTER_TMF_SAMPLE,
+          'template' => LabelPrinter::LABEL_SAMPLE,
+          'id_count' => 10,
+          'labels_per_id' => 6
+          ),
+        ),
+    );
+}
+
+function discordance_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_DISCORDANCE_ID') . '_')) {
+                if (fast_isInvalidFastId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_DISCORDANCE_ID . " is not valid.  Should be of the format 'DisPtnnnnnnnX', where 'nnnnnnn' is a 7 digit number and X is a valid check letter");
+                }
+            }
+        }
+    }
+    return;
+}
+
+function discordance_isInvalidFastId($value) {
+  $idGenerator = new IdGenerator('DisPt');
+
+  return !$idGenerator->validate($value);
+
+}
+
+function discordance_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_DISCORDANCE_ID';
+}
+
+function discordance_lcbru_getStudyIdFieldName($studyId) {
+    if (!discordance_isInvalidFastId($studyId)) {
+        return 'CIVI_FIELD_DISCORDANCE_ID';   
+    }
+}
+
+function discordance_lcbru_getAutoCustomFieldValue($fieldName) {
+    Guard::AssertString_NotEmpty('$fieldName', $fieldName);
+
+    switch ($fieldName) {
+        case 'CIVI_FIELD_DISCORDANCE_ID':
+            $studyIdGenerator = new IdGenerator('DisPt');
+            return $studyIdGenerator->next();
+            break;
+    }
+}
+
+function discordance_participant_importer_populateDefinitions() {
+/*
+    return array(
+        'Fast REDCap' => array(
+            'query' => "
+                SELECT
+                    GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
+                    s.CIVI_FIELD_FAST_ID,
+                    s.start_date,
+                    first_name,
+                    last_name,
+                    street_address,
+                    supplemental_address_2,
+                    city,
+                    state_province,
+                    postal_code,
+                    phone,
+                    email,
+                    NHS_number,
+                    CASE gender
+                            WHEN 0 THEN 'Female'
+                            WHEN 1 THEN 'male'
+                         END AS gender,
+                    birth_date,
+                     CASE
+                         WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         ELSE 'excluded'
+                     END AS case_status
+                FROM    (
+                    SELECT
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'clinic_date' THEN VALUE ELSE NULL END) AS start_date,
+                        rd.record AS CIVI_FIELD_FAST_ID,
+                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_2' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_3' THEN VALUE ELSE NULL END) AS city,
+                        GROUP_CONCAT(CASE WHEN field_name = 'add_4' THEN VALUE ELSE NULL END) AS state_province,
+                        GROUP_CONCAT(CASE WHEN field_name = 'postcode' THEN VALUE ELSE NULL END) AS postal_code,
+                        GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
+                        GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
+                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gp_practice' THEN VALUE ELSE NULL END) AS gp_practice,
+                        GROUP_CONCAT(CASE WHEN field_name = 'patient_recruited' THEN VALUE ELSE NULL END) AS recruited,
+                        GROUP_CONCAT(CASE WHEN field_name = 'patient_attend' THEN VALUE ELSE NULL END) AS patient_attend
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 48
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN (
+                     SELECT
+                            rd.record,
+                            rd.project_id,
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_FAST_ID,
+                         GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                         REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
+                         GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                         GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                     FROM    redcap_data rd
+                     WHERE rd.project_id = 43
+                     GROUP BY rd.record, rd.project_id
+                ) q ON q.CIVI_FIELD_FAST_ID = s.CIVI_FIELD_FAST_ID
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND es.page NOT IN ('DataImportController:index')
+                LEFT JOIN redcap_log_event eq
+                    ON eq.project_id = q.project_id
+                    AND eq.pk = q.record
+                    AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND eq.page NOT IN ('DataImportController:index')
+                WHERE s.recruited = 1
+                    AND LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_FAST_ID, '')))) > 0
+                GROUP BY s.CIVI_FIELD_FAST_ID
+            ",
+             'case_type_name' => CIVI_CASE_TYPE_FAST,
+             'add_pmi' => 0
+        )
+    );
+*/
+}
+
