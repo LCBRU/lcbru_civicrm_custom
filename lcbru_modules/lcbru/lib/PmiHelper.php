@@ -71,8 +71,8 @@ class PmiHelper
         return $result;
     }
 
-    function get_pmi_details($sNumber) {
-        if (empty($sNumber)) {
+    function get_pmi_details($sNumberOrNhsNumber) {
+        if (empty($sNumberOrNhsNumber)) {
             return NULL;
         }
 
@@ -81,7 +81,10 @@ class PmiHelper
         db_set_active('PmiDb');
 
         try {
-            $queryResult = db_query("Select * FROM UHL_PMI_QUERY_BY_ID( :sNumber )", array(':sNumber' => $sNumber));
+            $queryResult = db_query(
+                "Select * FROM UHL_PMI_QUERY_BY_ID( :sNumberOrNhsNumber )",
+                array(':sNumberOrNhsNumber' => $sNumberOrNhsNumber)
+            );
 
             $pmiDetails = $queryResult->fetchAssoc();
 

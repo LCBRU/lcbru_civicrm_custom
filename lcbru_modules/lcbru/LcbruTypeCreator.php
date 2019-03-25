@@ -77,6 +77,9 @@ class LcbruTypeCreator
         if (module_exists('cia')) {
             $this->recreateCaseCia();
         }
+        if (module_exists('discordance')) {
+            $this->recreateCaseDiscordance();
+        }
         if (module_exists('dream_id_generator')) {
             $this->recreateCaseDream();
         }
@@ -627,6 +630,21 @@ class LcbruTypeCreator
         $caseTypeId = recreateCaseType(CIVI_CASETYPE_CIA);
         $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_CIA);
         $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_CIA_ID', CIVI_FIELD_CIA_ID);
+
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the DISCORDANCE module
+     *
+     * @return void
+     */
+     private function recreateCaseDiscordance() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASETYPE_DISCORDANCE);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_CUSTOMGROUP_DISCORDANCE);
+        $this->recreateCustomStringField($customDataGroupId,'CIVI_FIELD_DISCORDANCE_ID', CIVI_FIELD_DISCORDANCE_ID);
 
         watchdog(__METHOD__, 'completed');
     }
