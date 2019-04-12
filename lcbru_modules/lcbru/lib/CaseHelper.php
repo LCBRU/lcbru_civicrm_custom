@@ -59,19 +59,6 @@ class CaseHelper
     public function isParticipantStudyIdFieldName($fieldName) {
         Guard::AssertString_NotEmpty('$fieldName', $fieldName);
 
-        pp($fieldName);
-
-        foreach ($this->getStudyIdFieldNames() as $f) {
-            pp($f);
-
-            if ('CIVI_FIELD_FAST_ID' == $f) {
-                pp('What about this?');
-            }
-
-            if ($fieldName == $f) {
-                pp('This is it');
-            }
-        }
         return in_array($fieldName, $this->getStudyIdFieldNames());
     }
 
@@ -108,7 +95,6 @@ class CaseHelper
         $result = array();
 
         foreach ($participantDetails as $key => $value) {
-            pp($key);
             if ($this->isParticipantStudyIdFieldName($key)) {
                 if (is_null($caseTypeId) || $this->customFieldHelper->isCaseCustomField($caseTypeId, $key)) {
 
