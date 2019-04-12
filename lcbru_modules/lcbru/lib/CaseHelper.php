@@ -64,6 +64,10 @@ class CaseHelper
         foreach ($this->getStudyIdFieldNames() as $f) {
             pp($f);
 
+            if ('CIVI_FIELD_FAST_ID' == $f) {
+                pp('What about this?');
+            }
+
             if ($fieldName == $f) {
                 pp('This is it');
             }
