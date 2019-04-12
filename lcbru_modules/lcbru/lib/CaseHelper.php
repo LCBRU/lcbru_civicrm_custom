@@ -46,6 +46,8 @@ class CaseHelper
         }
         asort($result);
 
+        pp($result);
+
         return $result;
     }
 
