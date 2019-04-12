@@ -46,8 +46,6 @@ class CaseHelper
         }
         asort($result);
 
-        pp($result);
-
         return $result;
     }
 
@@ -97,6 +95,7 @@ class CaseHelper
         $result = array();
 
         foreach ($participantDetails as $key => $value) {
+            pp($key);
             if ($this->isParticipantStudyIdFieldName($key)) {
                 if (is_null($caseTypeId) || $this->customFieldHelper->isCaseCustomField($caseTypeId, $key)) {
 
