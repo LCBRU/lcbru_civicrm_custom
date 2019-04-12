@@ -71,8 +71,8 @@ class PmiHelper
         return $result;
     }
 
-    function get_pmi_details($sNumberOrNhsNumber) {
-        if (empty($sNumberOrNhsNumber)) {
+    function get_pmi_details($sNumber) {
+        if (empty($sNumber)) {
             return NULL;
         }
 
@@ -82,8 +82,44 @@ class PmiHelper
 
         try {
             $queryResult = db_query(
-                "Select * FROM UHL_PMI_QUERY_BY_ID( :sNumberOrNhsNumber )",
-                array(':sNumberOrNhsNumber' => $sNumberOrNhsNumber)
+                "Select * FROM UHL_PMI_QUERY_BY_ID( :sNumber )",
+                array(':sNumber' => $sNumber)
+            );
+
+            $pmiDetails = $queryResult->fetchAssoc();
+
+            // The PMI helpfully returns a row of NULLs if it
+            // doesn't find a record.  Therefore, if the 'main_pat_id'
+            // is NULL, nothing was found.
+
+            if (!is_null($pmiDetails['main_pat_id'])) {
+                $result = $pmiDetails;
+            }
+
+        } catch (Exception $ex) {
+            db_set_active();
+            throw $ex;
+        } finally {
+            db_set_active();
+        }
+
+        return $result;
+    }
+
+
+    function get_pmi_details_by_nhs_number($nhsNumber) {
+        if (empty($nhsNumber)) {
+            return NULL;
+        }
+
+        $result = NULL;
+
+        db_set_active('PmiDb');
+
+        try {
+            $queryResult = db_query(
+                "Select * FROM UHL_PMI_QUERY_BY_ID( :nhsNumber )",
+                array(':nhsNumber' => $nhsNumber)
             );
 
             $pmiDetails = $queryResult->fetchAssoc();

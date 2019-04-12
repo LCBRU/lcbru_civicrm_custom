@@ -50,12 +50,10 @@ class CRM_Contact_Form_Task_PmiAddressCheck extends CRM_Contact_Form_Task {
 			$contact = $ch->getSubjectFromId($cId);
 
 			if ($contact['UHL S number']) {
-				$pmiLookupID = $contact['UHL S number'];
+				$pmiDetails = $ph->get_pmi_details($contact['UHL S number']);
 			} else {
-				$pmiLookupID = $contact['NHS number'];
+				$pmiDetails = $ph->get_pmi_details_by_nhs_number($contact['NHS number']);
 			}
-
-			$pmiDetails = $ph->get_pmi_details($pmiLookupID);
 
    			$pmiDeceased = FALSE;
    			$civiDeceased = $contact['is_deceased'] == 1;
