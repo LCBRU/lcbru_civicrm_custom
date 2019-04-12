@@ -123,6 +123,7 @@ class ParticipantImporter
         }
 
         try {
+            pp($this->caseHelper->extractParticipantStudyIds($details));
             $existingContact = $this->contactHelper->getSubjectFromIds($uhlSystemNumber, $nhsNumber, $this->caseHelper->extractParticipantStudyIds($details));
 
             if (is_null($existingContact)) {
