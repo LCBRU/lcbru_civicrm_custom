@@ -59,6 +59,9 @@ class CaseHelper
     public function isParticipantStudyIdFieldName($fieldName) {
         Guard::AssertString_NotEmpty('$fieldName', $fieldName);
 
+        pp($fieldName);
+        pp($this->getStudyIdFieldNames());
+        pp(in_array($fieldName, $this->getStudyIdFieldNames()));
         return in_array($fieldName, $this->getStudyIdFieldNames());
     }
 
