@@ -60,8 +60,14 @@ class CaseHelper
         Guard::AssertString_NotEmpty('$fieldName', $fieldName);
 
         pp($fieldName);
-        pp($this->getStudyIdFieldNames());
-        pp(in_array($fieldName, $this->getStudyIdFieldNames()));
+
+        foreach ($this->getStudyIdFieldNames() as $f) {
+            pp($f);
+
+            if ($fieldName == $f) {
+                pp('This is it');
+            }
+        }
         return in_array($fieldName, $this->getStudyIdFieldNames());
     }
 
