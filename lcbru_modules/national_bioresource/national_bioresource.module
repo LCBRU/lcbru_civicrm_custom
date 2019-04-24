@@ -49,7 +49,7 @@ function _national_bioresource_isInvalidNationalBioresourceId($value) {
     $brid = 'BR' . $parts[1] . $parts[2];
 
     $idGenerator = new IdGenerator('BR');
-    return !$idGenerator->validate($brid);
+    return _nihr_br_labels_isInvalidBioresourceId($brid);
 }
 
 
@@ -68,6 +68,6 @@ function national_bioresource_lcbru_getStudyIdFieldName($studyId) {
         return 'CIVI_FIELD_LEGACY_BIORESOURCE_ID';   
     }
     if (!_nihr_br_labels_isInvalidBioresourceId($studyId)) {
-        return 'CIVI_FIELD_NATIONAL_BIORESOURCE_ID';   
+        return 'CIVI_FIELD_LEICESTER_BIORESOURCE_ID';   
     }
 }
