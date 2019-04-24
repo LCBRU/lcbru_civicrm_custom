@@ -46,9 +46,9 @@ function _national_bioresource_isInvalidNationalBioresourceId($value) {
         return true;
     }
 
-    $brid = 'Br' . $parts[1];
+    $brid = 'BR' . $parts[1] . $parts[2];
 
-    $idGenerator = new IdGenerator('Br');
+    $idGenerator = new IdGenerator('BR');
     return !$idGenerator->validate($brid);
 }
 
