@@ -595,6 +595,8 @@ function _participant_importer_get_all_definitions() {
 
     foreach (module_implements('participant_importer_populateDefinitions') as $module) {
       $function = $module . '_participant_importer_populateDefinitions';
+      pp($function);
+      pp($function());
       $result = array_merge($result, $function());
     }
 

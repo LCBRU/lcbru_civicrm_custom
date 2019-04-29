@@ -1,12 +1,22 @@
 <?php
 
 const DISCORDANCE_PERMISSION_PRINT_LABELS = 'DISCORDANCE print labels';
+const DISCORDANCE_PERMISSION_BLIND = 'DISCORDANCE blind';
+const DISCORDANCE_PERMISSION_UNBLIND = 'DISCORDANCE unblind';
 
 function discordance_permission() {
   return array(
     DISCORDANCE_PERMISSION_PRINT_LABELS => array (
       'title' => t('Print DISCORDANCE Labels'), 
       'description' => t('Print labels packs for the DISCORDANCE study'),
+    ),
+    DISCORDANCE_PERMISSION_BLIND => array (
+        'title' => t(DISCORDANCE_PERMISSION_BLIND),
+        'description' => t(DISCORDANCE_PERMISSION_BLIND),
+    ),
+    DISCORDANCE_PERMISSION_UNBLIND => array (
+    'title' => t(DISCORDANCE_PERMISSION_UNBLIND),
+    'description' => t(DISCORDANCE_PERMISSION_UNBLIND),
     ),
   );
 }
@@ -71,7 +81,34 @@ function discordance_lcbru_getAutoCustomFieldValue($fieldName) {
     }
 }
 
+function discordance_blind_unblind_populateDefinitions(array &$definitions) {
+    $definitions['DisA'] = array(
+      'blinding_permission' => DISCORDANCE_PERMISSION_BLIND,
+      'unblinding_permission' => DISCORDANCE_PERMISSION_UNBLIND,
+      'blind_id_types' => array (
+        'DisA' => 'xDisA',
+      )
+    );
+    $definitions['DisN'] = array(
+        'blinding_permission' => DISCORDANCE_PERMISSION_BLIND,
+        'unblinding_permission' => DISCORDANCE_PERMISSION_UNBLIND,
+        'blind_id_types' => array (
+          'DisN' => 'xDisN',
+        )
+      );
+      $definitions['DisD'] = array(
+        'blinding_permission' => DISCORDANCE_PERMISSION_BLIND,
+        'unblinding_permission' => DISCORDANCE_PERMISSION_UNBLIND,
+        'blind_id_types' => array (
+          'DisD' => 'xDisD',
+        )
+      );
+  }
+
+
 function discordance_participant_importer_populateDefinitions() {
+ // WHAT THE HELL!!!!!!!!!!
+    return array();
 /*
     return array(
         'Fast REDCap' => array(
