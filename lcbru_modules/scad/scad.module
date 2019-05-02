@@ -305,97 +305,124 @@ function scad_participant_importer_populateDefinitions() {
         'SCAD REDCap' => array(
             'query' => "
                 SELECT
-                    GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
-                    CASE WHEN s.record LIKE 'ScPt%' THEN s.record ELSE '<auto generate>' END CIVI_FIELD_SCAD_ID,
-                    CASE WHEN s.record LIKE 'BPt%' THEN s.record END CIVI_FIELD_SCAD_BRICCS_ID,
-                    CASE WHEN s.record LIKE 'BPt%' THEN s.record END BRICCS_ID,
-                    s.record,
-                    s.scad_local_id CIVI_FIELD_SCAD_VISIT_ID,
-                    scad_reg_id CIVI_FIELD_SCAD_REG_ID,
-                    scad_family_id CIVI_FIELD_SCAD_FAMILY_ID,
-                    start_date,
-                    CASE gender
-                            WHEN 0 THEN 'Female'
-                            WHEN 1 THEN 'male'
-                         END AS gender,
-                    CASE rec_type
-                            WHEN '0' THEN 'Healthy volunteer'
-                            WHEN '1' THEN 'SCAD'
-                          END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
-                    birth_date,
-                    CASE
-                         WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
-                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
-                         ELSE 'excluded'
-                    END AS case_status,
-                    first_name,
-                    last_name,
-                    supplemental_address_1,
-                    street_address,
-                    supplemental_address_2,
-                    city,
-                    state_province,
-                    country,
-                    postal_code,
-                    LEFT(phone, 32),
-                    email,
-                    REPLACE(nhs_number, ' ', '') NHS_number,
-                    UHL_S_number
-                FROM    (
-                    SELECT
-                        rd.record,
-                        rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'scad_family_id' THEN VALUE ELSE NULL END) AS scad_family_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
-                        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-                        GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-                        GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
-                    FROM    redcap_data rd
-                    WHERE rd.project_id = 28
-                    GROUP BY rd.record, rd.project_id
-                ) s
-                JOIN (
-                    SELECT
-                        rd.record,
-                        rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
-                        GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
-                        GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
-                        GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
-                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
-                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
-                    FROM    redcap_data rd
-                    WHERE rd.project_id = 31
-                    GROUP BY rd.record, rd.project_id
-                ) q ON q.record = s.scad_reg_id
-                LEFT JOIN redcap_log_event es
-                    ON es.project_id = s.project_id
-                    AND es.pk = s.record
-                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND es.page NOT IN ('DataImportController:index')
-                LEFT JOIN redcap_log_event eq
-                    ON eq.project_id = q.project_id
-                    AND eq.pk = q.record
-                    AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND eq.page NOT IN ('DataImportController:index')
-                GROUP BY s.record
-                ",
+                GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
+                CASE WHEN s.record LIKE 'ScPt%' THEN s.record ELSE '<auto generate>' END CIVI_FIELD_SCAD_ID,
+                CASE WHEN s.record LIKE 'BPt%' THEN s.record END CIVI_FIELD_SCAD_BRICCS_ID,
+                CASE WHEN s.record LIKE 'BPt%' THEN s.record END BRICCS_ID,
+                s.record,
+                s.scad_local_id CIVI_FIELD_SCAD_VISIT_ID,
+                scad_reg_id CIVI_FIELD_SCAD_REG_ID,
+                scad_family_id CIVI_FIELD_SCAD_FAMILY_ID,
+                start_date,
+                CASE gender
+                        WHEN 0 THEN 'Female'
+                        WHEN 1 THEN 'male'
+                    END AS gender,
+                CASE rec_type
+                        WHEN '0' THEN 'Healthy volunteer'
+                        WHEN '1' THEN 'SCAD'
+                      END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
+                birth_date,
+                CASE
+                    WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                    WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                    ELSE 'excluded'
+                END AS case_status,
+                first_name,
+                last_name,
+                supplemental_address_1,
+                street_address,
+                supplemental_address_2,
+                city,
+                state_province,
+                country,
+                postal_code,
+                LEFT(phone, 32),
+                email,
+                REPLACE(nhs_number, ' ', '') NHS_number,
+                UHL_S_number
+            FROM    (
+                SELECT
+                    rd.record,
+                    rd.project_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scad_local_id' THEN VALUE ELSE NULL END) AS scad_local_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scad_family_id' THEN VALUE ELSE NULL END) AS scad_family_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'rec_type' THEN VALUE ELSE NULL END) AS rec_type,
+                    GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+                    GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                    GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                    GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                    GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                FROM    redcap_data rd
+                WHERE rd.project_id = 28 # Clinical Visit 1
+                GROUP BY rd.record, rd.project_id
+                
+                UNION
+                SELECT
+                    rd.record,
+                    rd.project_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scad_id' THEN VALUE ELSE NULL END) AS scad_local_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scadreg_id' THEN VALUE ELSE NULL END) AS scad_reg_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scad_family_id' THEN VALUE ELSE NULL END) AS scad_family_id,
+                    GROUP_CONCAT(
+              CASE WHEN field_name = 'rec_type' THEN
+                CASE
+                  WHEN VALUE = 1 THEN 1
+                  WHEN VALUE = 2 THEN 0
+                  WHEN VALUE = 3 THEN 2
+                END
+                ELSE NULL
+              END
+            ) AS rec_type,
+                    GROUP_CONCAT(CASE WHEN field_name = 'consent_date' THEN VALUE ELSE NULL END) AS start_date,
+                    GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                    GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                    GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                    GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                FROM    redcap_data rd
+                WHERE rd.project_id = 77 # Clinical Visit 2
+                GROUP BY rd.record, rd.project_id
+            ) s
+            JOIN (
+                SELECT
+                    rd.record,
+                    rd.project_id,
+                    GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date,
+                    GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
+                    GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
+                    GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
+                    GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
+                    GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
+                    GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
+                    GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number
+                FROM    redcap_data rd
+                WHERE rd.project_id = 31
+                GROUP BY rd.record, rd.project_id
+            ) q ON q.record = s.scad_reg_id
+            LEFT JOIN redcap_log_event es
+                ON es.project_id = s.project_id
+                AND es.pk = s.record
+                AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                # Ignore events caused by the data import from
+                # the mobile app
+                AND es.page NOT IN ('DataImportController:index')
+            LEFT JOIN redcap_log_event eq
+                ON eq.project_id = q.project_id
+                AND eq.pk = q.record
+                AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                # Ignore events caused by the data import from
+                # the mobile app
+                AND eq.page NOT IN ('DataImportController:index')
+            GROUP BY s.record
+
+          ",
              'case_type_name' => CIVI_CASE_TYPE_SCAD,
              'add_pmi' => 0
         )
