@@ -213,7 +213,7 @@ class CaseHelper
           }
         }
 
-        return $result;
+        return array_unique($result);
     }
 
     /**
