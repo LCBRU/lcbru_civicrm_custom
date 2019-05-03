@@ -180,12 +180,14 @@ class CaseHelper
         if (count($cases) > 1) {
             throw new Exception(
                 __FUNCTION__.
-                " more than one study found: potentialStudyIds = ".
-                print_r($potentialStudyIds, true).
-                PHP_EOL.
-                "Cases are:".
-                PHP_EOL.
-                print_r($cases, true)
+                " more than one study found: potentialStudyIds = ".PHP_EOL.
+                print_r($potentialStudyIds, true).PHP_EOL.
+                "Cases are:".PHP_EOL.
+                print_r($cases, true).PHP_EOL.
+                "Participant Study IDs:".PHP_EOL.
+                print_r($participantStudyIds, true).PHP_EOL.
+                "Case IDs:".PHP_EOL.
+                print_r($caseIds, true).PHP_EOL
             );
         }
 
