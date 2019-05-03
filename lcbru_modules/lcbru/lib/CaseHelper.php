@@ -178,7 +178,6 @@ class CaseHelper
         }
 
         if (count($cases) > 1) {
-            pp($cases);
             throw new Exception(__FUNCTION__." more than one study found: potentialStudyIds = ".print_r($potentialStudyIds, true).PHP_EOL."Cases are:".PHP_EOL.print_r($cases, true));
         }
 

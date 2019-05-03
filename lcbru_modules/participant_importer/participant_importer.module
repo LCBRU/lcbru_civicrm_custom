@@ -547,13 +547,16 @@ WHERE rank < 10
     $caseH = new CaseHelper();
     $caseType = $caseH->getCaseTypeFromName($parameters['case_type_name']);
 
-
+    $caseStatusHelper = new OptionValueHelper(OptionValueHelper::CASE_STATUS);
+    $excludedCasesStatus = array();
+    $excludedCasesStatus[] = $caseStatusHelper->getValueFromLabel('Excluded');
+    $excludedCasesStatus[] = $caseStatusHelper->getValueFromLabel('Duplicate');
 
     $pi = new ParticipantImporter(
         $caseType['id'],
         !ArrayHelper::get($parameters, 'ignore_missing_participants', False),
         True,
-        array(),
+        $excludedCasesStatus,
         ArrayHelper::get($parameters, 'ignore_missing_participants', False)
     );
 
