@@ -301,7 +301,6 @@ function scad_blind_unblind_populateDefinitions(array &$definitions) {
 
 
 function scad_participant_importer_populateDefinitions() {
-  pp('Bloop');
     return array(
         'SCAD REDCap' => array(
             'query' => "
@@ -315,16 +314,17 @@ function scad_participant_importer_populateDefinitions() {
             q.record CIVI_FIELD_SCAD_REG_ID,
             s.scad_family_id CIVI_FIELD_SCAD_FAMILY_ID,
             COALESCE(s.start_date, q.scad_reg_date) AS start_date,
-            CASE COALESCE(s.gender, q.gender)
+            CASE COALESCE(s.gender, q.gender) COLLATE utf8_general_ci
                     WHEN 0 THEN 'Female'
                     WHEN 1 THEN 'Male'
                 END AS gender,
-            CASE COALESCE(s.rec_type, q.scad_reg_typ)
+            CASE COALESCE(s.rec_type, q.scad_reg_typ) COLLATE utf8_general_ci
                     WHEN '0' THEN 'Healthy volunteer'
                     WHEN '1' THEN 'SCAD'
                   END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
             COALESCE(s.birth_date, q.dob) birth_date,
             CASE
+                WHEN s.record IS NULL THEN 'recruitment pending'
                 WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
                 WHEN non_complete_rsn = '5' THEN 'withdrawn'
                 ELSE 'excluded'
