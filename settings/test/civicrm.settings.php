@@ -59,7 +59,7 @@ define( 'CIVICRM_UF'               , 'Drupal'        );
  * Datasource (DSN) format:
  *      define( 'CIVICRM_UF_DSN', 'mysql://cms_db_username:cms_db_password@db_server/cms_database?new_link=true');
  */
-define( 'CIVICRM_UF_DSN'           , 'mysql://drupaltestuser:d0lk5f4e@10.147.126.56/drupaltest?new_link=true' );
+define( 'CIVICRM_UF_DSN'           , 'mysql://' . getenv("MYSQL_DRUPAL_USERNAME") . ':' . getenv("MYSQL_DRUPAL_PASSWORD") . '@' . getenv("MYSQL_DRUPAL_HOST") . '/' . getenv("MYSQL_DRUPAL_DATABASE"));
 
 /**
  * CiviCRM Database Settings
@@ -80,7 +80,7 @@ define( 'CIVICRM_UF_DSN'           , 'mysql://drupaltestuser:d0lk5f4e@10.147.126
  *      define( 'CIVICRM_DSN'         , 'mysql://civicrm:YOUR_PASSWORD@localhost/civicrm?new_link=true' );
  *
  */
-define( 'CIVICRM_DSN'          , 'mysql://civicrmtestuser:d0lk5f4e@uhlbriccsdbdev.xuhl-tr.nhs.uk/civicrmtest?new_link=true' );
+ define( 'CIVICRM_DSN'          , 'mysql://' . getenv("MYSQL_CIVICRM_USERNAME") . ':' . getenv("MYSQL_CIVICRM_PASSWORD") . '@' . getenv("MYSQL_CIVICRM_HOST") . '/' . getenv("MYSQL_CIVICRM_DATABASE"));
 
 /**
  * CiviCRM Logging Database
