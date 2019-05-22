@@ -53,8 +53,6 @@ class ContactHelper
       Guard::AssertString('$nhsNumber', $nhsNumber);
       Guard::AssertArray('$participantStudyIds', $participantStudyIds);
 
-      pp($participantStudyIds, "participantStudyIds");
-
       $potentialContacts = array();
 
       $uhlSystemNumber = getFormattedUhlSystemNumber($uhlSystemNumber);
@@ -92,8 +90,6 @@ class ContactHelper
 
       if (!empty($nhsNumber) && !empty($result[CIVI_FIELD_NHS_NUMBER])) {
         if ($nhsNumber != $result[CIVI_FIELD_NHS_NUMBER]) {
-          pp($uhlSystemNumber, 'S NUMBER');
-          pp($nhsNumber, 'NHS NUMBER');
           throw new Exception("NHS Numbers do not match.  Existing is '{$result[CIVI_FIELD_NHS_NUMBER]}', but provided is '$nhsNumber' for record with S Number = '{$result[CIVI_FIELD_S_NUMBER]}'");
         }
       }
