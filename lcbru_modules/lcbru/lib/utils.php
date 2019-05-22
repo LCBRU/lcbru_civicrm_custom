@@ -1385,6 +1385,8 @@ function lcbru_get_participant_by_nhs_or_s_number($s_number, $nhs_number) {
   }
 
   if (!empty($nhs_number) && !empty($result[CIVI_FIELD_NHS_NUMBER])) {
+    pp($s_number, 'S Number');
+    pp($nhs_number, 'NHS Number');
     if ($nhs_number != $result[CIVI_FIELD_NHS_NUMBER]) {
       throw new Exception(
           "NHS Numbers do not match.  Existing is '{$result[CIVI_FIELD_NHS_NUMBER]}', but provided is '$nhs_number' for record with S Number = '{$result[CIVI_FIELD_S_NUMBER]}'");
