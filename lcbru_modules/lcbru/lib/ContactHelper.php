@@ -53,6 +53,8 @@ class ContactHelper
       Guard::AssertString('$nhsNumber', $nhsNumber);
       Guard::AssertArray('$participantStudyIds', $participantStudyIds);
 
+      pp($participantStudyIds, "participantStudyIds");
+
       $potentialContacts = array();
 
       $uhlSystemNumber = getFormattedUhlSystemNumber($uhlSystemNumber);
