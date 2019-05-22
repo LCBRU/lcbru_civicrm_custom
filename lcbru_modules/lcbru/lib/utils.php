@@ -1364,6 +1364,7 @@ function lcbru_get_participant_by_custom_field($filterFieldName, $filterValue) {
 }
 
 function lcbru_get_participant_by_nhs_or_s_number($s_number, $nhs_number) {
+  pp('Yeah');
   $s_number = getFormattedUhlSystemNumber($s_number);
   $nhs_number = getFormattedNhsNumber($nhs_number);
 
