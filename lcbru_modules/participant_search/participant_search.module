@@ -92,6 +92,11 @@ function _participant_search_results($searchString) {
 
     	$fields = array();
 
+    	if (!empty($m['contact_is_deleted'])){
+		    $is_deleted = ' (<strong>Deleted</strong>)';
+    	} else {
+		    $is_deleted = '';
+		}
     	if (!empty($m['birth_date'])){
 		    $fields[] = '<strong>Date of Birth</strong>: ' . date('d-M-Y', strtotime($m['birth_date']));
     	}
@@ -122,7 +127,7 @@ function _participant_search_results($searchString) {
 
     	$html .= "
     		<li>
-    			<h1><a href='$url' target='_blank'>$name</a></h1>
+    			<h1><a href='$url' target='_blank'>$name$is_deleted</a></h1>
     			<p>$fields_string</p>
     			<ul>
     				$cases_string
