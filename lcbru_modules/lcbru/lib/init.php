@@ -129,7 +129,7 @@ update_civi_option_value(array("label" => "Secure temporary housing", "option_gr
 update_civi_option_value(array("label" => "Income and benefits stabilization", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: 
 update_civi_option_value(array("label" => "Long-term housing plan", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: 
 update_civi_option_value(array("label" => "ADC referral", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: 
-update_civi_option_value(array("label" => "Change Case Type", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: change case type makes no sense in research 
+// Seems like it's used in case creation # update_civi_option_value(array("label" => "Change Case Type", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: change case type makes no sense in research 
 update_civi_option_value(array("label" => "Merge Case", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: merge case makes no sense in research 
 update_civi_option_value(array("label" => "Link Cases", "option_group_id" => $og['id']), array("is_active" => "0", "is_default" => "0")); // mark as inactive option value: link cases makes no sense in research 
 update_civi_option_value(array("label" => "Open Case", "option_group_id" => $og['id']), array("label" => "Enrol into study", "is_default" => "0")); // change label for 'open case' option value: 

@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @file
+ * A module to support recruitment into the SCAD study
+ */
+
+function scad_register_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+
+    $contactFormBeginning = 'CRM_Case_Form_';
+
+    if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
+        foreach ($fields as $key => $field) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_REG_ID') . '_')) {
+                if (_scad_isInvalidScadRegId($field)) {
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_REG_ID . " is not valid.  Should be of the format 'ScadRegnnnnn', where 'nnnnn' is a 5 digit number");
+                }
+            }
+        }
+    }
+    return;
+}
+
+
+function scad_register_lcbru_populateStudyIds(array &$studyIds) {
+    $studyIds[] = 'CIVI_FIELD_SCAD_REG_ID';
+}
+
+
+function scad_register_lcbru_getStudyIdFieldName($studyId) {
+    if (!_scad_isInvalidScadRegId($studyId)) {
+        return 'CIVI_FIELD_SCAD_REG_ID';
+    }
+}
+
+
+function scad_register_participant_importer_populateDefinitions() {
+    return array(
+        'SCAD Register REDCap' => array(
+            'query' => "
+
+    SELECT
+        MAX(COALESCE(eq.ts, 0)) AS last_update,
+        q.record CIVI_FIELD_SCAD_REG_ID,
+        q.scad_reg_date AS start_date,
+        CASE q.gender
+                WHEN 0 THEN 'Female'
+                WHEN 1 THEN 'Male'
+            END AS gender,
+        CASE q.scad_reg_typ
+                WHEN '0' THEN 'Healthy volunteer'
+                WHEN '1' THEN 'SCAD'
+                END CIVI_FIELD_SCAD_RECRUITMENT_TYPE,
+        q.dob birth_date,
+        'recruited' case_status,
+        q.first_name,
+        q.last_name,
+        q.supplemental_address_1,
+        q.street_address,
+        q.supplemental_address_2,
+        q.city,
+        q.state_province,
+        q.country,
+        q.postal_code,
+        LEFT(q.phone, 32),
+        q.email,
+        REPLACE(q.nhs_number, ' ', '') NHS_number,
+        q.UHL_S_number
+    FROM (
+        SELECT
+            rd.record,
+            rd.project_id,
+            GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_typ' THEN CASE WHEN VALUE = '2' THEN '0' WHEN VALUE = '0' THEN '1' WHEN VALUE = '1' THEN '2' END ELSE NULL END) AS scad_reg_typ,
+            GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_date' THEN VALUE ELSE NULL END) AS scad_reg_date,
+            GROUP_CONCAT(CASE WHEN field_name = 'wthdrw_date' THEN VALUE ELSE NULL END) AS wthdrw_date,
+            GROUP_CONCAT(CASE WHEN field_name = 'frst_nm' THEN VALUE ELSE NULL END) AS first_name,
+            GROUP_CONCAT(CASE WHEN field_name = 'lst_nm' THEN VALUE ELSE NULL END) AS last_name,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_2' THEN VALUE ELSE NULL END) AS street_address,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_ln_3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_city' THEN VALUE ELSE NULL END) AS city,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_rgn' THEN VALUE ELSE NULL END) AS state_province,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_cntry' THEN VALUE ELSE NULL END) AS country,
+            GROUP_CONCAT(CASE WHEN field_name = 'addrss_pstcd' THEN VALUE ELSE NULL END) AS postal_code,
+            GROUP_CONCAT(CASE WHEN field_name = 'prfrrd_phn_num' THEN VALUE ELSE NULL END) AS phone,
+            GROUP_CONCAT(CASE WHEN field_name = 'scad_reg_email' THEN VALUE ELSE NULL END) AS email,
+            GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS nhs_number,
+            GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS dob,
+            GROUP_CONCAT(CASE WHEN field_name = 'reg_scad_eligible' THEN VALUE ELSE NULL END) AS reg_scad_eligible,
+            GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender
+        FROM    redcap_data rd
+        WHERE rd.project_id = 31 # Registry & Screening
+            AND LENGTH(TRIM(COALESCE(rd.record, ''))) > 0
+        GROUP BY rd.record, rd.project_id
+    ) q
+    LEFT JOIN redcap_log_event eq
+        ON eq.project_id = q.project_id
+        AND eq.pk = q.record
+        AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+        # Ignore events caused by the data import from
+        # the mobile app
+        AND eq.page NOT IN ('DataImportController:index')
+    WHERE q.record IS NOT NULL
+        OR (q.reg_scad_eligible = '1' AND scad_reg_typ IN (0, 1, 2))
+
+    GROUP BY q.record
+      ",
+             'case_type_name' => CIVI_CASE_TYPE_SCAD_REGISTER,
+             'add_pmi' => 0
+        )
+    );
+}
+

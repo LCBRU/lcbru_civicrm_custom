@@ -143,6 +143,9 @@ class LcbruTypeCreator
         if (module_exists('scad')) {
             $this->recreateCaseScad();
         }
+        if (module_exists('scad_register')) {
+            $this->recreateCaseScadRegister();
+        }
         if (module_exists('spiral')) {
             $this->recreateCaseSpiral();
         }
@@ -1167,6 +1170,21 @@ class LcbruTypeCreator
         $cfh->setFieldInactive('CIVI_FIELD_SCAD_CONSENT_RECEIVE_RESEARCH_SUMMARY');
         $cfh->setFieldInactive('CIVI_FIELD_SCAD_CONSENT_DATE');
         
+        watchdog(__METHOD__, 'completed');
+    }
+
+    /**
+     * Create the case and custom data types for the SCAD study
+     *
+     * @return void
+     */
+     private function recreateCaseScadRegister() {
+        watchdog(__METHOD__, 'started');
+
+        $caseTypeId = recreateCaseType(CIVI_CASE_TYPE_SCAD_REGISTER);
+        $customDataGroupId = $this->recreateCaseCustomGroup($caseTypeId, CIVI_GROUP_SCAD_REGISTER);
+        $this->recreateCustomStringField($customDataGroupId, 'CIVI_FIELD_SCAD_REG_REG_ID', CIVI_FIELD_SCAD_REG_REG_ID);
+
         watchdog(__METHOD__, 'completed');
     }
 

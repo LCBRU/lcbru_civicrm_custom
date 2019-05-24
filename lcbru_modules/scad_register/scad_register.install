@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function scad_register_enable() {
+    $typeCreator = new LcbruTypeCreator();
+    $typeCreator->recreate();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function scad_register_disable() {
+}

@@ -1,0 +1,7 @@
+name = SCAD Register
+description = Manage participants in the SCAD register.
+core = 7.x
+configure = admin/config/content/scad_register
+dependencies[] = civicrm
+dependencies[] = lcbru
+dependencies[] = scad

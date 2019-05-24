@@ -178,6 +178,16 @@ define('CIVI_FIELD_SCAD_CONSENT_RECEIVE_RESEARCH_SUMMARY', 'Consent: Receive res
 define('CIVI_FIELD_SCAD_CONSENT_DATE', 'Consent date');
 define('CIVI_FIELD_SCAD_RECRUITMENT_TYPE', 'Recruitment Type');
 
+// SCAD Register Case type
+define('CIVI_CASE_TYPE_SCAD_REGISTER', 'SCAD_REGISTER');
+
+// SCAD Group for contacts in study
+define('CIVI_GROUP_SCAD_REGISTER', 'SCAD_REGISTER');
+
+// SCAD Custom Fields
+define('CIVI_FIELD_SET_SCAD_REGISTER', 'SCAD_REGISTER');
+define('CIVI_FIELD_SCAD_REG_REG_ID', 'SCAD Registry ID');
+
 // OMICS Register Case type
 define('CIVI_CASE_TYPE_OMICS_REGISTER', 'OMICS_REGISTER');
 
