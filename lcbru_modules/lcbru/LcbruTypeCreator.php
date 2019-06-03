@@ -366,6 +366,7 @@ class LcbruTypeCreator
         $this->recreateCaseActivityType(CIVI_ACTIVITY_EMAIL_PARTICIPANT);
         $this->recreateCaseActivityType(CIVI_ACTIVITY_EXPENSE_REIMBURSEMENT_SUBMITTED);
         $this->recreateCaseActivityType(CIVI_ACTIVITY_COLLECT_CONSENT);
+        $this->recreateCaseActivityType(CIVI_ACTIVITY_BLOODS_DESTROYED);
         
         $archivingActivityTypeId = $this->recreateCaseActivityType(CIVI_ACTIVITY_ARCHIVING);
         $archivingDataGroupId = $this->recreateActivityCustomGroup($archivingActivityTypeId, CIVI_FIELD_SET_ARCHIVING_ACTIVITY);
