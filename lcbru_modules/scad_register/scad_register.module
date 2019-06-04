@@ -11,9 +11,9 @@ function scad_register_civicrm_validateForm( $formName, &$fields, &$files, &$for
 
     if (lcbru_string_starts_with($formName, $contactFormBeginning)) {
         foreach ($fields as $key => $field) {
-            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_REG_ID') . '_')) {
+            if (lcbru_string_starts_with($key, lcbru_get_custom_field_id_name('CIVI_FIELD_SCAD_REG_REG_ID') . '_')) {
                 if (_scad_isInvalidScadRegId($field)) {
-                    $errors[$key] = ts(CIVI_FIELD_SCAD_REG_ID . " is not valid.  Should be of the format 'ScadRegnnnnn', where 'nnnnn' is a 5 digit number");
+                    $errors[$key] = ts(CIVI_FIELD_SCAD_REG_REG_ID . " is not valid.  Should be of the format 'ScadRegnnnnn', where 'nnnnn' is a 5 digit number");
                 }
             }
         }
@@ -23,13 +23,13 @@ function scad_register_civicrm_validateForm( $formName, &$fields, &$files, &$for
 
 
 function scad_register_lcbru_populateStudyIds(array &$studyIds) {
-    $studyIds[] = 'CIVI_FIELD_SCAD_REG_ID';
+    $studyIds[] = 'CIVI_FIELD_SCAD_REG_REG_ID';
 }
 
 
 function scad_register_lcbru_getStudyIdFieldName($studyId) {
     if (!_scad_isInvalidScadRegId($studyId)) {
-        return 'CIVI_FIELD_SCAD_REG_ID';
+        return 'CIVI_FIELD_SCAD_REG_REG_ID';
     }
 }
 
@@ -41,7 +41,7 @@ function scad_register_participant_importer_populateDefinitions() {
 
     SELECT
         MAX(COALESCE(eq.ts, 0)) AS last_update,
-        q.record CIVI_FIELD_SCAD_REG_ID,
+        q.record CIVI_FIELD_SCAD_REG_REG_ID,
         q.scad_reg_date AS start_date,
         CASE q.gender
                 WHEN 0 THEN 'Female'
