@@ -136,6 +136,25 @@ class IdGenerator
         drupal_set_message("Largest ID was: ".$largestNumber);
     }
 
+    /**
+     * Function that prints all IDs that would be produced by
+     * the algorithm
+     */
+     public function print_all() {
+        $myfile = fopen("/var/local/civicrm/drupal/sites/default/files/".$this->prefix."_ids.csv", "w") or die("Unable to open file!");
+
+        for ($x = 0; $x < Self::PRIME; $x++) {
+            $uniqueId = $this->_create_unique_id($x);
+
+            $formattedId = $this->prefix.substr("00000000".$uniqueId, -7);
+            $checkDigit = $this->_get_checkdigit($formattedId);
+            $fullcode = $formattedId.$checkDigit;
+
+            fwrite($myfile, "$x,$fullcode\n");
+        }
+        fclose($myfile);
+    }
+
     private function _permuteQPR($x){
         // See http://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
 

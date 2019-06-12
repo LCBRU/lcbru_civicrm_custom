@@ -82,7 +82,18 @@ $databases['redcap']['default'] = array (
         'driver'   => 'mysql',
       );
    
-  /**
+$databases['redcap_uol_crf'] = array (
+'default' =>
+array (
+    'database' => getenv("MYSQL_REDCAP_UOL_CRF_DATABASE"),
+    'username' => getenv("MYSQL_REDCAP_UOL_CRF_USERNAME"),
+    'password' => getenv("MYSQL_REDCAP_UOL_CRF_PASSWORD"),
+    'host'     => getenv("MYSQL_REDCAP_UOL_CRF_HOST"),
+    'driver'   => 'mysql',
+),
+);
+    
+/**
  * Salt for one-time login links, cancel links and form tokens, etc.
  *
  */

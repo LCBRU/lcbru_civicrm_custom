@@ -153,58 +153,89 @@ function limb_lcbru_getStudyIdFieldName($studyId) {
 }
 
 
-// function limb_participant_importer_populateDefinitions() {
-//     return array(
-//         'Limb REDCap' => array(
-//             'query' => "
-//                 SELECT *
-//                 FROM (
-//                     SELECT
-//                         MAX(COALESCE(es.ts, 0)) AS last_update,
-//                         s.record CIVI_FIELD_LENTEN_ID,
-//                         s.record,
-//                         s.project_id,
-//                         s.start_date,
-//                         CASE s.gender
-//                                 WHEN 0 THEN 'Female'
-//                                 WHEN 1 THEN 'male'
-//                              END AS gender,
-//                         s.birth_date,
-//                          CASE
-//                              WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
-//                              WHEN non_complete_rsn = '5' THEN 'withdrawn'
-//                              ELSE 'excluded'
-//                          END AS case_status,
-//                         s.UHL_S_number
-//                      FROM (
-//                         SELECT
-//                             rd.record,
-//                             rd.project_id,
-//                             GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS uhl_s_number,
-//                             GROUP_CONCAT(CASE WHEN field_name = 'v1_visit_date' THEN VALUE ELSE NULL END) AS start_date,
-//                             GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-//                             GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-//                             GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-//                             GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
-//                         FROM    redcap_data rd
-//                         WHERE rd.project_id = 56
-//                         GROUP BY rd.record, rd.project_id
-//                     ) s
-//                     LEFT JOIN redcap_log_event es
-//                         ON es.project_id = s.project_id
-//                         AND es.pk = s.record
-//                         AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-//                         # Ignore events caused by the data import from
-//                         # the mobile app
-//                         AND es.page NOT IN ('DataImportController:index')
-//                     GROUP BY s.record
-//                 ) x
-//                 WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_LENTEN_ID, ''))) > 0
-//                         AND LENGTH(TRIM(COALESCE(UHL_S_Number, ''))) > 0
-//                         AND case_status IS NOT NULL
-//                 ",
-//              'case_type_name' => CIVI_CASETYPE_LENTEN,
-//              'add_pmi' => 1
-//         )
-//     );
-// }
+function limb_participant_importer_populateDefinitions() {
+     return array(
+         'Limb REDCap' => array(
+             'db_connection' => 'redcap_uol_crf',
+             'query' => "
+          SELECT
+             GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
+             s.CIVI_FIELD_LIMB_ID,
+             q.start_date,
+             s.first_name,
+             s.last_name,
+             s.street_address,
+             s.supplemental_address_2,
+             s.city,
+             s.state_province,
+             s.postal_code,
+             s.phone,
+             s.email,
+             s.NHS_number,
+             s.UHL_S_number,
+             CASE s.gender
+                     WHEN 0 THEN 'Female'
+                     WHEN 1 THEN 'male'
+                  END AS gender,
+             s.birth_date,
+              CASE
+                  WHEN COALESCE(q.study_status_comp_yn, '1') = '1' THEN 'recruited'
+                  WHEN q.non_complete_rsn = '5' THEN 'withdrawn'
+                  ELSE 'excluded'
+              END AS case_status
+         FROM    (
+             SELECT
+                 rd.record,
+                 rd.project_id,
+                 rd.record AS CIVI_FIELD_LIMB_ID,
+                 GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+                 GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+                 GROUP_CONCAT(CASE WHEN field_name = 'add_1' THEN VALUE ELSE NULL END) AS street_address,
+                 GROUP_CONCAT(CASE WHEN field_name = 'add_2' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+                 GROUP_CONCAT(CASE WHEN field_name = 'add_3' THEN VALUE ELSE NULL END) AS city,
+                 GROUP_CONCAT(CASE WHEN field_name = 'add_4' THEN VALUE ELSE NULL END) AS state_province,
+                 GROUP_CONCAT(CASE WHEN field_name = 'postcode' THEN VALUE ELSE NULL END) AS postal_code,
+                 GROUP_CONCAT(CASE WHEN field_name = 'tel_no' THEN VALUE ELSE NULL END) AS phone,
+                 GROUP_CONCAT(CASE WHEN field_name = 'email_add' THEN VALUE ELSE NULL END) AS email,
+                 GROUP_CONCAT(CASE WHEN field_name = 'nhs_no' THEN VALUE ELSE NULL END) AS NHS_number,
+                 GROUP_CONCAT(CASE WHEN field_name = 's_no' THEN VALUE ELSE NULL END) AS UHL_S_number,
+                 GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                 GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date
+             FROM    redcap_data rd
+             WHERE rd.project_id = 34
+             GROUP BY rd.record, rd.project_id
+         ) s
+         LEFT JOIN (
+              SELECT
+                     rd.record,
+                     rd.project_id,
+                     GROUP_CONCAT(CASE WHEN field_name = 'pat_consent_date' THEN VALUE ELSE NULL END) AS start_date,
+                     GROUP_CONCAT(CASE WHEN field_name = 'patient_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_LIMB_ID,
+                     GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                     GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+              FROM    redcap_data rd
+              WHERE rd.project_id = 32
+              GROUP BY rd.record, rd.project_id
+         ) q ON q.CIVI_FIELD_LIMB_ID = s.CIVI_FIELD_LIMB_ID
+         LEFT JOIN redcap_log_event es
+             ON es.project_id = s.project_id
+             AND es.pk = s.record
+             AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+             # Ignore events caused by the data import from
+             # the mobile app
+             AND es.page NOT IN ('DataImportController:index')
+         LEFT JOIN redcap_log_event eq
+             ON eq.project_id = q.project_id
+             AND eq.pk = q.record
+             AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+             # Ignore events caused by the data import from
+             # the mobile app
+             AND eq.page NOT IN ('DataImportController:index')
+         WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_LIMB_ID, '')))) > 0
+         GROUP BY s.CIVI_FIELD_LIMB_ID
+                 ",
+              'case_type_name' => CIVI_CASETYPE_LIMB,
+              'add_pmi' => 0
+         )
+     );
+ }

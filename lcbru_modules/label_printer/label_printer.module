@@ -124,3 +124,36 @@ function _label_printer_get_all_definitions() {
 
     return $result;
 }
+
+function label_printer_menu() {
+  $items['content/test/id_generator'] = array(
+    'title' => 'ID Generator Test',
+    'description' => 'Test ID Generator',
+    'menu_name' => 'main-menu',
+    'page callback' => '_label_printer_test',
+    'access callback' => '_label_printer_check_user_has_role',
+    'expanded' => TRUE,
+  );
+
+	return $items;
+}
+
+function _label_printer_check_user_has_role() {
+  global $user;
+  if (in_array('administrator', $user->roles)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+function _label_printer_test() {
+	set_time_limit (300);
+	foreach(['BavPt', 'BavFm', 'BavSa', 'IndPt', 'IndSa'] as $prefix) {
+		$idgen = new IdGenerator($prefix);
+
+		$idgen->print_all();
+	}
+
+
+	return 'Helloab';
+}

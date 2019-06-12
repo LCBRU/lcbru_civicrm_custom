@@ -112,6 +112,19 @@ $databases['redcap'] = array (
     ),
   );
 
+  $databases['redcap_uol_crf'] = array (
+    'default' =>
+    array (
+      'database' => 'uol_crf_redcap',
+      'username' => 'auditor',
+      'password' => 'g3s4t6',
+      'host' => 'uhlbriccsdb02',
+      'driver' => 'mysql',
+      'port' => '',
+      'prefix' => '',
+    ),
+  );
+
 $update_free_access = FALSE;
 
 $drupal_hash_salt = '7brWoPlmaS_KMxREVLkaJmYMqOpBZ27Nch-4PCXvsrU';

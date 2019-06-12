@@ -527,7 +527,12 @@ WHERE rank < 10
     ";
 
     try {
-        db_set_active('redcap');
+        if (array_key_exists('db_connection', $parameters)) {
+          $db_connect = $parameters['db_connection'];
+        } else {
+          $db_connect = 'redcap';
+        }
+        db_set_active($db_connect);
 
         $last_processed_date = variable_get($last_processed_name, '0');
 
@@ -566,6 +571,7 @@ WHERE rank < 10
 
     $errors = array();
 
+    pp(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
     watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
 
     if ($parameters['add_pmi']) {
@@ -586,6 +592,7 @@ WHERE rank < 10
         if ($last_update > $last_processed_date) {
             $last_processed_date = $last_update;
             variable_set($last_processed_name, $last_processed_date);
+            pp(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Setting last processed for ${parameters['case_type_name']}: $last_processed_date");
             watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Setting last processed for ${parameters['case_type_name']}: $last_processed_date");
         }
     }
