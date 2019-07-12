@@ -181,6 +181,7 @@ function limb_participant_importer_populateDefinitions() {
               CASE
                   WHEN COALESCE(q.study_status_comp_yn, '1') = '1' THEN 'recruited'
                   WHEN q.non_complete_rsn = '5' THEN 'withdrawn'
+                  WHEN non_complete_rsn = '8' THEN 'recruited'
                   ELSE 'excluded'
               END AS case_status
          FROM    (

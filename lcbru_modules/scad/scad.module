@@ -326,6 +326,7 @@ function scad_participant_importer_populateDefinitions() {
             CASE
                 WHEN s.record IS NULL THEN 'recruitment pending'
                 WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                WHEN non_complete_rsn = '8' THEN 'recruited'
                 WHEN non_complete_rsn = '5' THEN 'withdrawn'
                 ELSE 'excluded'
             END AS case_status,

@@ -257,6 +257,7 @@ function cardiomet_participant_importer_populateDefinitions() {
                          CASE
                              WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
                              WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                             WHEN non_complete_rsn = '8' THEN 'recruited'
                              ELSE 'excluded'
                          END AS case_status
                      FROM (
