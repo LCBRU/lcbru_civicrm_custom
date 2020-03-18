@@ -75,7 +75,7 @@ function genvasc_labels_formname_submit($form, &$form_state) {
   $lp = new LabelPrinter(LabelPrinter::PRINTER_CVRC_LAB_SAMPLE);
 
   foreach ($ids as $id) {
-    $lp->printStudySample($id, 2);
+    $lp->printStudySample($id, 4);
   }
 
   drupal_set_message(t('The following GENVASC labels have been created and printed: ' . join(', ', $ids)));
