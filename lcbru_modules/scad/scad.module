@@ -476,7 +476,6 @@ function scad_participant_importer_populateDefinitions() {
     WHERE s.record IS NOT NULL
         OR (q.reg_scad_eligible = '1' AND scad_reg_typ IN (0, 1, 2))
         GROUP BY q.record
-;
       ",
              'case_type_name' => CIVI_CASE_TYPE_SCAD,
              'add_pmi' => 0
