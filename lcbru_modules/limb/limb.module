@@ -158,7 +158,7 @@ function limb_participant_importer_populateDefinitions() {
          'Limb REDCap' => array(
              'db_connection' => 'redcap_uol_crf',
              'query' => "
-          SELECT
+             SELECT
              GREATEST(MAX(COALESCE(es.ts, 0)), MAX(COALESCE(eq.ts, 0))) AS last_update,
              s.CIVI_FIELD_LIMB_ID,
              q.start_date,
@@ -204,6 +204,21 @@ function limb_participant_importer_populateDefinitions() {
                  GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date
              FROM    redcap_data rd
              WHERE rd.project_id = 34
+             	AND rd.field_name IN (
+                 'first_name',
+                 'last_name',
+                 'add_1',
+                 'add_2',
+                 'add_3',
+                 'add_4',
+                 'postcode',
+                 'tel_no',
+                 'email_add',
+                 'nhs_no',
+                 's_no',
+                 'gender',
+                 'dob'
+				)
              GROUP BY rd.record, rd.project_id
          ) s
          LEFT JOIN (
@@ -216,6 +231,12 @@ function limb_participant_importer_populateDefinitions() {
                      GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
               FROM    redcap_data rd
               WHERE rd.project_id = 32
+              	AND rd.field_name IN (
+                     'pat_consent_date',
+                     'patient_id',
+                     'study_status_comp_yn',
+                     'non_complete_rsn'
+              	)
               GROUP BY rd.record, rd.project_id
          ) q ON q.CIVI_FIELD_LIMB_ID = s.CIVI_FIELD_LIMB_ID
          LEFT JOIN redcap_log_event es
@@ -225,6 +246,7 @@ function limb_participant_importer_populateDefinitions() {
              # Ignore events caused by the data import from
              # the mobile app
              AND es.page NOT IN ('DataImportController:index')
+             AND es.object_type = 'redcap_data'
          LEFT JOIN redcap_log_event eq
              ON eq.project_id = q.project_id
              AND eq.pk = q.record
@@ -232,6 +254,7 @@ function limb_participant_importer_populateDefinitions() {
              # Ignore events caused by the data import from
              # the mobile app
              AND eq.page NOT IN ('DataImportController:index')
+             AND eq.object_type = 'redcap_data'
          WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_LIMB_ID, '')))) > 0
          GROUP BY s.CIVI_FIELD_LIMB_ID
                  ",
