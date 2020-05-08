@@ -155,7 +155,8 @@ function discordance_participant_importer_populateDefinitions() {
                 GROUP_CONCAT(CASE WHEN field_name = 's_no' THEN VALUE ELSE NULL END) AS UHL_S_number,
                 GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender
             FROM    redcap_data rd
-            WHERE rd.project_id = 84
+            	WHERE rd.project_id = 84
+            	AND rd.field_name IN ('baseline_visit_date', 'first_name', 'last_name', 'add_1', 'add_2', 'add_3', 'add_4', 'postcode', 'tel_no', 'email_add', 'nhs_no', 's_no', 'gender')
             GROUP BY rd.record, rd.project_id
         ) s
         LEFT JOIN (
@@ -168,6 +169,11 @@ function discordance_participant_importer_populateDefinitions() {
                       GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
              FROM    redcap_data rd
              WHERE rd.project_id = 85
+             	AND rd.field_name IN (
+                      'dob',
+                      'study_status_comp_yn',
+                      'non_complete_rsn'
+             	)
              GROUP BY rd.record, rd.project_id
         ) q ON q.CIVI_FIELD_DISCORDANCE_ID = s.CIVI_FIELD_DISCORDANCE_ID
         LEFT JOIN redcap_log_event es
@@ -177,6 +183,7 @@ function discordance_participant_importer_populateDefinitions() {
             # Ignore events caused by the data import from
             # the mobile app
             AND es.page NOT IN ('DataImportController:index')
+            AND es.object_type = 'redcap_data'
         LEFT JOIN redcap_log_event eq
             ON eq.project_id = q.project_id
             AND eq.pk = q.record
@@ -184,6 +191,7 @@ function discordance_participant_importer_populateDefinitions() {
             # Ignore events caused by the data import from
             # the mobile app
             AND eq.page NOT IN ('DataImportController:index')
+            AND eq.object_type = 'redcap_data'
         WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.CIVI_FIELD_DISCORDANCE_ID, '')))) > 0
         GROUP BY s.CIVI_FIELD_DISCORDANCE_ID
             ",
