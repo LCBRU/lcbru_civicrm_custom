@@ -252,6 +252,14 @@ function indapamide_participant_importer_populateDefinitions() {
                         GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date
                     FROM    redcap_data rd
                     WHERE rd.project_id = 50
+                    	AND rd.field_name IN (
+                        'status',
+                        'study_status_comp_yn',
+                        'non_complete_rsn',
+                        's_number',
+                        'screening_date',
+                        'gender',
+                        'dob'                    	)
                     GROUP BY rd.record, rd.project_id
                 ) s
                 LEFT JOIN redcap_log_event es
@@ -261,6 +269,7 @@ function indapamide_participant_importer_populateDefinitions() {
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND es.page NOT IN ('DataImportController:index')
+                    AND es.object_type = 'redcap_data'
                 GROUP BY s.record
             ) x
             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_INDAPAMIDE_ID, ''))) > 0
