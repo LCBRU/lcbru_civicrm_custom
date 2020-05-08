@@ -374,50 +374,59 @@ function nihr_br_labels_participant_importer_populateDefinitions() {
     return array(
         'BioResource REDCap' => array(
             'query' => "
-                SELECT *
-                FROM (
+            SELECT *
+            FROM (
+                SELECT
+                    MAX(COALESCE(es.ts, 0)) AS last_update,
+                    CASE WHEN s.record REGEXP '[A-Z]$' THEN s.record END NIHR_BioResource_ID,
+                    CASE WHEN s.record NOT REGEXP '[A-Z]$' THEN s.record END CIVI_FIELD_BIORESOURCE_LEGACY_ID,
+                    s.record,
+                    s.project_id,
+                    s.start_date,
+                    CASE s.gender
+                            WHEN 2 THEN 'Female'
+                            WHEN 1 THEN 'male'
+                         END AS gender,
+                    s.birth_date,
+                     CASE
+                         WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
+                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                         WHEN non_complete_rsn = '8' THEN 'recruited'
+                         ELSE 'excluded'
+                     END AS case_status
+                 FROM (
                     SELECT
-                        MAX(COALESCE(es.ts, 0)) AS last_update,
-                        CASE WHEN s.record REGEXP '[A-Z]$' THEN s.record END NIHR_BioResource_ID,
-                        CASE WHEN s.record NOT REGEXP '[A-Z]$' THEN s.record END CIVI_FIELD_BIORESOURCE_LEGACY_ID,
-                        s.record,
-                        s.project_id,
-                        s.start_date,
-                        CASE s.gender
-                                WHEN 2 THEN 'Female'
-                                WHEN 1 THEN 'male'
-                             END AS gender,
-                        s.birth_date,
-                         CASE
-                             WHEN COALESCE(study_status_comp_yn, '1') = '1' THEN 'recruited'
-                             WHEN non_complete_rsn = '5' THEN 'withdrawn'
-                             WHEN non_complete_rsn = '8' THEN 'recruited'
-                             ELSE 'excluded'
-                         END AS case_status
-                     FROM (
-                        SELECT
-                            rd.record,
-                            rd.project_id,
-                            GROUP_CONCAT(CASE WHEN field_name = 'date_of_sig' THEN VALUE ELSE NULL END) AS start_date,
-                            GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-                            GROUP_CONCAT(CASE WHEN field_name = 'date_of_birth' THEN VALUE ELSE NULL END) AS birth_date,
-                            GROUP_CONCAT(CASE WHEN field_name = 'date_of_sig' THEN VALUE ELSE NULL END) AS consent_signed,
-                            GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
-                            GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
-                        FROM    redcap_data rd
-                        WHERE rd.project_id = 9
-                        GROUP BY rd.record, rd.project_id
-                    ) s
-                    LEFT JOIN redcap_log_event es
-                        ON es.project_id = s.project_id
-                        AND es.pk = s.record
-                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                        # Ignore events caused by the data import from
-                        # the mobile app
-                        AND es.page NOT IN ('DataImportController:index')
-                    GROUP BY s.record
-                ) x
-                ",
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 'date_of_sig' THEN VALUE ELSE NULL END) AS start_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+                        GROUP_CONCAT(CASE WHEN field_name = 'date_of_birth' THEN VALUE ELSE NULL END) AS birth_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'date_of_sig' THEN VALUE ELSE NULL END) AS consent_signed,
+                        GROUP_CONCAT(CASE WHEN field_name = 'study_status_comp_yn' THEN VALUE ELSE NULL END) AS study_status_comp_yn,
+                        GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 9
+                      AND rd.field_name IN (
+                        'date_of_sig',
+                        'gender',
+                        'date_of_birth',
+                        'date_of_sig',
+                        'study_status_comp_yn',
+                        'non_complete_rsn'
+                      )
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND es.page NOT IN ('DataImportController:index')
+                    AND es.object_type = 'redcap_data'
+                GROUP BY s.record
+            ) x
+            ",
              'case_type_name' => CIVI_CASETYPE_BIORESOURCE,
              'add_pmi' => 0
         )
