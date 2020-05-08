@@ -99,47 +99,55 @@ function preeclampsia_participant_importer_populateDefinitions() {
     return array(
         'Pre-eclampsia REDCap' => array(
             'query' => "
-                SELECT *
-                FROM (
+            SELECT *
+            FROM (
+                SELECT
+                    MAX(COALESCE(es.ts, 0)) AS last_update,
+                    s.record CIVI_FIELD_PRE_ECLAMPSIA_ID,
+                    s.record,
+                    s.project_id,
+                    s.start_date,
+                    'Female' AS gender,
+                    s.UHL_S_number,
+                 CASE
+                     WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
+                     WHEN non_complete_rsn = '5' THEN 'withdrawn'
+                     WHEN non_complete_rsn = '8' THEN 'recruited'
+                     ELSE 'excluded'
+                 END AS case_status
+                    
+                 FROM (
                     SELECT
-                        MAX(COALESCE(es.ts, 0)) AS last_update,
-                        s.record CIVI_FIELD_PRE_ECLAMPSIA_ID,
-                        s.record,
-                        s.project_id,
-                        s.start_date,
-                        'Female' AS gender,
-                        s.UHL_S_number,
-                     CASE
-                         WHEN COALESCE(study_status, '1') = '1' THEN 'recruited'
-                         WHEN non_complete_rsn = '5' THEN 'withdrawn'
-                         WHEN non_complete_rsn = '8' THEN 'recruited'
-                         ELSE 'excluded'
-                     END AS case_status
-                        
-                     FROM (
-                        SELECT
-                            rd.record,
-                            rd.project_id,
-                            GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
-                            GROUP_CONCAT(CASE WHEN field_name = 'visit_date' THEN VALUE ELSE NULL END) AS start_date,
-                            GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
-                            GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
-                            GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
-                        FROM    redcap_data rd
-                        WHERE rd.project_id = 39
-                        GROUP BY rd.record, rd.project_id
-                    ) s
-                    LEFT JOIN redcap_log_event es
-                        ON es.project_id = s.project_id
-                        AND es.pk = s.record
-                        AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                        # Ignore events caused by the data import from
-                        # the mobile app
-                        AND es.page NOT IN ('DataImportController:index')
-                    GROUP BY s.record
-                ) x
-                WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PRE_ECLAMPSIA_ID, ''))) > 0
-                ",
+                        rd.record,
+                        rd.project_id,
+                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+                        GROUP_CONCAT(CASE WHEN field_name = 'visit_date' THEN VALUE ELSE NULL END) AS start_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END) AS birth_date,
+                        GROUP_CONCAT(CASE WHEN field_name = 'study_status' THEN VALUE ELSE NULL END) AS study_status,
+                        GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
+                    FROM    redcap_data rd
+                    WHERE rd.project_id = 39
+                      AND rd.field_name IN (
+                        's_number',
+                        'visit_date',
+                        'dob',
+                        'study_status',
+                        'non_complete_rsn'                        	
+                      )
+                    GROUP BY rd.record, rd.project_id
+                ) s
+                LEFT JOIN redcap_log_event es
+                    ON es.project_id = s.project_id
+                    AND es.pk = s.record
+                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND es.page NOT IN ('DataImportController:index')
+                    AND es.object_type = 'redcap_data'
+                GROUP BY s.record
+            ) x
+            WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PRE_ECLAMPSIA_ID, ''))) > 0
+            ",
              'case_type_name' => CIVI_CASETYPE_PRE_ECLAMPSIA,
              'add_pmi' => 1
         )
