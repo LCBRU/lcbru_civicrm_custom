@@ -201,117 +201,153 @@ function brave_participant_importer_populateDefinitions() {
     return array(
         'Brave REDCap' => array(
             'query' => "
-                SELECT
-                            MAX(COALESCE(es.ts, 0)) AS last_update,
-                            s.record,
-                            CIVI_FIELD_BRAVE_ID,
-                            s.start_date,
-                            CIVI_FIELD_BRAVE_BRICCS_ID,
-                            CIVI_FIELD_BRAVE_FAMILY_ID,
-                            UHL_S_number,
-                            NHS_number,
-                            title,
-                            first_name,
-                            last_name,
-                            birth_date,
-                            CASE gender
-                                   WHEN 0 THEN 'Female'
-                                   WHEN 1 THEN 'male'
-                                END AS gender,
-                            
-                            supplemental_address_1,
-                            street_address,
-                            supplemental_address_2,
-                            city,
-                            state_province,
-                            postal_code,
-                            
-                            email,
-	                       CASE
-	                           WHEN COALESCE(criteria_met, '1') = '0' THEN 'excluded'
-	                           WHEN COALESCE(withd_recd, '0') <> '0' THEN 'withdrawn'
-	                           WHEN
-												COALESCE(exc_inf_consent, '0') = '1'
-											OR COALESCE(exc_inf_risk, '0') = '1'
-											OR COALESCE(exc_cyto_abnorm, '0') = '1'
-											OR COALESCE(exc_marfans_etc, '0') = '1'
-											THEN 'excluded'
-	                           WHEN
-												COALESCE(consent_q1, '0') = '0'
-											OR COALESCE(consent_q2, '0') = '0'
-											OR COALESCE(consent_q3, '0') = '0'
-											OR COALESCE(consent_q4, '0') = '0'
-											OR COALESCE(consent_q5, '0') = '0'
-											OR COALESCE(consent_q6, '0') = '0'
-											OR COALESCE(consent_q7, '0') = '0'
-											OR COALESCE(consent_q8, '0') = '0'
-											OR COALESCE(consent_q9, '0') = '0'
-											THEN 'excluded'
-	                           WHEN
-												COALESCE(inc_diag_bav, '1') = '1'
-											OR COALESCE(inc_aff_1st_deg_rel, '1') = '1'
-											OR COALESCE(inc_unaff_1st_deg_rel, '1') = '1'
-											THEN 'recruited'
-	                           ELSE 'excluded'
-	                       END AS case_status
-                FROM    (
-                    SELECT
-                                rd.record,
-                                rd.project_id,
-                        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
-                        rd.record AS CIVI_FIELD_BRAVE_ID,
-                        GROUP_CONCAT(CASE WHEN field_name = 'briccs_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_BRICCS_ID,
-                        GROUP_CONCAT(CASE WHEN field_name = 'bav_family_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_FAMILY_ID,
-                        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
-                        GROUP_CONCAT(CASE WHEN field_name = 'nhs_number' THEN VALUE ELSE NULL END) AS NHS_number,
-                        GROUP_CONCAT(CASE WHEN field_name = 'title' THEN VALUE ELSE NULL END) AS title,
-                        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
-                        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
-                        
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_line1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_line2' THEN VALUE ELSE NULL END) AS street_address,
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_line3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_city' THEN VALUE ELSE NULL END) AS city,
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_county' THEN VALUE ELSE NULL END) AS state_province,
-                        GROUP_CONCAT(CASE WHEN field_name = 'address_postcode' THEN VALUE ELSE NULL END) AS postal_code,
+            SELECT
+            MAX(COALESCE(es.ts, 0)) AS last_update,
+            s.record,
+            CIVI_FIELD_BRAVE_ID,
+            s.start_date,
+            CIVI_FIELD_BRAVE_BRICCS_ID,
+            CIVI_FIELD_BRAVE_FAMILY_ID,
+            UHL_S_number,
+            NHS_number,
+            title,
+            first_name,
+            last_name,
+            birth_date,
+            CASE gender
+                   WHEN 0 THEN 'Female'
+                   WHEN 1 THEN 'male'
+                END AS gender,
+            supplemental_address_1,
+            street_address,
+            supplemental_address_2,
+            city,
+            state_province,
+            postal_code,            
+            email,
+         CASE
+             WHEN COALESCE(criteria_met, '1') = '0' THEN 'excluded'
+             WHEN COALESCE(withd_recd, '0') <> '0' THEN 'withdrawn'
+             WHEN
+        COALESCE(exc_inf_consent, '0') = '1'
+      OR COALESCE(exc_inf_risk, '0') = '1'
+      OR COALESCE(exc_cyto_abnorm, '0') = '1'
+      OR COALESCE(exc_marfans_etc, '0') = '1'
+      THEN 'excluded'
+             WHEN
+        COALESCE(consent_q1, '0') = '0'
+      OR COALESCE(consent_q2, '0') = '0'
+      OR COALESCE(consent_q3, '0') = '0'
+      OR COALESCE(consent_q4, '0') = '0'
+      OR COALESCE(consent_q5, '0') = '0'
+      OR COALESCE(consent_q6, '0') = '0'
+      OR COALESCE(consent_q7, '0') = '0'
+      OR COALESCE(consent_q8, '0') = '0'
+      OR COALESCE(consent_q9, '0') = '0'
+      THEN 'excluded'
+             WHEN
+        COALESCE(inc_diag_bav, '1') = '1'
+      OR COALESCE(inc_aff_1st_deg_rel, '1') = '1'
+      OR COALESCE(inc_unaff_1st_deg_rel, '1') = '1'
+      THEN 'recruited'
+             ELSE 'excluded'
+         END AS case_status
+FROM    (
+    SELECT
+                rd.record,
+                rd.project_id,
+        GROUP_CONCAT(CASE WHEN field_name = 'int_date' THEN VALUE ELSE NULL END) AS start_date,
+        rd.record AS CIVI_FIELD_BRAVE_ID,
+        GROUP_CONCAT(CASE WHEN field_name = 'briccs_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_BRICCS_ID,
+        GROUP_CONCAT(CASE WHEN field_name = 'bav_family_id' THEN VALUE ELSE NULL END) AS CIVI_FIELD_BRAVE_FAMILY_ID,
+        GROUP_CONCAT(CASE WHEN field_name = 's_number' THEN VALUE ELSE NULL END) AS UHL_S_number,
+        GROUP_CONCAT(CASE WHEN field_name = 'nhs_number' THEN VALUE ELSE NULL END) AS NHS_number,
+        GROUP_CONCAT(CASE WHEN field_name = 'title' THEN VALUE ELSE NULL END) AS title,
+        GROUP_CONCAT(CASE WHEN field_name = 'first_name' THEN VALUE ELSE NULL END) AS first_name,
+        GROUP_CONCAT(CASE WHEN field_name = 'last_name' THEN VALUE ELSE NULL END) AS last_name,
+        
+        GROUP_CONCAT(CASE WHEN field_name = 'address_line1' THEN VALUE ELSE NULL END) AS supplemental_address_1,
+        GROUP_CONCAT(CASE WHEN field_name = 'address_line2' THEN VALUE ELSE NULL END) AS street_address,
+        GROUP_CONCAT(CASE WHEN field_name = 'address_line3' THEN VALUE ELSE NULL END) AS supplemental_address_2,
+        GROUP_CONCAT(CASE WHEN field_name = 'address_city' THEN VALUE ELSE NULL END) AS city,
+        GROUP_CONCAT(CASE WHEN field_name = 'address_county' THEN VALUE ELSE NULL END) AS state_province,
+        GROUP_CONCAT(CASE WHEN field_name = 'address_postcode' THEN VALUE ELSE NULL END) AS postal_code,
 
-                        REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
-                        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
-                        
-                        GROUP_CONCAT(CASE WHEN field_name = 'pat_email1' THEN VALUE ELSE NULL END) AS email,
+        REPLACE(MAX(CASE WHEN field_name = 'dob' THEN VALUE ELSE NULL END), '-', '') AS birth_date,
+        GROUP_CONCAT(CASE WHEN field_name = 'gender' THEN VALUE ELSE NULL END) AS gender,
+        
+        GROUP_CONCAT(CASE WHEN field_name = 'pat_email1' THEN VALUE ELSE NULL END) AS email,
 
-	   	                GROUP_CONCAT(CASE WHEN field_name = 'consent_q1' THEN VALUE ELSE NULL END) AS consent_q1,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q2' THEN VALUE ELSE NULL END) AS consent_q2,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q3' THEN VALUE ELSE NULL END) AS consent_q3,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q4' THEN VALUE ELSE NULL END) AS consent_q4,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q5' THEN VALUE ELSE NULL END) AS consent_q5,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q6' THEN VALUE ELSE NULL END) AS consent_q6,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q7' THEN VALUE ELSE NULL END) AS consent_q7,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q8' THEN VALUE ELSE NULL END) AS consent_q8,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'consent_q9' THEN VALUE ELSE NULL END) AS consent_q9,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_diag_bav' THEN VALUE ELSE NULL END) AS inc_diag_bav,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_aff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_aff_1st_deg_rel,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'inc_unaff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_unaff_1st_deg_rel,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_consent' THEN VALUE ELSE NULL END) AS exc_inf_consent,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_risk' THEN VALUE ELSE NULL END) AS exc_inf_risk,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_cyto_abnorm' THEN VALUE ELSE NULL END) AS exc_cyto_abnorm,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'exc_marfans_etc' THEN VALUE ELSE NULL END) AS exc_marfans_etc,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'withd_recd' THEN VALUE ELSE NULL END) AS withd_recd,
-		                   GROUP_CONCAT(CASE WHEN field_name = 'criteria_met' THEN VALUE ELSE NULL END) AS criteria_met
-                    FROM    redcap_data rd
-                    WHERE rd.project_id = 26
-                    GROUP BY rd.record, rd.project_id
-                ) s
-                LEFT JOIN redcap_log_event es
-                    ON es.project_id = s.project_id
-                    AND es.pk = s.record
-                    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND es.page NOT IN ('DataImportController:index')
-                WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
-                GROUP BY s.record
-            ",
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q1' THEN VALUE ELSE NULL END) AS consent_q1,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q2' THEN VALUE ELSE NULL END) AS consent_q2,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q3' THEN VALUE ELSE NULL END) AS consent_q3,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q4' THEN VALUE ELSE NULL END) AS consent_q4,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q5' THEN VALUE ELSE NULL END) AS consent_q5,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q6' THEN VALUE ELSE NULL END) AS consent_q6,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q7' THEN VALUE ELSE NULL END) AS consent_q7,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q8' THEN VALUE ELSE NULL END) AS consent_q8,
+       GROUP_CONCAT(CASE WHEN field_name = 'consent_q9' THEN VALUE ELSE NULL END) AS consent_q9,
+       GROUP_CONCAT(CASE WHEN field_name = 'inc_diag_bav' THEN VALUE ELSE NULL END) AS inc_diag_bav,
+       GROUP_CONCAT(CASE WHEN field_name = 'inc_aff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_aff_1st_deg_rel,
+       GROUP_CONCAT(CASE WHEN field_name = 'inc_unaff_1st_deg_rel' THEN VALUE ELSE NULL END) AS inc_unaff_1st_deg_rel,
+       GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_consent' THEN VALUE ELSE NULL END) AS exc_inf_consent,
+       GROUP_CONCAT(CASE WHEN field_name = 'exc_inf_risk' THEN VALUE ELSE NULL END) AS exc_inf_risk,
+       GROUP_CONCAT(CASE WHEN field_name = 'exc_cyto_abnorm' THEN VALUE ELSE NULL END) AS exc_cyto_abnorm,
+       GROUP_CONCAT(CASE WHEN field_name = 'exc_marfans_etc' THEN VALUE ELSE NULL END) AS exc_marfans_etc,
+       GROUP_CONCAT(CASE WHEN field_name = 'withd_recd' THEN VALUE ELSE NULL END) AS withd_recd,
+       GROUP_CONCAT(CASE WHEN field_name = 'criteria_met' THEN VALUE ELSE NULL END) AS criteria_met
+    FROM    redcap_data rd
+    WHERE rd.project_id = 26
+      AND rd.field_name IN (
+        'int_date',
+        'briccs_id',
+        'bav_family_id',
+        's_number',
+        'nhs_number',
+        'title',
+        'first_name',
+        'last_name',
+        'address_line1',
+        'address_line2',
+        'address_line3',
+        'address_city',
+        'address_county',
+        'address_postcode',
+        'dob',
+        'gender',
+        'pat_email1',
+       'consent_q1',
+     'consent_q2',
+     'consent_q3',
+     'consent_q4',
+     'consent_q5',
+     'consent_q6',
+     'consent_q7',
+     'consent_q8',
+     'consent_q9',
+     'inc_diag_bav',
+     'inc_aff_1st_deg_rel',
+     'inc_unaff_1st_deg_rel',
+     'exc_inf_consent',
+     'exc_inf_risk',
+     'exc_cyto_abnorm',
+     'exc_marfans_etc',
+     'withd_recd',
+     'criteria_met'
+      )
+    GROUP BY rd.record, rd.project_id
+) s
+LEFT JOIN redcap_log_event es
+    ON es.project_id = s.project_id
+    AND es.pk = s.record
+    AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
+    AND object_type = 'redcap_data'
+    # Ignore events caused by the data import from
+    # the mobile app
+    AND es.page NOT IN ('DataImportController:index')
+WHERE LENGTH(RTRIM(LTRIM(COALESCE(s.record, '')))) > 0
+GROUP BY s.record
+         ",
              'case_type_name' => CIVI_CASE_TYPE_BRAVE,
              'add_pmi' => 0
         )
