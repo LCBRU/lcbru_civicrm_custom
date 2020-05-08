@@ -369,6 +369,27 @@ function scad_participant_importer_populateDefinitions() {
             FROM    redcap_data rd
             WHERE rd.project_id = 31 # Registry & Screening
               AND LENGTH(TRIM(COALESCE(rd.record, ''))) > 0
+              AND rd.field_name IN (
+                'scad_reg_typ',
+                'scad_reg_date',
+                'wthdrw_date',
+                'frst_nm',
+                'lst_nm',
+                'addrss_ln_1',
+                'addrss_ln_2',
+                'addrss_ln_3',
+                'addrss_city',
+                'addrss_rgn',
+                'addrss_cntry',
+                'addrss_pstcd',
+                'prfrrd_phn_num',
+                'scad_reg_email',
+                'nhs_no',
+                's_number',
+                'dob',
+                'reg_scad_eligible',
+                'gender'
+              )
             GROUP BY rd.record, rd.project_id
         ) q
         LEFT JOIN    (
@@ -386,6 +407,17 @@ function scad_participant_importer_populateDefinitions() {
                 GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
             FROM    redcap_data rd
             WHERE rd.project_id = 28 # Clinical Visit 1
+            	AND rd.field_name IN (
+                'scad_local_id',
+                'scadreg_id',
+                'scad_family_id',
+                'rec_type',
+                'int_date',
+                'gender',
+                'dob',
+                'study_status',
+                'non_complete_rsn'
+				)
             GROUP BY rd.record, rd.project_id
             
             UNION
@@ -412,6 +444,17 @@ function scad_participant_importer_populateDefinitions() {
                 GROUP_CONCAT(CASE WHEN field_name = 'non_complete_rsn' THEN VALUE ELSE NULL END) AS non_complete_rsn
             FROM    redcap_data rd
             WHERE rd.project_id = 77 # Clinical Visit 2
+            	AND rd.field_name IN (
+                'scad_id',
+                'scadreg_id',
+                'scad_family_id',
+                'rec_type',
+                'consent_date',
+                'gender',
+                'dob',
+                'study_status',
+                'non_complete_rsn'            	
+            	)
             GROUP BY rd.record, rd.project_id
         ) s ON q.record = s.scad_reg_id
         LEFT JOIN redcap_log_event es
@@ -421,6 +464,7 @@ function scad_participant_importer_populateDefinitions() {
             # Ignore events caused by the data import from
             # the mobile app
             AND es.page NOT IN ('DataImportController:index')
+            AND es.object_type = 'redcap_data'
         LEFT JOIN redcap_log_event eq
             ON eq.project_id = q.project_id
             AND eq.pk = q.record
@@ -428,11 +472,11 @@ function scad_participant_importer_populateDefinitions() {
             # Ignore events caused by the data import from
             # the mobile app
             AND eq.page NOT IN ('DataImportController:index')
+            AND eq.object_type = 'redcap_data'
     WHERE s.record IS NOT NULL
         OR (q.reg_scad_eligible = '1' AND scad_reg_typ IN (0, 1, 2))
-
         GROUP BY q.record
-
+;
       ",
              'case_type_name' => CIVI_CASE_TYPE_SCAD,
              'add_pmi' => 0
