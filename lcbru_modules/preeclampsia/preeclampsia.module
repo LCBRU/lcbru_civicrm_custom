@@ -136,14 +136,15 @@ function preeclampsia_participant_importer_populateDefinitions() {
                       )
                     GROUP BY rd.record, rd.project_id
                 ) s
-                LEFT JOIN redcap_log_event es
-                    ON es.project_id = s.project_id
+                JOIN redcap_log_event es
+                    ON es.project_id = 39
                     AND es.pk = s.record
                     AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND es.page NOT IN ('DataImportController:index')
                     AND es.object_type = 'redcap_data'
+                    AND es.ts > :last_processed_date
                 GROUP BY s.record
             ) x
             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PRE_ECLAMPSIA_ID, ''))) > 0
