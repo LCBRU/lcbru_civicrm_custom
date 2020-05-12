@@ -191,22 +191,24 @@ function predict_participant_importer_populateDefinitions() {
                      GROUP BY rd.record, rd.project_id
                 ) q ON q.record = s.record
                 LEFT JOIN redcap_log_event eq
-                    ON eq.project_id = q.project_id
+                    ON eq.project_id = 62
                     AND eq.pk = q.record
                     AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND eq.page NOT IN ('DataImportController:index')
                     AND eq.object_type = 'redcap_data'
+                    AND eq.ts > :last_processed_date
 
-                LEFT JOIN redcap_log_event es
-                    ON es.project_id = s.project_id
+                JOIN redcap_log_event es
+                    ON es.project_id = 63
                     AND es.pk = s.record
                     AND es.`event` NOT IN ('DATA_EXPORT', 'DELETE')
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND es.page NOT IN ('DataImportController:index')
                     AND es.object_type = 'redcap_data'
+                    AND es.ts > :last_processed_date
                 GROUP BY s.record
             ) x
             WHERE LENGTH(TRIM(COALESCE(CIVI_FIELD_PREDICT_ID, ''))) > 0
