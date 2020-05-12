@@ -465,14 +465,16 @@ function scad_participant_importer_populateDefinitions() {
             # the mobile app
             AND es.page NOT IN ('DataImportController:index')
             AND es.object_type = 'redcap_data'
-        LEFT JOIN redcap_log_event eq
-            ON eq.project_id = q.project_id
+            AND es.ts > :last_processed_date
+        JOIN redcap_log_event eq
+            ON eq.project_id = 31
             AND eq.pk = q.record
             AND eq.`event` NOT IN ('DATA_EXPORT', 'DELETE')
             # Ignore events caused by the data import from
             # the mobile app
             AND eq.page NOT IN ('DataImportController:index')
             AND eq.object_type = 'redcap_data'
+            AND eq.ts > :last_processed_date
     WHERE s.record IS NOT NULL
         OR (q.reg_scad_eligible = '1' AND scad_reg_typ IN (0, 1, 2))
         GROUP BY q.record
