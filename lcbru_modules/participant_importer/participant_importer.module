@@ -452,17 +452,24 @@ function _participant_importer_reset_last_processed_date(&$form, &$form_state) {
 function participant_importer_cron() {
   civicrm_initialize();
 
+
   $helper = new CronHelper(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB);
   $creator_id = $helper->getCronUserContactId();
   $helper->runCron(function() use ($creator_id) {
-        $errors = _participant_importer_run_import($creator_id, NULL);
+    $current_hour = date('H');
 
-        if (!empty($errors)) {
-            watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'Errors found');
-            MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, PARTICIPANT_IMPORTER_IMPORT_CRON_JOB . ' Load Errors', print_r($errors, True));
-        } else {
-            watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'No errors found');
-        }
+    if ($current_hour < 7 || $current_hour > 19) {
+      watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'Skipping out of hours.');
+    } else {
+      $errors = _participant_importer_run_import($creator_id, NULL);
+
+      if (!empty($errors)) {
+          watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'Errors found');
+          MailHelper::send(LCBRU_DEFAULT_EMAIL_RECIPIENT, PARTICIPANT_IMPORTER_IMPORT_CRON_JOB . ' Load Errors', print_r($errors, True));
+      } else {
+          watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, 'No errors found');
+      }
+  }
   });
 }
 
@@ -571,15 +578,6 @@ WHERE rank < 10
 
     $errors = array();
 
-    $current_hour = date('H');
-
-    pp("Current hour is: " . $current_hour);
-
-    if ($current_hour < 7 || $current_hour > 19) {
-      pp("Not in working day");
-    } else {
-      pp("In working day");
-    }
     pp(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
     watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
 
