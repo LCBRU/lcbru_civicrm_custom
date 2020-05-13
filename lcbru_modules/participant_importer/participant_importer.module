@@ -571,6 +571,15 @@ WHERE rank < 10
 
     $errors = array();
 
+    $current_hour = date('H');
+
+    pp("Current hour is: " . $current_hour);
+
+    if ($current_hour < 7 || $current_hour > 19) {
+      pp("Not in working day");
+    } else {
+      pp("In working day");
+    }
     pp(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
     watchdog(PARTICIPANT_IMPORTER_IMPORT_CRON_JOB, "Importing " . count($participant_details) . " records into " . $parameters['case_type_name']);
 
